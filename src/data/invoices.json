@@ -1,0 +1,27 @@
+[
+  {
+    "id": "1745488539362",
+    "companyName": "Bitiray Technology",
+    "clientName": "Ismael Valentão",
+    "clientNUIT": "123456789",
+    "invoiceNumber": "00002",
+    "date": "2025-04-24",
+    "items": [
+      {
+        "description": "Desenvolvimento de Software",
+        "quantity": "1",
+        "unitPrice": "25000"
+      },
+      {
+        "description": "Manutenção do Blog",
+        "quantity": "1",
+        "unitPrice": "7500"
+      },
+      {
+        "description": "E-mail Marketing",
+        "quantity": "1",
+        "unitPrice": "75000"
+      }
+    ]
+  }
+]

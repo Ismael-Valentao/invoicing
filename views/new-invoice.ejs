@@ -1,0 +1,143 @@
+<!-- criar-factura.html -->
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Criar Factura</title>
+    <link href="assets/vendor/fontawesome-free/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" integrity="sha512-Evv84Mr4kqVGRNSgIGL/F/aIDqQb7xQ2vcrdIwxfjThSH8CSR7PBEakCr51Ck+w+/U6swU2Im1vVX0SVk9ABhg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link href="https://fonts.googleapis.com/css?family=Nunito:200,300,400,600,700,800,900" rel="stylesheet">
+    <link href="assets/css/sb-admin-2.min.css" rel="stylesheet">
+</head>
+
+<body id="page-top">
+    <div id="wrapper">
+        <%- include('partials/sidebar') %>
+        <div id="content-wrapper" class="d-flex flex-column">
+            <div id="content">
+                <%- include('partials/topbar') %>
+
+                <div class="container-fluid">
+                    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+                        <h1 class="h3 mb-0 text-gray-800">Criar Factura</h1>
+                    </div>
+
+                    <form id="invoice-form">
+                        <div class="card shadow mb-4">
+                            <div class="card-body">
+                                <div class="row g-3">
+                                    <div class="form-group col-md-4">
+                                        <label>Nome da Empresa</label>
+                                        <input type="text" class="form-control form-control-sm" name="companyName" required>
+                                    </div>
+                                    <div class="form-group col-md-4">
+                                        <label>Nome do Cliente</label>
+                                        <input type="text" class="form-control form-control-sm" name="clientName" required>
+                                    </div>
+                                    <div class="form-group col-md-4">
+                                        <label>NUIT</label>
+                                        <input type="text" class="form-control form-control-sm" name="clientNUIT" required>
+                                    </div>
+                                    <div class="form-group col-md-2">
+                                        <label>Factura Nº:</label>
+                                        <input type="text" class="form-control form-control-sm" name="invoiceNumber" id="invoiceNumber" required>
+                                    </div>
+                                    <div class="form-group col-md-2">
+                                        <label>Data</label>
+                                        <input type="date" class="form-control form-control-sm" name="date" required>
+                                    </div>
+                                </div>
+
+                                <h5 class="text-gray-800 mt-4">Itens da Factura</h5>
+                                <table class="table table-bordered" id="itemsTable">
+                                    <thead>
+                                        <tr>
+                                            <th>Descrição</th>
+                                            <th>Quantidade</th>
+                                            <th>Preço Unitário</th>
+                                            <th></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td><input type="text" name="items[0][description]" class="form-control form-control-sm" required></td>
+                                            <td><input type="number" name="items[0][quantity]" class="form-control form-control-sm" required></td>
+                                            <td><input type="number" name="items[0][unitPrice]" class="form-control form-control-sm" required></td>
+                                            <td><button type="button" class="btn btn-danger btn-sm remove-row"><i class="fas fa-trash"></i></button></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                                <button type="button" class="btn btn-sm btn-secondary" id="addRow">Adicionar Item</button>
+                                <button type="submit" id="btn-create-invoice" class="btn btn-primary btn-sm float-right">Gerar Factura</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            <%- include('partials/footer') %>
+        </div>
+    </div>
+
+    <script src="assets/vendor/jquery/jquery.min.js"></script>
+    <script src="assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+    <script src="assets/js/sb-admin-2.min.js"></script>
+    <script>     
+        (()=>{
+            const inputDate = document.querySelector('input[name="date"]');
+            const today = new Date().toISOString().split('T')[0];
+            inputDate.value = today;             
+        })();
+
+        let rowIndex = 1;
+        $('#addRow').click(function () {
+            $('#itemsTable tbody').append(`
+                <tr>
+                    <td><input type="text" name="items[${rowIndex}][description]" class="form-control form-control-sm" required></td>
+                    <td><input type="number" name="items[${rowIndex}][quantity]" class="form-control form-control-sm" required></td>
+                    <td><input type="number" name="items[${rowIndex}][unitPrice]" class="form-control form-control-sm" required></td>
+                    <td><button type="button" class="btn btn-danger btn-sm remove-row"><i class="fas fa-trash"></i></button></td>
+                </tr>
+            `);
+            rowIndex++;
+        });
+
+        $('#itemsTable').on('click', '.remove-row', function () {
+            $(this).closest('tr').remove();
+        });
+
+        $("#invoice-form").submit(function(e){
+            e.preventDefault();
+            const data = $(this).serialize();
+            
+            fetch('/api/invoices', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: data
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Factura criada com sucesso!');
+                    //window.location.href = '/invoices';
+                } else {
+                    alert('Erro ao criar factura: ' + data.message);
+                }
+            }).catch(error => {
+                console.error('Error:', error);
+                alert('Erro ao criar factura. Tente novamente.');
+            });
+        })
+
+        const updateNumeration = ()=>{
+            const inputNumeration = document.getElementById('invoiceNumber');
+            const newNumeration = (dinputNumeration.value*1 + 1).toString().padStart(6, '0');
+            inputNumeration.value = newNumeration;             
+        }
+    </script>
+</body>
+
+</html>
