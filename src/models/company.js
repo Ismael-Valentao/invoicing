@@ -6,7 +6,7 @@ const companySchema = new mongoose.Schema({
     contact: { type: String, required: true },
     email: { type: String, required: true },
     nuit: { type: String, required: true },
-    logoUrl: { type: String, required: true },
+    logoUrl: { type: String  },
 }, {
     timestamps: true,
 })

@@ -1,15 +1,16 @@
 const puppeteer = require('puppeteer');
+const {formatedDate} = require('./dateFormatter');
 
-async function generateInvoicePDF(invoice) {
-  const browser = await puppeteer.launch({
-    headless: "new", // para evitar erros no Node.js moderno
-    args: ['--no-sandbox', '--disable-setuid-sandbox']
-  });
+async function generateInvoicePDF(companyInfo, invoice) {
+    const browser = await puppeteer.launch({
+        headless: "new", // para evitar erros no Node.js moderno
+        args: ['--no-sandbox', '--disable-setuid-sandbox']
+    });
 
-  const page = await browser.newPage();
+    const page = await browser.newPage();
 
-  // HTML básico da fatura — você pode estilizar mais depois
-  const html = `
+    // HTML básico da fatura — você pode estilizar mais depois
+    const html = `
 <html lang="en">
 
 <head>
@@ -106,12 +107,11 @@ async function generateInvoicePDF(invoice) {
         <div class="invoice-header">
             <div><img src="http://localhost:3000/images/taimofakelogo.png" width="190" alt="logo"></div>
             <div class="company-info">
-                <p><strong>BITIRAY TECHNOLOGY</strong></p>
-                <p>Av. Acordos de Lusaka, Rua 'D', <br>
-                    Quarteirão 21 nº 290 Bairro da Infulene 'A', Matola </p>
-                <p><strong>Cel:</strong> +258 87 69 06 925</p>
-                <p><strong>Email:</strong> info@bitiray.com </p>
-                <p><strong>NUIT:</strong> 400887314</p>
+                <p><strong>${companyInfo.name}</strong></p>
+                <p>${companyInfo.address}</p>
+                <p><strong>Cell:</strong> ${companyInfo.contact}</p>
+                <p><strong>Email:</strong> ${companyInfo.email} </p>
+                <p><strong>NUIT:</strong> ${companyInfo.nuit}</p>
             </div>
         </div>
         <p class="invoice">FACTURA</p>
@@ -123,10 +123,10 @@ async function generateInvoicePDF(invoice) {
             <div>
                 <div>
                     <div>
-                        <p><strong>Factura Nº:</strong> 00004</p>
+                        <p><strong>Factura Nº:</strong> ${invoice.invoiceNumber}</p>
                     </div>
                     <div>
-                        <p><strong>Data:</strong> ${invoice.date}</p>
+                        <p><strong>Data:</strong> ${formatedDate(invoice.date)}</p>
                     </div>
                 </div>
             </div>
@@ -141,43 +141,27 @@ async function generateInvoicePDF(invoice) {
                 </tr>
             </thead>
             <tbody>
+                ${invoice.items.map(item => `
                 <tr>
-                    <td>Serviço de Consultoria</td>
-                    <td>2</td>
-                    <td>5000</td>
-                    <td>10000.00</td>
+                    <td>${item.description}</td>
+                    <td>${item.quantity}</td>
+                    <td>${item.unitPrice}</td>
+                    <td>${item.quantity * item.unitPrice}</td>
                 </tr>
-                <tr>
-                    <td>Desenvolvimento de Website</td>
-                    <td>1</td>
-                    <td>15000</td>
-                    <td>15000.00</td>
-                </tr>
-                <tr>
-                    <td>Design de Logotipo</td>
-                    <td>3</td>
-                    <td>2000</td>
-                    <td>6000.00</td>
-                </tr>
-                <tr>
-                    <td>Manutenção Mensal</td>
-                    <td>1</td>
-                    <td>3000</td>
-                    <td>3000.00</td>
-                </tr>
+                `).join('')}
             </tbody>
             <tfoot>
                 <tr>
                     <td colspan="3">Sub-Total:</td>
-                    <td></td>
+                    <td>${invoice.subTotal}</td>
                 </tr>
                 <tr>
                     <td colspan="3">IVA (16%):</td>
-                    <td></td>
+                    <td>${invoice.tax}</td>
                 </tr>
                 <tr>
                     <td colspan="3">Total:</td>
-                    <td>34.000 MZN</td>
+                    <td>${invoice.totalAmount}</td>
                 </tr>
             </tfoot>
         </table>
@@ -187,7 +171,7 @@ async function generateInvoicePDF(invoice) {
                 <p>Atenção: Esta factura serve como documento comprovativo de prestação de serviços e/ou fornecimento de
                     materiais.</p>
                 <p>Prazo de pagamento: até 15 dias após a emissão da presente factura.</p>
-                <p>Em caso de dúvidas, contactar o departamento financeiro: financeiro@bitiray.com | +258 87 69 06 925</p>
+                <p>Em caso de dúvidas, contactar o departamento financeiro: ${companyInfo.email} | ${companyInfo.contact}</p>
             </div>
             <div>
                 <p>Nº Conta BCI: 29071288110001 | NIB: 0008000090721288110113</p>
@@ -200,13 +184,13 @@ async function generateInvoicePDF(invoice) {
 </html>
   `;
 
-  await page.setContent(html, { waitUntil: 'networkidle0' });
+    await page.setContent(html, { waitUntil: 'networkidle0' });
 
-  const pdfBuffer = await page.pdf({ format: 'A4' });
+    const pdfBuffer = await page.pdf({ format: 'A4' });
 
-  await browser.close();
+    await browser.close();
 
-  return pdfBuffer;
+    return pdfBuffer;
 }
 
 module.exports = generateInvoicePDF;

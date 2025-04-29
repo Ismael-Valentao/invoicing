@@ -19,20 +19,20 @@ router.get('/contact', (req, res) => {
 });
 
 router.get('/dashboard', authMiddleware2, (req, res) => {
-    res.render('dashboard', { title: 'Dashboard' });
+    res.render('dashboard', { title: 'Dashboard', name: req.user.name, companyName:req.user.company.name });
 });
 
 router.get('/invoices', authMiddleware2, (req, res) => {
-    res.render('invoices', { title: 'Faturas' });
+    res.render('invoices', { title: 'Facturas', name: req.user.name, companyName:req.user.company.name });
 });
 
 router.get('/new-invoice', authMiddleware2, (req, res) => {
-    res.render('new-invoice', { title: 'Nova Fatura' });
+    res.render('new-invoice', { title: 'Nova Factura', name: req.user.name, companyName:req.user.company.name });
 });
 
 router.get('/invoices/:id', authMiddleware2, (req, res) => {
     const invoiceId = req.params.id;
-    res.render('invoice-detail', { title: `Fatura ${invoiceId}`, invoiceId });
+    res.render('invoice-detail', { title: `Fatura ${invoiceId}`, invoiceId, companyName:req.user.company.name });
 });
 
 router.get('/invoices/:id/edit', authMiddleware2, (req, res) => {
@@ -58,10 +58,10 @@ router.get('/reset-password', (req, res) => {
     res.render('reset-password', { title: 'Redefinir senha' });
 });
 router.get('/profile', authMiddleware2, (req, res) => {
-    res.render('profile', { title: 'Perfil' });
+    res.render('profile', { title: 'Perfil', name: req.user.name, companyName:req.user.company.name });
 });
 router.get('/settings', authMiddleware2, (req, res) => {
-    res.render('settings', { title: 'Configurações' });
+    res.render('settings', { title: 'Configurações', name: req.user.name, companyName:req.user.company.name });
 });
 router.get('/terms', (req, res) => {
     res.render('terms', { title: 'Termos de Serviço' });

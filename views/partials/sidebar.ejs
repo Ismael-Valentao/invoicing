@@ -2,18 +2,18 @@
  <ul class="navbar-nav bg-gradient-primary sidebar sidebar-dark accordion" id="accordionSidebar">
 
     <!-- Sidebar - Brand -->
-    <a class="sidebar-brand d-flex align-items-center justify-content-center" href="/dashboard">
+    <a class="sidebar-brand d-flex align-items-center" href="/dashboard">
         <div class="sidebar-brand-icon">
             <i class="fa-solid fa-file-invoice-dollar"></i>
         </div>
-        <div class="sidebar-brand-text mx-3">Invoicing <sup>2</sup></div>
+        <div class="sidebar-brand-text mx-3"><i>Invoicing</i></div>
     </a>
 
     <!-- Divider -->
     <hr class="sidebar-divider my-0">
 
     <!-- Nav Item - Dashboard -->
-    <li class="nav-item active">
+    <li class="nav-item <%= title === 'Dashboard' ? 'active' : '' %>">
         <a class="nav-link" href="/dashboard">
             <i class="fas fa-fw fa-tachometer-alt"></i>
             <span>Dashboard</span></a>
@@ -28,7 +28,7 @@
     </div>
 
     <!-- Nav Item - Pages Collapse Menu -->
-    <li class="nav-item">
+    <li class="nav-item <%= title === 'Facturas' || title === 'Nova Factura' ? 'active' : '' %>">
         <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseTwo"
             aria-expanded="true" aria-controls="collapseTwo">
             <i class="fa-solid fa-file-invoice-dollar"></i>
@@ -44,7 +44,7 @@
     </li>
 
     <!-- Nav Item - Utilities Collapse Menu -->
-    <li class="nav-item">
+    <li class="nav-item <%= title === 'clients' ? 'active' : '' %>">
         <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseUtilities"
             aria-expanded="true" aria-controls="collapseUtilities">
             <i class="fa-solid fa-users"></i>
@@ -69,7 +69,7 @@
     </div>
 
     <!-- Nav Item - Pages Collapse Menu -->
-    <li class="nav-item">
+    <li class="nav-item <%= title === 'services' ? 'active' : '' %>">
         <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapsePages"
             aria-expanded="true" aria-controls="collapsePages">
             <i class="fa-solid fa-puzzle-piece"></i>

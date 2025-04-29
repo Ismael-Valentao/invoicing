@@ -21,7 +21,7 @@
 
                 <div class="container-fluid">
                     <div class="d-sm-flex align-items-center justify-content-between mb-4">
-                        <h1 class="h3 mb-0 text-gray-800">Criar Factura</h1>
+                        <h1 class="h3 mb-0 text-gray-800" style="font-size: 1.2rem;"> Nova Factura</h1>
                     </div>
 
                     <form id="invoice-form">
@@ -42,7 +42,7 @@
                                     </div>
                                     <div class="form-group col-md-2">
                                         <label>Factura Nº:</label>
-                                        <input type="text" class="form-control form-control-sm" name="invoiceNumber" id="invoiceNumber" required>
+                                        <input type="text" class="form-control form-control-sm" name="invoiceNumber" id="invoiceNumber" readonly required>
                                     </div>
                                     <div class="form-group col-md-2">
                                         <label>Data</label>
@@ -76,68 +76,12 @@
                     </form>
                 </div>
             </div>
-            <%- include('partials/footer') %>
+            <%- include('partials/copyright') %>
         </div>
     </div>
 
-    <script src="assets/vendor/jquery/jquery.min.js"></script>
-    <script src="assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
-    <script src="assets/js/sb-admin-2.min.js"></script>
-    <script>     
-        (()=>{
-            const inputDate = document.querySelector('input[name="date"]');
-            const today = new Date().toISOString().split('T')[0];
-            inputDate.value = today;             
-        })();
-
-        let rowIndex = 1;
-        $('#addRow').click(function () {
-            $('#itemsTable tbody').append(`
-                <tr>
-                    <td><input type="text" name="items[${rowIndex}][description]" class="form-control form-control-sm" required></td>
-                    <td><input type="number" name="items[${rowIndex}][quantity]" class="form-control form-control-sm" required></td>
-                    <td><input type="number" name="items[${rowIndex}][unitPrice]" class="form-control form-control-sm" required></td>
-                    <td><button type="button" class="btn btn-danger btn-sm remove-row"><i class="fas fa-trash"></i></button></td>
-                </tr>
-            `);
-            rowIndex++;
-        });
-
-        $('#itemsTable').on('click', '.remove-row', function () {
-            $(this).closest('tr').remove();
-        });
-
-        $("#invoice-form").submit(function(e){
-            e.preventDefault();
-            const data = $(this).serialize();
-            
-            fetch('/api/invoices', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded'
-                },
-                body: data
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    alert('Factura criada com sucesso!');
-                    //window.location.href = '/invoices';
-                } else {
-                    alert('Erro ao criar factura: ' + data.message);
-                }
-            }).catch(error => {
-                console.error('Error:', error);
-                alert('Erro ao criar factura. Tente novamente.');
-            });
-        })
-
-        const updateNumeration = ()=>{
-            const inputNumeration = document.getElementById('invoiceNumber');
-            const newNumeration = (dinputNumeration.value*1 + 1).toString().padStart(6, '0');
-            inputNumeration.value = newNumeration;             
-        }
-    </script>
+    <%- include('partials/footer') %>
+    <script src="assets/js/new-invoice.js"></script>
 </body>
 
 </html>

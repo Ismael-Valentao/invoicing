@@ -9,6 +9,7 @@ require('dotenv').config();
 const invoiceRoutes = require('./src/routes/invoices');
 const authRoutes = require('./src/routes/auth');
 const pagesRoutes = require('./src/routes/pages');
+const companyRoutes = require('./src/routes/companies');
 
 const app = express();
 const PORT = 3000;
@@ -25,6 +26,7 @@ app.use(cookieParser());
 app.use(express.static('./public/'))
 app.use('/api/auth', authRoutes);
 app.use('/api/invoices', invoiceRoutes);
+app.use('/api/company', companyRoutes);
 app.use('/', pagesRoutes);
 
 // Conexão com o MongoDB

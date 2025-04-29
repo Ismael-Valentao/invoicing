@@ -1,55 +1,48 @@
-const fs = require('fs');
-const path = require('path');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 require('dotenv').config();
 
-const usersPath = path.join(__dirname, '../data/users.json');
+const User = require('../models/user');
+
 const SECRET = process.env.JWT_SECRET;
 
-function loadUsers() {
-  if (!fs.existsSync(usersPath)) fs.writeFileSync(usersPath, '[]');
-  return JSON.parse(fs.readFileSync(usersPath));
-}
 
-function saveUsers(data) {
-  fs.writeFileSync(usersPath, JSON.stringify(data, null, 2));
-}
+exports.register = async (req, res) => {
 
-exports.register = (req, res) => {
-  const { email, password } = req.body;
-  const users = loadUsers();
+  const { email, password, companyId } = req.body;
 
-  if (users.find(u => u.email === email)) {
+  const existingUser = await User.find({ email: email, companyId: companyId });
+  if (existingUser.length > 0) {
     return res.status(400).json({ error: 'Usuário já existe' });
   }
 
   const hashedPassword = bcrypt.hashSync(password, 10);
-  const newUser = { id: Date.now().toString(), email, password: hashedPassword };
-  users.push(newUser);
-  saveUsers(users);
+
+  const user = new User({...req.body, password: hashedPassword});
+  await user.save();
 
   res.status(201).json({ message: 'Usuário registrado com sucesso' });
 };
 
-exports.login = (req, res) => {
+
+exports.login = async (req, res) => {
   const { email, password } = req.body;
-  const users = loadUsers();
-  const user = users.find(u => u.email === email);
+
+  const user = await User.findOne({email}).populate('companyId');
 
   if (!user || !bcrypt.compareSync(password, user.password)) {
-    return res.status(401).json({success: false, error: 'Credenciais inválidas' });
+    return res.status(401).json({success: false, error: 'E-mail ou password inválidos' });
   }
 
-  const token = jwt.sign({ id: user.id, email: user.email }, SECRET, { expiresIn: '1h' });
+  const token = jwt.sign({ id: user._id, name:user.name, email: user.email, company: user.companyId }, SECRET, { expiresIn: '1h' });
 
   res.cookie('token', token, {
     httpOnly: true,
-    secure: false, // true se estiver usando HTTPS
-    maxAge: 3600000 // 1 hora
+    secure: false,
+    maxAge: 3600000
   });
 
-  res.json({ success: true, message: 'Login bem-sucedido' });
+  res.json({ success: true, message: 'Login bem-sucedido'});
 };
 
 exports.logout = (req, res) => {
