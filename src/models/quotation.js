@@ -6,11 +6,11 @@ const itemSchema = new mongoose.Schema({
     unitPrice: { type: Number, required: true },
 })
 
-const invoiceSchema = new mongoose.Schema({
+const quotationSchema = new mongoose.Schema({
     companyName: { type: String, required: true },
     clientName: { type: String, required: true },
     clientNUIT: { type: String, required: true },
-    invoiceNumber: { type: String, required: true, unique: true },
+    quotationNumber: { type: String, required: true, unique: true },
     date: { type: Date, default: Date.now() },
     items: [itemSchema],
     subTotal: { type: Number, required: true },
@@ -19,8 +19,6 @@ const invoiceSchema = new mongoose.Schema({
     dueDate: { type: Date, },
     companyId: { type: mongoose.Schema.Types.ObjectId, ref: 'Company' },
     userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-    status: { type: String, enum: ['paid', 'unpaid', 'overdue'], default: 'unpaid' }
 })
 
-module.exports = mongoose.model('Invoice', invoiceSchema);
-
+module.exports = mongoose.model('Quotation', quotationSchema);

@@ -1,5 +1,5 @@
 const Invoice = require('../models/invoice');
-const generateInvoicePDF = require('../utils/pdfGenerator');
+const {generateInvoicePDF} = require('../utils/pdfGenerator');
 const { amounts } = require('../utils/amountCalculator');
 
 exports.createInvoice = async (req, res) => {
@@ -51,10 +51,8 @@ exports.getInvoiceById = async (req, res) => {
 exports.getLastInvoice = async (req, res) => {
     const companyId = req.user.company._id;
     const lastInvoice = await Invoice.findOne({ companyId }).sort({ createdAt: -1 }).limit(1);
-    if (!lastInvoice) {
-        return res.status(404).json({ error: 'Nenhuma fatura encontrada' });
-    }
-    return res.status(200).json({ success: true, lastInvoice: lastInvoice.invoiceNumber });
+    
+    return res.status(200).json({ success: true, lastInvoice: !lastInvoice ? '000' : lastInvoice.invoiceNumber });
 }
 
 exports.getInvoicesTotalAmount = async (req, res) => {
@@ -119,7 +117,7 @@ exports.downloadInvoicePDF = async (req, res) => {
         const pdfBuffer = await generateInvoicePDF(companyInfo, invoice);
         res.set({
             'Content-Type': 'application/pdf',
-            'Content-Disposition': `attachment; filename=fatura-${invoice.id}.pdf`,
+            'Content-Disposition': `attachment; filename=cotação-${invoice.invoiceNumber}.pdf`,
         });
         res.send(pdfBuffer);
     } catch (err) {

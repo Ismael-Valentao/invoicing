@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <title>Invoicing | <%- title %></title>
+
+    <!-- Custom fonts for this template -->
+    <link href="assets/vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
+    <link
+        href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i"
+        rel="stylesheet">
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css"
+        integrity="sha512-Evv84Mr4kqVGRNSgIGL/F/aIDqQb7xQ2vcrdIwxfjThSH8CSR7PBEakCr51Ck+w+/U6swU2Im1vVX0SVk9ABhg=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <!-- Custom styles for this template -->
+    <link href="assets/css/sb-admin-2.min.css" rel="stylesheet">
+
+    <!-- Custom styles for this page -->
+    <link href="assets/vendor/datatables/dataTables.bootstrap4.min.css" rel="stylesheet">
+
+    <style>
+        body {
+            font-size: 0.85rem !important;
+        }
+
+        table {
+            font-size: 0.8rem !important;
+        }
+
+        table tr th,
+        table tr td {
+            padding: 0.3rem !important;
+        }
+
+        table tr td:last-child {
+            text-align: center !important;
+        }
+    </style>
+</head>
+
+<body id="page-top">
+
+    <!-- Page Wrapper -->
+    <div id="wrapper">
+        <%- include('partials/sidebar') %>
+
+            <!-- Content Wrapper -->
+            <div id="content-wrapper" class="d-flex flex-column">
+
+                <!-- Main Content -->
+                <div id="content">
+
+                    <%- include('partials/topbar') %>
+
+                        <!-- Begin Page Content -->
+                        <div class="container-fluid">
+
+                            <!-- Page Heading -->
+                            <h1 class="h3 mb-2 text-gray-800" style="font-size: 1.2rem;">Produtos/Serviços</h1>
+
+                            <!-- DataTales Example -->
+                            <div class="card shadow mb-4">
+                                <div class="card-body">
+                                    <div class="table-responsive">
+                                        <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+                                            <thead>
+                                                <tr class="bg-secondary text-white">
+                                                    <th>Nome do Produto</th>
+                                                    <th>Preço Unitário</th>
+                                                    <th>Contacto</th>
+                                                    <th>Nuit</th>
+                                                    <th class="text-center">Acções</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+
+                                            </tbody>
+                                            <tfoot>
+                                            </tfoot>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+                        <!-- /.container-fluid -->
+
+                </div>
+                <!-- End of Main Content -->
+
+                <%- include('partials/copyright') %>
+
+            </div>
+            <!-- End of Content Wrapper -->
+
+    </div>
+    <!-- End of Page Wrapper -->
+
+    <!-- Scroll to Top Button-->
+    <a class="scroll-to-top rounded" href="#page-top">
+        <i class="fas fa-angle-up"></i>
+    </a>
+
+    <!-- Confirmation Modal-->
+    <div class="modal fade" id="clientModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h6 class="modal-title" id="exampleModalLabel"><strong><i class="fa-solid fa-pen-to-square"></i>
+                            Actualizar dados do cliente</strong></h6>
+                    <button class="close" type="button" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">×</span>
+                    </button>
+                </div>
+                <form id="client-form">
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <label for="client-name">Nome do Cliente</label>
+                            <input type="text" class="form-control" id="client-name" name="client-name"
+                                placeholder="Nome do Cliente" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="client-email">E-mail</label>
+                            <input type="email" class="form-control" id="client-email" name="client-email"
+                                placeholder="E-mail" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="client-phone">Contacto</label>
+                            <input type="text" class="form-control" id="client-phone" name="client-phone"
+                                placeholder="Contacto" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="client-nuit">Nuit</label>
+                            <input type="text" class="form-control" id="client-nuit" name="client-nuit"
+                                placeholder="Nuit" required>
+                        </div>
+                        <input type="hidden" name="clientId" id="clientId" value="">
+                        <input type="hidden" name="action" id="action" value="add">
+                    </div>
+                </form>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary btn-sm" type="button" data-dismiss="modal">Cancelar</button>
+                    <button id="btn-update-client" class="btn btn-primary btn-sm">Actualizar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="clientModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h6 class="modal-title" id="exampleModalLabel"><strong><i class="fa-solid fa-pen-to-square"></i>
+                            Adicionar Cliente</strong></h6>
+                    <button class="close" type="button" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">×</span>
+                    </button>
+                </div>
+                <form id="create-client-form">
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <label for="client-name">Nome do Cliente</label>
+                            <input type="text" class="form-control" id="client-name" name="client-name"
+                                placeholder="Nome do Cliente" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="client-email">E-mail</label>
+                            <input type="email" class="form-control" id="client-email" name="client-email"
+                                placeholder="E-mail" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="client-phone">Contacto</label>
+                            <input type="text" class="form-control" id="client-phone" name="client-phone"
+                                placeholder="Contacto" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="client-nuit">Nuit</label>
+                            <input type="text" class="form-control" id="client-nuit" name="client-nuit"
+                                placeholder="Nuit" required>
+                        </div>
+                    </div>
+                </form>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary btn-sm" type="button" data-dismiss="modal">Cancelar</button>
+                    <button id="btn-create-client" class="btn btn-primary btn-sm">Salvar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <%- include('partials/footer') %>
+
+        <!-- Page level plugins -->
+        <script src="assets/vendor/datatables/jquery.dataTables.min.js"></script>
+        <script src="assets/vendor/datatables/dataTables.bootstrap4.min.js"></script>
+
+        <!-- Page level custom scripts -->
+        <script src="assets/js/demo/datatables-demo.js"></script>
+        <script src="assets/js/products.js"></script>
+</body>
+
+</html>

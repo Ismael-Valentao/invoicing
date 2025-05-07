@@ -9,10 +9,10 @@ const {
   getTotalInvoices,
   getPaidInvoices,
   getTotalAmountByMonth,
-  updateInvoiceStatus
+  updateInvoiceStatus,
+  downloadInvoicePDF
 } = require('../controllers/invoiceController');
 
-const { downloadInvoicePDF } = require('../controllers/invoiceController');
 const {authMiddleware} = require('../middlewares/authMiddleware');
 
 router.post('/',authMiddleware, createInvoice);

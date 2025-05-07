@@ -10,11 +10,6 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" integrity="sha512-Evv84Mr4kqVGRNSgIGL/F/aIDqQb7xQ2vcrdIwxfjThSH8CSR7PBEakCr51Ck+w+/U6swU2Im1vVX0SVk9ABhg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <link href="https://fonts.googleapis.com/css?family=Nunito:200,300,400,600,700,800,900" rel="stylesheet">
     <link href="assets/css/sb-admin-2.min.css" rel="stylesheet">
-    <style>
-        table tr td:last-child {
-            text-align: center !important;
-        }
-    </style>
 </head>
 
 <body id="page-top">
@@ -25,8 +20,12 @@
                 <%- include('partials/topbar') %>
 
                 <div class="container-fluid">
-                    <form id="invoice-form">
-                        <div class="card shadow">
+                    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+                        <h1 class="h3 mb-0 text-gray-800" style="font-size: 1.2rem;"> Nova Cotação</h1>
+                    </div>
+
+                    <form id="quotation-form">
+                        <div class="card shadow mb-4">
                             <div class="card-body">
                                 <div class="row g-3">
                                     <div class="form-group col-md-4">
@@ -42,8 +41,8 @@
                                         <input type="text" class="form-control form-control-sm" name="clientNUIT" required>
                                     </div>
                                     <div class="form-group col-md-2">
-                                        <label>Factura Nº:</label>
-                                        <input type="text" class="form-control form-control-sm" name="invoiceNumber" id="invoiceNumber" readonly required>
+                                        <label>Cotação Nº:</label>
+                                        <input type="text" class="form-control form-control-sm" name="quotationNumber" id="quotationNumber" readonly required>
                                     </div>
                                     <div class="form-group col-md-2">
                                         <label>Data</label>
@@ -51,7 +50,7 @@
                                     </div>
                                 </div>
 
-                                <h5 class="text-gray-800 mt-4" style="font-size: 1rem;"><strong>Itens da Factura</strong></h5>
+                                <h5 class="text-gray-800 mt-4">Itens da Factura</h5>
                                 <table class="table table-bordered" id="itemsTable">
                                     <thead>
                                         <tr>
@@ -71,7 +70,7 @@
                                     </tbody>
                                 </table>
                                 <button type="button" class="btn btn-sm btn-secondary" id="addRow">Adicionar Item</button>
-                                <button type="submit" id="btn-create-invoice" class="btn btn-primary btn-sm float-right">Gerar Factura</button>
+                                <button type="submit" id="btn-create-quotation" class="btn btn-primary btn-sm float-right">Gerar Cotação</button>
                             </div>
                         </div>
                     </form>
@@ -82,7 +81,7 @@
     </div>
 
     <%- include('partials/footer') %>
-    <script src="assets/js/new-invoice.js"></script>
+    <script src="assets/js/new-quotation.js"></script>
 </body>
 
 </html>
