@@ -111,51 +111,6 @@
         <i class="fas fa-angle-up"></i>
     </a>
 
-    <!-- Confirmation Modal-->
-    <div class="modal fade" id="clientModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
-        aria-hidden="true">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h6 class="modal-title" id="exampleModalLabel"><strong><i class="fa-solid fa-pen-to-square"></i>
-                            Actualizar dados do cliente</strong></h6>
-                    <button class="close" type="button" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">×</span>
-                    </button>
-                </div>
-                <form id="client-form">
-                    <div class="modal-body">
-                        <div class="form-group">
-                            <label for="client-name">Nome do Cliente</label>
-                            <input type="text" class="form-control form-control-sm" id="client-name" name="client-name"
-                                placeholder="Nome do Cliente" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="client-email">E-mail</label>
-                            <input type="email" class="form-control form-control-sm" id="client-email" name="client-email"
-                                placeholder="E-mail" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="client-phone">Contacto</label>
-                            <input type="text" class="form-control form-control-sm" id="client-phone" name="client-phone"
-                                placeholder="Contacto" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="client-nuit">Nuit</label>
-                            <input type="text" class="form-control form-control-sm" id="client-nuit" name="client-nuit"
-                                placeholder="Nuit" required>
-                        </div>
-                        <input type="hidden" name="clientId" id="clientId" value="">
-                        <input type="hidden" name="action" id="action" value="add">
-                    </div>
-                </form>
-                <div class="modal-footer">
-                    <button class="btn btn-secondary btn-sm" type="button" data-dismiss="modal">Cancelar</button>
-                    <button id="btn-update-client" class="btn btn-primary btn-sm">Actualizar</button>
-                </div>
-            </div>
-        </div>
-    </div>
 
     <div class="modal fade" id="createClientModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
         aria-hidden="true">
@@ -169,32 +124,85 @@
                     </button>
                 </div>
                 <form id="create-client-form">
-                    <div class="modal-body">
-                        <div class="form-group">
+                    <div class="modal-body row g-3">
+                        <div class="form-group col-md-8">
                             <label for="client-name">Nome do Cliente</label>
-                            <input type="text" class="form-control form-control-sm" id="client-name" name="client-name"
+                            <input type="text" class="form-control form-control-sm" id="client-name" name="name"
                                 placeholder="Nome do Cliente" required>
                         </div>
-                        <div class="form-group">
+                         <div class="form-group col-md-4">
+                            <label for="client-nuit">NUIT</label>
+                            <input type="text" class="form-control form-control-sm" id="client-nuit" name="nuit"
+                                placeholder="Nuit" required>
+                        </div>
+                        <div class="form-group col-md-6">
                             <label for="client-email">E-mail</label>
-                            <input type="email" class="form-control form-control-sm" id="client-email" name="client-email"
+                            <input type="email" class="form-control form-control-sm" id="client-email" name="email"
                                 placeholder="E-mail" required>
                         </div>
-                        <div class="form-group">
+                        <div class="form-group col-md-6">
                             <label for="client-phone">Contacto</label>
-                            <input type="text" class="form-control form-control-sm" id="client-phone" name="client-phone"
+                            <input type="text" class="form-control form-control-sm" id="client-phone" name="phone"
                                 placeholder="Contacto" required>
                         </div>
-                        <div class="form-group">
-                            <label for="client-nuit">Nuit</label>
-                            <input type="text" class="form-control form-control-sm" id="client-nuit" name="client-nuit"
-                                placeholder="Nuit" required>
+                        <div class="form-group col-md-12">
+                            <label for="client-phone">Endereço</label>
+                            <input type="text" class="form-control form-control-sm" id="client-address" name="address"
+                                placeholder="Endereço" required>
                         </div>
                     </div>
                 </form>
                 <div class="modal-footer">
-                    <button class="btn btn-secondary btn-sm" type="button" data-dismiss="modal">Cancelar</button>
+                    <button class="btn btn-secondary btn-sm" type="button" data-dismiss="modal">Fechar</button>
                     <button id="btn-create-client" class="btn btn-primary btn-sm">Salvar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+     <div class="modal fade" id="updateClientModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h6 class="modal-title" id="exampleModalLabel"><strong><i class="fa-solid fa-pen-to-square"></i>
+                            Actualizar Cliente</strong></h6>
+                    <button class="close" type="button" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">×</span>
+                    </button>
+                </div>
+                <form id="update-client-form">
+                    <div class="modal-body row g-3">
+                        <div class="form-group col-md-8">
+                            <label for="client-name">Nome do Cliente</label>
+                            <input type="text" class="form-control form-control-sm" id="client-name-update" name="name"
+                                placeholder="Nome do Cliente" required>
+                        </div>
+                         <div class="form-group col-md-4">
+                            <label for="client-nuit">NUIT</label>
+                            <input type="text" class="form-control form-control-sm" id="client-nuit-update" name="nuit"
+                                placeholder="Nuit" required>
+                        </div>
+                        <div class="form-group col-md-6">
+                            <label for="client-email">E-mail</label>
+                            <input type="email" class="form-control form-control-sm" id="client-email-update" name="email"
+                                placeholder="E-mail" required>
+                        </div>
+                        <div class="form-group col-md-6">
+                            <label for="client-phone">Contacto</label>
+                            <input type="text" class="form-control form-control-sm" id="client-phone-update" name="phone"
+                                placeholder="Contacto" required>
+                        </div>
+                        <div class="form-group col-md-12">
+                            <label for="client-phone">Endereço</label>
+                            <input type="text" class="form-control form-control-sm" id="client-address-update" name="address"
+                                placeholder="Endereço" required>
+                        </div>
+                    </div>
+                </form>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary btn-sm" type="button" data-dismiss="modal">Fechar</button>
+                    <button id="btn-update-client" class="btn btn-primary btn-sm">Actualizar</button>
                 </div>
             </div>
         </div>

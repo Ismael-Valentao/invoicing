@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <title>Invoicing - Register</title>
+
+    <!-- Custom fonts for this template-->
+    <link href="assets/vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
+    <link
+        href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i"
+        rel="stylesheet">
+
+    <!-- Custom styles for this template-->
+    <link href="assets/css/sb-admin-2.min.css" rel="stylesheet">
+    <style>
+        .form-control {
+            padding: 1.1rem 0.9rem !important;
+        }
+
+        div.form-group label {
+            font-size: 0.9rem;
+            margin-left: 0.5rem;
+        }
+
+        #titlee {
+            font-size: 1.2rem;
+        }
+
+        #btn-next,
+        #btn-save {
+            float: right;
+            border-radius: 0.6rem;
+            padding: 0.3rem 1.1rem;
+        }
+
+        #btn-prev {
+            border-radius: 0.6rem;
+            padding: 0.3rem 1.1rem;
+        }
+
+        #conteiner {
+            padding-bottom: 5px !important;
+        }
+    </style>
+</head>
+
+<body class="bg-gradient-primary">
+
+    <div class="container" style="margin-top: 2%;">
+        <!-- Outer Row -->
+        <div class="row justify-content-center position-relative pt-4">
+            <div class="card o-hidden border-0 shadow-lg my-2 col-md-6 col-lg-7 col-12">
+                <div class="card-body p-0">
+                    <div class="row">
+                        <div class="col-lg-12">
+                            <div class="p-5" id="conteiner">
+                                <div class="text-center">
+                                    <p id="titlee"><strong>Criar uma conta</strong> <br><span class="text-primary"
+                                            id="info-description"
+                                            style="font-size: 0.9rem; font-weight: 600;">Informações da Empresa</span>
+                                    </p>
+                                </div>
+                                <hr>
+
+                                <form id="register-form" class="user" id="register-form">
+                                    <div id="companyInfo">
+
+                                        <div class="row g-3">
+                                            <div class="form-group col-md-7">
+                                                <label for="">Nome da Empresa</label>
+                                                <input type="text" class="form-control form-control-user"
+                                                    id="companyName" placeholder="Company Name" name="name" required>
+                                            </div>
+                                            <div class="form-group col-md-5">
+                                                <label for="">NUIT</label>
+                                                <input type="text" class="form-control form-control-user"
+                                                    id="companyNuit" placeholder="Company NUIT" name="nuit" required>
+                                            </div>
+                                            <div class="form-group col-md-12">
+                                                <label for="">Endereço</label>
+                                                <input type="text" class="form-control form-control-user"
+                                                    id="exampleCompanyAddress" placeholder="Company Address"
+                                                    name="address" required>
+                                            </div>
+                                            <div class="form-group col-md-6">
+                                                <label for="">Contacto</label>
+                                                <input type="text" class="form-control form-control-user"
+                                                    id="companyPhone" placeholder="Company Phone" name="contact"
+                                                    required>
+                                            </div>
+                                            <div class="form-group col-md-6">
+                                                <label for="">E-mail</label>
+                                                <input type="text" class="form-control form-control-user"
+                                                    id="companyEmail" placeholder="Company Email" name="email" required>
+                                            </div>
+                                            <div class="form-group col-md-6">
+                                                <label for="">Website</label>
+                                                <input type="text" class="form-control form-control-user"
+                                                    id="exampleCompanyWebsite" placeholder="Company Website"
+                                                    name="website" required>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div id="userInfo" class="d-none">
+                                        <div class="row g-3">
+                                            <div class="form-group col-md-6">
+                                                <label for="">Nome</label>
+                                                <input type="text" class="form-control form-control-user" id="firstName"
+                                                    placeholder="First Name" name="firstName" required>
+                                            </div>
+                                            <div class="form-group col-md-6">
+                                                <label for="">Sobrenome</label>
+                                                <input type="text" class="form-control form-control-user" id="lastName"
+                                                    placeholder="Last Name" name="lastName" required>
+                                            </div>
+                                            <div class="form-group col-md-6">
+                                                <label for="">E-mail</label>
+                                                <input type="email" class="form-control form-control-user"
+                                                    id="userEmail" placeholder="Email Address" name="useremail"
+                                                    required>
+                                            </div>
+                                            <div class="form-group col-md-6">
+                                                <label for="">Telefone</label>
+                                                <input type="text" class="form-control form-control-user" id="userPhone"
+                                                    placeholder="+258 8X XX XX XXX" name="usercontact" required>
+                                            </div>
+                                            <div class="form-group col-md-6">
+                                                <label for="">Palavra-passe</label>
+                                                <input type="password" class="form-control form-control-user"
+                                                    id="password" placeholder="Password" name="userpassword" required>
+                                            </div>
+                                            <div class="form-group col-md-6">
+                                                <label for="">Repetir a Palavra-passe</label>
+                                                <input type="password" class="form-control form-control-user"
+                                                    id="repeatPassword" placeholder="Repeat Password" name="password2"
+                                                    required>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <div id="next-footer">
+                        <button type="button" id="btn-next"
+                            class="btn btn-primary btn-sm"><strong>Próximo</strong></button>
+                    </div>
+                    <div id="save-footer" class="save-footer d-none">
+                        <button type="button" id="btn-prev"
+                            class="btn btn-secondary btn-sm"><strong>Anterior</strong></button>
+                        <button type="button" id="btn-save"
+                            class="btn btn-primary btn-sm"><strong>Salvar</strong></button>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+    <%- include('partials/footer') %>
+
+    <!-- Bootstrap core JavaScript-->
+    <script src="assets/vendor/jquery/jquery.min.js"></script>
+    <script src="assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Core plugin JavaScript-->
+    <script src="assets/vendor/jquery-easing/jquery.easing.min.js"></script>
+
+    <!-- Custom scripts for all pages-->
+    <script src="assets/js/sb-admin-2.min.js"></script>
+    <script src="assets/js/register.js"></script>
+</body>
+
+</html>

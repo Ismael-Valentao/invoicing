@@ -7,7 +7,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <title>Criar Factura</title>
     <link href="assets/vendor/fontawesome-free/css/all.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" integrity="sha512-Evv84Mr4kqVGRNSgIGL/F/aIDqQb7xQ2vcrdIwxfjThSH8CSR7PBEakCr51Ck+w+/U6swU2Im1vVX0SVk9ABhg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css"
+        integrity="sha512-Evv84Mr4kqVGRNSgIGL/F/aIDqQb7xQ2vcrdIwxfjThSH8CSR7PBEakCr51Ck+w+/U6swU2Im1vVX0SVk9ABhg=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
     <link href="https://fonts.googleapis.com/css?family=Nunito:200,300,400,600,700,800,900" rel="stylesheet">
     <link href="assets/css/sb-admin-2.min.css" rel="stylesheet">
     <style>
@@ -20,69 +22,112 @@
 <body id="page-top">
     <div id="wrapper">
         <%- include('partials/sidebar') %>
-        <div id="content-wrapper" class="d-flex flex-column">
-            <div id="content">
-                <%- include('partials/topbar') %>
+            <div id="content-wrapper" class="d-flex flex-column">
+                <div id="content">
+                    <%- include('partials/topbar') %>
 
-                <div class="container-fluid">
-                    <form id="invoice-form">
-                        <div class="card shadow">
-                            <div class="card-body">
-                                <div class="row g-3">
-                                    <div class="form-group col-md-4">
-                                        <label>Nome da Empresa</label>
-                                        <input type="text" class="form-control form-control-sm" name="companyName" required>
-                                    </div>
-                                    <div class="form-group col-md-4">
-                                        <label>Nome do Cliente</label>
-                                        <input type="text" class="form-control form-control-sm" name="clientName" required>
-                                    </div>
-                                    <div class="form-group col-md-4">
-                                        <label>NUIT</label>
-                                        <input type="text" class="form-control form-control-sm" name="clientNUIT" required>
-                                    </div>
-                                    <div class="form-group col-md-2">
-                                        <label>Factura Nº:</label>
-                                        <input type="text" class="form-control form-control-sm" name="invoiceNumber" id="invoiceNumber" readonly required>
-                                    </div>
-                                    <div class="form-group col-md-2">
-                                        <label>Data</label>
-                                        <input type="date" class="form-control form-control-sm" name="date" required>
-                                    </div>
+            <div class="container-fluid">
+                <form id="invoice-form">
+                    <div class="card shadow">
+                        <div class="card-body">
+                            <div class="row g-3">
+                                <div class="form-group col-md-4">
+                                    <label for="">Selecionar Cliente</label>
+                                    <select name="" id="client-select" class="form-control form-control-sm">
+                                        <option value="">Selecionar Cliente</option>
+                                    </select>
                                 </div>
-
-                                <h5 class="text-gray-800 mt-4" style="font-size: 1rem;"><strong>Itens da Factura</strong></h5>
-                                <table class="table table-bordered" id="itemsTable">
-                                    <thead>
-                                        <tr>
-                                            <th>Descrição</th>
-                                            <th>Quantidade</th>
-                                            <th>Preço Unitário</th>
-                                            <th></th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <tr>
-                                            <td><input type="text" name="items[0][description]" class="form-control form-control-sm" required></td>
-                                            <td><input type="number" name="items[0][quantity]" class="form-control form-control-sm" required></td>
-                                            <td><input type="number" name="items[0][unitPrice]" class="form-control form-control-sm" required></td>
-                                            <td><button type="button" class="btn btn-danger btn-sm remove-row"><i class="fas fa-trash"></i></button></td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                                <button type="button" class="btn btn-sm btn-secondary" id="addRow">Adicionar Item</button>
-                                <button type="submit" id="btn-create-invoice" class="btn btn-primary btn-sm float-right">Gerar Factura</button>
+                                <div class="form-group col-md-4">
+                                    <label>Nome da Empresa</label>
+                                    <input type="text" class="form-control form-control-sm" id="companyName"
+                                        name="companyName" required>
+                                </div>
+                                <div class="form-group col-md-4">
+                                    <label>Nome do Cliente</label>
+                                    <input type="text" class="form-control form-control-sm" id="clientName"
+                                        name="clientName" required>
+                                </div>
+                                <div class="form-group col-md-4">
+                                    <label>NUIT</label>
+                                    <input type="text" class="form-control form-control-sm" id="clientNUIT"
+                                        name="clientNUIT" required>
+                                </div>
+                                <div class="form-group col-md-2">
+                                    <label>Factura Nº:</label>
+                                    <input type="text" class="form-control form-control-sm"
+                                        name="invoiceNumber" id="invoiceNumber" readonly required>
+                                </div>
+                                <div class="form-group col-md-2">
+                                    <label>Data</label>
+                                    <input type="date" class="form-control form-control-sm" name="date" required>
+                                </div>
                             </div>
+
+                            <h5 class="text-gray-800 mt-4" style="font-size: 1rem;"><strong>Itens da
+                                    Factura</strong></h5>
+                            <table class="table table-bordered" id="itemsTable">
+                                <thead>
+                                    <tr>
+                                        <th>Descrição</th>
+                                        <th>Quantidade</th>
+                                        <th>Preço Unitário</th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td class="d-flex"><input type="text" name="items[0][description]"
+                                            class="form-control form-control-sm description" required> 
+                                            <button type="button" class="btn btn-primary btn-sm ml-3 d-flex align-items-center btn-open-products-list">
+                                                <i class="fa-solid fa-table-list mr-2"></i>
+                                                Selecionar</button></td>
+                                        <td><input type="number" name="items[0][quantity]"
+                                                class="form-control form-control-sm quantity" required></td>
+                                        <td><input type="number" name="items[0][unitPrice]"
+                                                class="form-control form-control-sm unitPrice" required></td>
+                                        <td><button type="button"
+                                                class="btn btn-danger btn-sm remove-row"><i
+                                                    class="fas fa-trash"></i></button></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                            <button type="button" class="btn btn-sm btn-secondary" id="addRow">Adicionar
+                                Item</button>
+                            <button type="submit" id="btn-create-invoice"
+                                class="btn btn-primary btn-sm float-right">Gerar Factura</button>
                         </div>
-                    </form>
+                    </div>
+                </form>
+            </div>
+                </div>
+                <%- include('partials/copyright') %>
+            </div>
+    </div>
+    <!-- Products Modal-->
+    <div class="modal fade" id="productSelectModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h6 class="modal-title" id="exampleModalLabel"><strong>
+                        <i class="fa-solid fa-table-list mr-2"></i>
+                            Lista de Produtos & Serviços</strong></h6>
+                    <button class="close" type="button" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">×</span>
+                    </button>
+                </div>
+                <div class="modal-body text-center">
+                    <p class="text-danger">Nenhum produto ou serviço registado!!!</p>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary btn-sm" type="button" data-dismiss="modal">Fechar</button>
                 </div>
             </div>
-            <%- include('partials/copyright') %>
         </div>
     </div>
-
     <%- include('partials/footer') %>
-    <script src="assets/js/new-invoice.js"></script>
+
+        <script src="assets/js/new-invoice.js"></script>
 </body>
 
 </html>

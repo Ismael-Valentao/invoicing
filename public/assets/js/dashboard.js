@@ -5,8 +5,9 @@ let paidInvoices = null;
 const getTotalAmount = async () => {
     const response = await fetch('/api/invoices/total-amount');
     const data = await response.json();
-    document.getElementById('total-amount').innerText = data.totalAmount + ' MZN'
+    document.getElementById('total-amount').innerText = formatarTotalFacturado(data.totalAmount)
 }
+
 const getTotalInvoices = async () => {
     const response = await fetch('/api/invoices/total-invoices');
     const data = await response.json();
@@ -49,6 +50,17 @@ const getTotalAmountByMonth = async () => {
 
 }
 
+function formatarTotalFacturado(valor) {
+    if (isNaN(valor)) {
+      return "Valor inválido";
+    }
+  
+    return new Intl.NumberFormat('pt-MZ', {
+      style: 'currency',
+      currency: 'MZN' // Metical moçambicano
+    }).format(valor).replace('MTn', 'MZN');
+  }
+  
 document.addEventListener('DOMContentLoaded', async () => {
     getTotalAmount();
     getLastInvoice();

@@ -1,5 +1,7 @@
 const puppeteer = require('puppeteer');
 const {formatedDate} = require('./dateFormatter');
+const path = require('path');
+const logoPath = 'http://localhost:3000/images/logos';
 
 async function generateInvoicePDF(companyInfo, invoice) {
     const browser = await puppeteer.launch({
@@ -93,6 +95,7 @@ async function generateInvoicePDF(companyInfo, invoice) {
             border: 1px solid #ddd;
             padding: 8px;
             text-align: left;
+            font-size:0.8rem;
         }
 
         th {
@@ -104,7 +107,7 @@ async function generateInvoicePDF(companyInfo, invoice) {
 <body>
     <div class="page">
         <div class="invoice-header">
-            <div><img src="http://localhost:3000/images/taimofakelogo.png" width="190" alt="logo"></div>
+            <div><img src="${path.join(logoPath,companyInfo.logoUrl ?? 'taimofakelogo.png')}" width="190" alt="logo"></div>
             <div class="company-info">
                 <p><strong>${companyInfo.name}</strong></p>
                 <p>${companyInfo.address}</p>
@@ -285,6 +288,7 @@ async function generateQuotationPDF(companyInfo, quotation) {
             border: 1px solid #ddd;
             padding: 8px;
             text-align: left;
+            font-size:0.8rem;
         }
 
         th {
@@ -296,7 +300,7 @@ async function generateQuotationPDF(companyInfo, quotation) {
 <body>
     <div class="page">
         <div class="invoice-header">
-            <div><img src="http://localhost:3000/images/taimofakelogo.png" width="190" alt="logo"></div>
+            <div><img src="${path.join(logoPath,companyInfo.logoUrl ?? 'taimofakelogo.png')}" width="190" alt="logo"></div>
             <div class="company-info">
                 <p><strong>${companyInfo.name}</strong></p>
                 <p>${companyInfo.address}</p>

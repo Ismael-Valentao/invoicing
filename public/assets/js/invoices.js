@@ -15,12 +15,44 @@ fetch('/api/invoices')
     .then(response => response.json())
     .then(data => {
         data.invoices.forEach(invoice => {
-            const actualArray = [invoice.invoiceNumber, invoice.clientName, invoice.totalAmount, new Date(invoice.date).toLocaleDateString(), statusBadge(invoice.status), `<a href="http://localhost:3000/api/invoices/${invoice._id}/pdf" class="btn btn-primary btn-sm text-center"><i class="fa-solid fa-download"></i></a>
+            const actualArray = [invoice.invoiceNumber, invoice.clientName, invoice.totalAmount, new Date(invoice.date).toLocaleDateString(), statusBadge(invoice.status), `<a href="http://localhost:3000/api/invoices/${invoice._id}/pdf" class="btn btn-primary btn-sm text-center btn-download"><i class="fa-solid fa-download"></i></a>
             <button type="button" class="btn btn-secondary btn-sm mx-2 btn-edit-invoice" id="${invoice._id}" stat="${invoice.status}"><i class="fa-solid fa-pen-to-square"></i></button>`];
             $('#dataTable').DataTable().row.add(actualArray).draw(false);
         });
     })
     .catch(error => console.error('Error fetching invoices:', error));
+
+$('#dataTable').on('click', '.btn-download', function (e) {
+    e.preventDefault();
+    const btn = $(this);
+    btn.attr('disabled', true);
+    btn.find('i').removeClass('fa-solid fa-download').addClass('fa-solid fa-spinner fa-spin-pulse');
+    const uri = $(this).attr('href');
+    fetch(uri)
+        .then(response => {
+            if (response.ok) {
+                return response.blob();
+            } else {
+                throw new Error('Network response was not ok');
+            }
+        })
+        .then(blob => {
+            console.log(blob);
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'factura.pdf';
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+
+        })
+        .finally(() => {
+            btn.attr('disabled', false);
+            btn.find('i').removeClass('fa-solid fa-spinner fa-spin-pulse').addClass('fa-solid fa-download');
+        })
+        .catch(error => console.error('Error downloading invoice:', error));
+})
 
 $('#dataTable').on('click', '.btn-edit-invoice', function () {
     selectedRow = $(this).closest('tr');

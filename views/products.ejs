@@ -38,10 +38,18 @@
         table tr th,
         table tr td {
             padding: 0.3rem !important;
+            vertical-align: middle !important;
+        }
+
+        table tr td:last-child,
+        table tr td:nth-last-child(2) {
+            text-align: center !important;
         }
 
         table tr td:last-child {
-            text-align: center !important;
+            display: flex;
+            justify-content: center;
+            gap: 0.5rem;
         }
     </style>
 </head>
@@ -64,7 +72,14 @@
                         <div class="container-fluid">
 
                             <!-- Page Heading -->
-                            <h1 class="h3 mb-2 text-gray-800" style="font-size: 1.2rem;">Produtos/Serviços</h1>
+                            <div class="d-sm-flex align-items-center justify-content-between mb-4">
+                                <h5 class="mb-0 text-gray-800">Produtos</h5>
+                                <button class="btn btn-primary btn-sm" id="btn-create-product" type="button"
+                                    data-toggle="modal" data-target="#productModal">
+                                    <i class="fas fa-plus fa-sm text-white-50"></i> Adicionar Produto
+                                </button>
+
+                            </div>
 
                             <!-- DataTales Example -->
                             <div class="card shadow mb-4">
@@ -74,9 +89,7 @@
                                             <thead>
                                                 <tr class="bg-secondary text-white">
                                                     <th>Nome do Produto</th>
-                                                    <th>Preço Unitário</th>
-                                                    <th>Contacto</th>
-                                                    <th>Nuit</th>
+                                                    <th class="text-center">Preço Unitário</th>
                                                     <th class="text-center">Acções</th>
                                                 </tr>
                                             </thead>
@@ -110,89 +123,67 @@
     </a>
 
     <!-- Confirmation Modal-->
-    <div class="modal fade" id="clientModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+    <div class="modal fade" id="productModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
         aria-hidden="true">
         <div class="modal-dialog" role="document">
             <div class="modal-content">
                 <div class="modal-header">
                     <h6 class="modal-title" id="exampleModalLabel"><strong><i class="fa-solid fa-pen-to-square"></i>
-                            Actualizar dados do cliente</strong></h6>
+                            Adicionar Produto</strong></h6>
                     <button class="close" type="button" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">×</span>
                     </button>
                 </div>
-                <form id="client-form">
+                <form id="add-product-form">
                     <div class="modal-body">
                         <div class="form-group">
-                            <label for="client-name">Nome do Cliente</label>
-                            <input type="text" class="form-control" id="client-name" name="client-name"
-                                placeholder="Nome do Cliente" required>
+                            <label for="product-name">Nome do Produto</label>
+                            <input type="text" class="form-control form-control-sm" id="add-product-name" name="product-name"
+                                placeholder="Nome do Produto" required>
                         </div>
                         <div class="form-group">
-                            <label for="client-email">E-mail</label>
-                            <input type="email" class="form-control" id="client-email" name="client-email"
-                                placeholder="E-mail" required>
+                            <label for="product-price">Preço Unitário</label>
+                            <input type="number" class="form-control form-control-sm" id="add-product-price" name="product-price"
+                                placeholder="Preço Unitário" required>
                         </div>
-                        <div class="form-group">
-                            <label for="client-phone">Contacto</label>
-                            <input type="text" class="form-control" id="client-phone" name="client-phone"
-                                placeholder="Contacto" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="client-nuit">Nuit</label>
-                            <input type="text" class="form-control" id="client-nuit" name="client-nuit"
-                                placeholder="Nuit" required>
-                        </div>
-                        <input type="hidden" name="clientId" id="clientId" value="">
-                        <input type="hidden" name="action" id="action" value="add">
                     </div>
                 </form>
                 <div class="modal-footer">
-                    <button class="btn btn-secondary btn-sm" type="button" data-dismiss="modal">Cancelar</button>
-                    <button id="btn-update-client" class="btn btn-primary btn-sm">Actualizar</button>
+                    <button class="btn btn-secondary btn-sm" type="button" data-dismiss="modal">Fechar</button>
+                    <button id="btn-add-product" class="btn btn-primary btn-sm">Adicionar</button>
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="modal fade" id="clientModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+    <div class="modal fade" id="updateProductModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
         aria-hidden="true">
         <div class="modal-dialog" role="document">
             <div class="modal-content">
                 <div class="modal-header">
                     <h6 class="modal-title" id="exampleModalLabel"><strong><i class="fa-solid fa-pen-to-square"></i>
-                            Adicionar Cliente</strong></h6>
+                            Actualizar Produto</strong></h6>
                     <button class="close" type="button" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">×</span>
                     </button>
                 </div>
-                <form id="create-client-form">
+                <form id="update-product-form">
                     <div class="modal-body">
                         <div class="form-group">
-                            <label for="client-name">Nome do Cliente</label>
-                            <input type="text" class="form-control" id="client-name" name="client-name"
-                                placeholder="Nome do Cliente" required>
+                            <label for="product-name">Nome do Produto</label>
+                            <input type="text" class="form-control form-control-sm" id="update-product-name" name="product-name"
+                                placeholder="Nome do Produto" required>
                         </div>
                         <div class="form-group">
-                            <label for="client-email">E-mail</label>
-                            <input type="email" class="form-control" id="client-email" name="client-email"
-                                placeholder="E-mail" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="client-phone">Contacto</label>
-                            <input type="text" class="form-control" id="client-phone" name="client-phone"
-                                placeholder="Contacto" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="client-nuit">Nuit</label>
-                            <input type="text" class="form-control" id="client-nuit" name="client-nuit"
-                                placeholder="Nuit" required>
+                            <label for="product-price">Preço Unitário</label>
+                            <input type="number" class="form-control form-control-sm" id="update-product-price" name="product-price"
+                                placeholder="Preço Unitário" required>
                         </div>
                     </div>
                 </form>
                 <div class="modal-footer">
                     <button class="btn btn-secondary btn-sm" type="button" data-dismiss="modal">Cancelar</button>
-                    <button id="btn-create-client" class="btn btn-primary btn-sm">Salvar</button>
+                    <button id="btn-update-product" class="btn btn-primary btn-sm">Actualizar</button>
                 </div>
             </div>
         </div>
@@ -207,6 +198,283 @@
         <!-- Page level custom scripts -->
         <script src="assets/js/demo/datatables-demo.js"></script>
         <script src="assets/js/products.js"></script>
+        <script>
+            let selectedRow;
+            function showProducts() {
+                fetch('/api/products')
+                    .then(response => response.json())
+                    .then(data => {
+                        data.products.forEach(product => {
+                            const actualArray = [
+                                product.description,
+                                product.unitPrice.toFixed(2),
+                                `<button class="btn btn-primary btn-sm btn-edit-product" id="${product._id}" data-toggle="modal" data-target="#updateProductModal"><i class="fa-solid fa-pen-to-square"></i></button>
+                             <button class="btn btn-danger btn-sm btn-delete-product" id="${product._id}"><i class="fa-solid fa-trash"></i></button>`]
+
+                            $('#dataTable').DataTable().row.add(actualArray).draw(false);
+                        });
+                    })
+                    .catch(error => console.error('Error fetching products:', error));
+            }
+
+
+            //Listener for the "Add Product" button
+            document.addEventListener('DOMContentLoaded', function () {
+                showProducts();
+
+                document.getElementById('btn-add-product').addEventListener('click', function () {
+                    const productName = document.getElementById('add-product-name').value;
+                    const productPrice = document.getElementById('add-product-price').value;
+
+                    if (productName.trim() !== '' && productPrice.trim() !== '') {
+                        const data = {
+                            description: productName,
+                            unitPrice: parseFloat(productPrice)
+                        };
+                        fetch('/api/products', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify(data)
+                        })
+                            .then(response => response.json())
+                            .then(data => {
+                                console.log(data.product);
+                                if (data.success) {
+                                    addProductRow(data.product);
+                                    Swal.fire({
+                                        icon: 'success',
+                                        text: 'Produto Adicionado com Sucesso',
+                                        showConfirmButton: false,
+                                        timer: 1500
+                                    });
+                                } else {
+                                    Swal.fire({
+                                        icon: 'error',
+                                        text: 'Erro ao Adicionar Produto',
+                                        text: data.message
+                                    });
+                                }
+                            })
+                            .catch(error => {
+                                Swal.fire({
+                                    icon: 'error',
+                                    text: 'Erro ao Adicionar Produto',
+                                    text: error.message
+                                });
+                            });
+                    } else {
+                        Swal.fire({
+                            icon: 'warning',
+                            text: 'Campos Obrigatórios',
+                            text: 'Por favor, preencha todos os campos.'
+                        });
+                    }
+                });
+
+                // Event listener for the "Update Product" button
+                document.getElementById('btn-update-product').addEventListener('click', function () {
+                    const productName = document.getElementById('update-product-name').value;
+                    const productPrice = document.getElementById('update-product-price').value;
+
+                    if (productName.trim() !== '' && productPrice.trim() !== '') {
+                        const data = {
+                            description: productName,
+                            unitPrice: parseFloat(productPrice)
+                        };
+                        fetch(`/api/products/${productId}`, {
+                            method: 'PATCH',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify(data)
+                        })
+                            .then(response => response.json())
+                            .then(data => {
+                                if (data.success) {
+                                    Swal.fire({
+                                        icon: 'success',
+                                        text: 'Produto Actualizado com Sucesso',
+                                        showConfirmButton: false,
+                                        timer: 1500
+                                    });
+                                    showProducts();
+                                } else {
+                                    Swal.fire({
+                                        icon: 'error',
+                                        text: 'Erro ao Actualizar Produto',
+                                        text: data.message
+                                    });
+                                }
+                            })
+                            .catch(error => {
+                                Swal.fire({
+                                    icon: 'error',
+                                    text: 'Erro ao Actualizar Produto',
+                                    text: error.message
+                                });
+                            });
+                    } else {
+                        Swal.fire({
+                            icon: 'warning',
+                            text: 'Campos Obrigatórios',
+                            text: 'Por favor, preencha todos os campos.'
+                        });
+                    }
+                });
+            });
+
+            function addProductRow(product) {
+                const actualArray = [
+                    product.description,
+                    product.unitPrice.toFixed(2),
+                    `<button class="btn btn-primary btn-sm btn-edit-product" id="${product._id}" data-toggle="modal" data-target="#updateProductModal"><i class="fa-solid fa-pen-to-square"></i></button>
+                    <button type="button" class="btn btn-danger btn-sm btn-delete-product" id="${product._id}"><i class="fa-solid fa-trash"></i></button>`]
+
+                $('#dataTable').DataTable().row.add(actualArray).draw(false);
+            }
+
+            function updateProductRow(product) {
+                const row = $('#dataTable').DataTable().row(selectedRow);
+                const actualArray = [
+                    product.description,
+                    product.unitPrice.toFixed(2),
+                    `<button class="btn btn-primary btn-sm btn-edit-product" id="${product._id}" data-toggle="modal" data-target="#updateProductModal"><i class="fa-solid fa-pen-to-square"></i></button>
+                    <button type="button" class="btn btn-danger btn-sm btn-delete-product" id="${product._id}"><i class="fa-solid fa-trash"></i></button>`]
+
+                row.data(actualArray).draw(false);
+            }
+
+            // Event listener for the "Delete Product" button
+                $('#dataTable tbody').on('click', '.btn-delete-product', function (event) {
+                    const productId = $(this).attr('id');
+                    const row = $(this).closest('tr');
+                    Swal.fire({
+                        title: 'Tem a certeza?',
+                        text: "Você não poderá reverter isso!",
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#3085d6',
+                        cancelButtonColor: '#d33',
+                        confirmButtonText: 'Sim, excluir!'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            fetch(`/api/products/${productId}`, {
+                                method: 'DELETE'
+                            })
+                                .then(response => response.json())
+                                .then(data => {
+                                    if (data.status === "success") {
+                                        Swal.fire(
+                                            'Excluído!',
+                                            'Produto excluído com sucesso.',
+                                            'success'
+                                        );
+                                        $('#dataTable').DataTable().row(row).remove().draw(false);
+                                    } else {
+                                        Swal.fire({
+                                            icon: 'error',
+                                            text: 'Erro ao Excluir Produto',
+                                            text: data.message
+                                        });
+                                    }
+                                })
+                                .catch(error => {
+                                    Swal.fire({
+                                        icon: 'error',
+                                        text: 'Erro ao Excluir Produto',
+                                        text: error.message
+                                    });
+                                });
+                        }
+                    });
+                });
+
+            // Event listener for the "Edit Product" button
+            $('#dataTable tbody').on('click', '.btn-edit-product', function (event) {
+                const productId = $(this).attr('id');
+                selectedRow = $(this).closest('tr');
+                fetch(`/api/products/${productId}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.status === "success") {
+                            const product = data.product;
+                            document.getElementById('update-product-name').value = product.description;
+                            document.getElementById('update-product-price').value = product.unitPrice;
+                            document.getElementById('btn-update-product').setAttribute('data-id', product._id);
+                        } else {
+                            Swal.fire({
+                                icon: 'error',
+                                text: 'Erro ao Carregar Produto',
+                                text: data.message
+                            });
+                        }
+                    })
+                    .catch(error => {
+                        Swal.fire({
+                            icon: 'error',
+                            text: 'Erro ao Carregar Produto',
+                            text: error.message
+                        });
+                    });
+            });
+
+            document.getElementById('btn-update-product').addEventListener('click', function () {
+                const productId = this.getAttribute('data-id');
+                const productName = document.getElementById('update-product-name').value;
+                const productPrice = document.getElementById('update-product-price').value;
+
+                if (productName.trim() !== '' && productPrice.trim() !== '') {
+                    const data = {
+                        description: productName,
+                        unitPrice: parseFloat(productPrice)
+                    };
+                    fetch(`/api/products/${productId}`, {
+                        method: 'PATCH',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(data)
+                    })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.status === "success") {
+                                const updatedProduct = data.product;
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: 'Sucesso',
+                                    text: 'Produto Actualizado com Sucesso',
+                                    showConfirmButton: false,
+                                    timer: 1500
+                                });
+                               updateProductRow(updatedProduct);
+                                $('#updateProductModal').modal('hide');
+                            } else {
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Erro',
+                                    text: 'Erro ao Actualizar Produto',
+                                    text: data.message
+                                });
+                            }
+                        })
+                        .catch(error => {
+                            Swal.fire({
+                                icon: 'error',
+                                text: 'Erro ao Actualizar Produto',
+                                text: error.message
+                            });
+                        });
+                } else {
+                    Swal.fire({
+                        icon: 'warning',
+                        text: 'Campos Obrigatórios',
+                        text: 'Por favor, preencha todos os campos.'
+                    });
+                }
+            });
+        </script>
 </body>
 
 </html>

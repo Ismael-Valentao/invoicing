@@ -12,11 +12,11 @@ const authRoutes = require('./src/routes/auth');
 const pagesRoutes = require('./src/routes/pages');
 const companyRoutes = require('./src/routes/companies');
 const clientsRoutes = require('./src/routes/clients');
+const productsRoutes = require('./src/routes/products');
 
 const app = express();
 const PORT = 3000;
 
-// Configuração do EJS
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 app.use(express.static(path.join(__dirname, 'public')));
@@ -31,9 +31,10 @@ app.use('/api/clients', clientsRoutes);
 app.use('/api/invoices', invoiceRoutes);
 app.use('/api/quotations', quotationRoutes)
 app.use('/api/company', companyRoutes);
+app.use('/api/products', productsRoutes);
 app.use('/', pagesRoutes);
 
-// Conexão com o MongoDB
+
 mongoose.connect(process.env.MONGODB_URI)
 .then(() => {
   console.log('Conectado ao MongoDB');

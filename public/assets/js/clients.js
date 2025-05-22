@@ -16,19 +16,20 @@ $('#dataTable').on('click', '.btn-edit-client', function () {
     const clientPhone = selectedRow.find('td:eq(2)').text();
     const clientNuit = selectedRow.find('td:eq(3)').text();
 
-    document.getElementById('clientId').value = clientId;
-    document.getElementById('clientName').value = clientName;
-    document.getElementById('clientEmail').value = clientEmail;
-    document.getElementById('clientPhone').value = clientPhone;
-    document.getElementById('clientNuit').value = clientNuit;
+    document.getElementById('btn-update-client').setAttribute('data-client-id', clientId);
+    document.getElementById('client-name-update').value = clientName;
+    document.getElementById('client-email-update').value = clientEmail;
+    document.getElementById('client-phone-update').value = clientPhone;
+    document.getElementById('client-nuit-update').value = clientNuit;
+    document.getElementById('client-address-update').value = clientNuit;
 
-    $('#clientModal').modal('show');
+    $('#updateClientModal').modal('show');
 })
 
 document.getElementById('btn-update-client').addEventListener('click', function (e) {
     e.preventDefault();
-    const clientId = document.getElementById('clientId').value;
-    const data = $("#client-form").serialize();
+    const clientId = this.getAttribute('data-client-id');
+    const data = $("#update-client-form").serialize();
 
     fetch(`/api/clients/${clientId}`, {
         method: 'PATCH',
@@ -39,7 +40,7 @@ document.getElementById('btn-update-client').addEventListener('click', function 
     })
         .then(response => response.json())
         .then(data => {
-            if (data.success) {
+            if (data.status === 'success') {
                 $('#clientModal').modal('hide');
                 selectedRow.find('td:eq(0)').text(data.client.name);
                 selectedRow.find('td:eq(1)').text(data.client.email);
@@ -68,7 +69,7 @@ $('#dataTable').on('click', '.btn-delete-client', function () {
         })
             .then(response => response.json())
             .then(data => {
-                if (data.success) {
+                if (data.status === 'success') {
                     $('#dataTable').DataTable().row(row).remove().draw(false);
                 } else {
                     alert('Erro ao excluir cliente: ' + data.message);
@@ -89,7 +90,7 @@ document.getElementById('btn-open-client-modal').addEventListener('click', funct
 
 document.getElementById('btn-create-client').addEventListener('click', function (e) {
     e.preventDefault();
-    const data = $("#client-form").serialize();
+    const data = $("#create-client-form").serialize();
 
     fetch('/api/clients', {
         method: 'POST',

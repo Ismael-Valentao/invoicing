@@ -10,3 +10,5 @@ router.get('/', authMiddleware, getProducts);
 router.get('/:id', authMiddleware, getProductById);
 router.patch('/:id', authMiddleware, updateProduct);
 router.delete('/:id', authMiddleware, deleteProduct);
+
+module.exports = router;

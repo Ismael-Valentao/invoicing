@@ -117,7 +117,7 @@ exports.downloadInvoicePDF = async (req, res) => {
         const pdfBuffer = await generateInvoicePDF(companyInfo, invoice);
         res.set({
             'Content-Type': 'application/pdf',
-            'Content-Disposition': `attachment; filename=cotação-${invoice.invoiceNumber}.pdf`,
+            'Content-Disposition': `attachment; filename=factura-${invoice.invoiceNumber}.pdf`,
         });
         res.send(pdfBuffer);
     } catch (err) {

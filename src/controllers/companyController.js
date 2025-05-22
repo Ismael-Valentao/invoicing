@@ -1,14 +1,23 @@
-const express = require('express');
-const router = express.Router();
-
 const company = require('../models/company');
+const User = require('../models/user');
+const bcrypt = require('bcryptjs');
+const multer = require('multer');
+const path = require('path');
+const fs = require('fs');
+
+const logoDir = path.join(path.dirname(path.dirname(__dirname)), 'public', 'images', 'logos');
+
+if(!fs.existsSync(logoDir)){
+    fs.mkdirSync(logoDir);
+}
 
 exports.createCompany = async (req, res) => {
     try {
-        const { name, address, contact, email, nuit} = req.body;
-        if (!name || !address || !contact || !email || !nuit) {
+        const { name, address, contact, email, nuit, firstName, lastName, useremail, usercontact, userpassword } = req.body;
+        if (!name || !address || !contact || !email || !nuit || !firstName || !lastName || !useremail || !usercontact || !userpassword) {
             return res.status(400).json({ message: 'All fields are required' });
         }
+
         const existingCompany = await company.find({ name });
         if (existingCompany.length > 0) {
             return res.status(400).json({ message: 'Company already exists' });
@@ -16,9 +25,27 @@ exports.createCompany = async (req, res) => {
 
         const newCompany = new company(req.body);
         await newCompany.save();
-        res.status(201).json({ message: 'Company created successfully', company: newCompany });
+        const existingUser = await User.find({ email: email, companyId: newCompany._id });
+        if (existingUser.length > 0) {
+            return res.status(400).json({ error: 'Usuário já existe' });
+        }
+
+        const hashedPassword = bcrypt.hashSync(userpassword, 10);
+
+        const user = new User({
+            name: `${firstName} ${lastName}`,
+            email: useremail,
+            contact: usercontact,
+            password: hashedPassword,
+            companyId: newCompany._id
+        })
+
+        await user.save();
+
+        res.status(201).json({ status: 'success', message: 'Company created successfully', company: newCompany, user });
     } catch (error) {
         res.status(500).json({ message: 'Error creating company', error });
+        console.log(error);
     }
 }
 
@@ -70,3 +97,27 @@ exports.deleteCompany = async (req, res) => {
     }
 }
 
+const storage = multer.diskStorage({
+    destination: logoDir, 
+    filename: (req, file, cb)=>{
+        const companyId = req.user.company._id;
+        cb(null, 'logo_company_v1_'+companyId);
+    }
+})
+
+exports.upload = multer({storage});
+
+exports.registCompanyLogo = async (req, res)=>{
+    const companyId = req.user.company._id;
+    const theCompany = await company.findOne({_id: companyId});
+
+    if (!theCompany) {
+        return res.status(404).json({ error: 'Empresa não encontrada' });
+    }
+
+    theCompany.logoUrl = 'logo_company_v1_'+companyId;
+
+    await theCompany.save();
+
+    return res.status(200).json({status:'success', company:theCompany})
+}

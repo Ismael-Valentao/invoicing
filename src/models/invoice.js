@@ -20,7 +20,7 @@ const invoiceSchema = new mongoose.Schema({
     companyId: { type: mongoose.Schema.Types.ObjectId, ref: 'Company' },
     userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
     status: { type: String, enum: ['paid', 'unpaid', 'overdue'], default: 'unpaid' }
-})
+}, { timestamps: true });
 
 module.exports = mongoose.model('Invoice', invoiceSchema);
 

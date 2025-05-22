@@ -62,31 +62,45 @@
 
                         <!-- Begin Page Content -->
                         <div class="container-fluid">
-                            <!-- DataTales Example -->
-                            <div class="card shadow mb-4">
+                            <div class="card">
                                 <div class="card-body">
-                                    <div class="table-responsive">
-                                        <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
-                                            <thead>
-                                                <tr class="bg-secondary text-white">
-                                                    <th class="text-center">Nº</th>
-                                                    <th class="text-center">Nome do Cliente</th>
-                                                    <th class="text-center">Valor Total</th>
-                                                    <th class="text-center">Data de Emissão</th>
-                                                    <th class="text-center">Status</th>
-                                                    <th class="text-center">Acções</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-
-                                            </tbody>
-                                            <tfoot>
-                                            </tfoot>
-                                        </table>
+                                    <div class="row g-3">
+                                        <div class="form-group col-md-4">
+                                            <label for="">Nome da Empresa</label>
+                                            <input type="text" class="form-control form-control-sm" id="companyName"
+                                                name="companyName" required readonly>
+                                        </div>
+                                        <div class="form-group col-md-4">
+                                            <label>NUIT</label>
+                                            <input type="text" class="form-control form-control-sm" id="companyNUIT"
+                                                name="companyNUIT" required readonly>
+                                        </div>
+                                        <div class="form-group col-md-4">
+                                            <label>Contacto</label>
+                                            <input type="text" class="form-control form-control-sm" id="companyContact"
+                                                name="companyContact" required readonly>
+                                        </div>
+                                        <div class="form-group col-md-4">
+                                            <label>E-mail</label>
+                                            <input type="text" class="form-control form-control-sm" id="companyEmail"
+                                                name="companyEmail" required readonly>
+                                        </div>
+                                        <div class="form-group col-md-6">
+                                            <label>Endereço</label>
+                                            <input type="text" class="form-control form-control-sm" id="companyAddress"
+                                                name="companyAddress" required readonly>
+                                        </div>
+                                        <div class="form-group col-md-6 d-none">
+                                            <label for="">Adicionar Logotipo</label>
+                                            <input type="file" name="logo" id="input-logo" accept="image/png">
+                                        </div>
                                     </div>
                                 </div>
+                                <div class="card-footer">
+                                    <button type="button" class="btn btn-primary" id="btn-add-logo">Adicionar
+                                        Logotipo</button>
+                                </div>
                             </div>
-
                         </div>
                         <!-- /.container-fluid -->
 
@@ -107,26 +121,27 @@
     </a>
 
     <!-- Confirmation Modal-->
-    <div class="modal fade" id="invoiceStatusModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+    <div class="modal fade" id="previewModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
         aria-hidden="true">
         <div class="modal-dialog" role="document">
             <div class="modal-content">
                 <div class="modal-header">
                     <h6 class="modal-title" id="exampleModalLabel"><strong><i class="fa-solid fa-pen-to-square"></i>
-                            Actualização de Status</strong></h6>
+                            Pré-visualização</strong></h6>
                     <button class="close" type="button" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">×</span>
                     </button>
                 </div>
-                <div class="modal-body text-center"><strong class="text-danger" style="font-size: 1rem;">Deseja Mudar
-                        Status para <span id="invoiceStatusPT"></span>?</strong></div>
-                <form id="status-form">
-                    <input type="hidden" name="invoiceId" id="invoiceId" value="">
-                    <input type="hidden" name="status" id="invoiceStatus" value="">
-                </form>
+                <div class="modal-body text-center">
+                    <div class="card text-center">
+                        <div class="card-body" style="justify-content: center;">
+                            <img src="" class="text-center" id="logo_preview" alt="" width="190px">
+                        </div>
+                    </div>
+                </div>
                 <div class="modal-footer">
                     <button class="btn btn-secondary btn-sm" type="button" data-dismiss="modal">Cancelar</button>
-                    <button id="btn-save-status" class="btn btn-primary btn-sm">Confirmar</button>
+                    <button id="btn-save" class="btn btn-primary btn-sm">Confirmar</button>
                 </div>
             </div>
         </div>
@@ -140,7 +155,7 @@
 
         <!-- Page level custom scripts -->
         <script src="assets/js/demo/datatables-demo.js"></script>
-        <script src="assets/js/invoices.js"></script>
+        <script src="assets/js/settings.js"></script>
 </body>
 
 </html>

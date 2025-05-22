@@ -31,7 +31,7 @@ exports.login = async (req, res) => {
   const user = await User.findOne({email}).populate('companyId');
 
   if (!user || !bcrypt.compareSync(password, user.password)) {
-    return res.status(401).json({success: false, error: 'E-mail ou password inválidos' });
+    return res.status(401).json({success: false, message: 'E-mail ou password inválidos' });
   }
 
   const token = jwt.sign({ id: user._id, name:user.name, email: user.email, company: user.companyId }, SECRET, { expiresIn: '1h' });
