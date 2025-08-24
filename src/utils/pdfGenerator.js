@@ -1,7 +1,6 @@
 const puppeteer = require("puppeteer");
-const { formatedDate } = require("./dateFormatter");
 const path = require("path");
-const logoPath = "https://invoicing-oncv.onrender.com/images/logos";
+const { formatedDate } = require("./dateFormatter");
 
 function formatCurrency(value, currencyNameOption = false) {
   const formatedValue = new Intl.NumberFormat("pt-MZ", {
@@ -18,17 +17,33 @@ function formatCurrency(value, currencyNameOption = false) {
 }
 
 async function generateInvoicePDF(companyInfo, invoice) {
+  // Configuração compatível com Render
+  const browserArgs = [
+    '--no-sandbox',
+    '--disable-setuid-sandbox',
+    '--disable-dev-shm-usage',
+    '--disable-accelerated-2d-canvas',
+    '--no-first-run',
+    '--no-zygote',
+    '--single-process',
+    '--disable-gpu'
+  ];
+
   const browser = await puppeteer.launch({
     headless: "new",
-    args: ["--no-sandbox", "--disable-setuid-sandbox"],
-    executablePath: puppeteer.executablePath(),
+    args: browserArgs,
+    executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || undefined,
   });
 
   const page = await browser.newPage();
 
+  // Corrigir o caminho da logo - use URL absoluta
+  const logoUrl = companyInfo.logoUrl 
+    ? `https://invoicing-oncv.onrender.com/images/logos/${companyInfo.logoUrl}`
+    : 'https://invoicing-oncv.onrender.com/images/logos/taimofakelogo.png';
+
   const html = `
 <html lang="en">
-
 <head>
     <style>
         body {
@@ -122,10 +137,7 @@ async function generateInvoicePDF(companyInfo, invoice) {
 <body>
     <div class="page">
         <div class="invoice-header">
-            <div><img src="${path.join(
-              logoPath,
-              companyInfo.logoUrl ?? "taimofakelogo.png"
-            )}" width="190" alt="logo"></div>
+            <div><img src="${logoUrl}" width="190" alt="logo"></div>
             <div class="company-info">
                 <p><strong>${companyInfo.name}</strong></p>
                 <p>${companyInfo.address}</p>
@@ -143,14 +155,10 @@ async function generateInvoicePDF(companyInfo, invoice) {
             <div>
                 <div>
                     <div>
-                        <p><strong>Factura Nº:</strong> ${
-                          invoice.invoiceNumber
-                        }</p>
+                        <p><strong>Factura Nº:</strong> ${invoice.invoiceNumber}</p>
                     </div>
                     <div>
-                        <p><strong>Data:</strong> ${formatedDate(
-                          invoice.date
-                        )}</p>
+                        <p><strong>Data:</strong> ${formatedDate(invoice.date)}</p>
                     </div>
                 </div>
             </div>
@@ -165,18 +173,14 @@ async function generateInvoicePDF(companyInfo, invoice) {
                 </tr>
             </thead>
             <tbody>
-                ${invoice.items
-                  .map(
-                    (item) => `
+                ${invoice.items.map(item => `
                 <tr>
                     <td>${item.description}</td>
                     <td>${item.quantity}</td>
                     <td>${formatCurrency(item.unitPrice)}</td>
                     <td>${formatCurrency(item.quantity * item.unitPrice)}</td>
                 </tr>
-                `
-                  )
-                  .join("")}
+                `).join("")}
             </tbody>
             <tfoot>
                 <tr>
@@ -199,9 +203,7 @@ async function generateInvoicePDF(companyInfo, invoice) {
                 <p>Atenção: Esta factura serve como documento comprovativo de prestação de serviços e/ou fornecimento de
                     materiais.</p>
                 <p>Prazo de pagamento: até 15 dias após a emissão da presente factura.</p>
-                <p>Em caso de dúvidas, contactar o departamento financeiro: ${
-                  companyInfo.email
-                } | ${companyInfo.contact}</p>
+                <p>Em caso de dúvidas, contactar o departamento financeiro: ${companyInfo.email} | ${companyInfo.contact}</p>
             </div>
             <div>
                 <p>Maputo - Moçambique</p>
@@ -209,13 +211,21 @@ async function generateInvoicePDF(companyInfo, invoice) {
         </div>
     </div>
 </body>
-
 </html>
   `;
 
   await page.setContent(html, { waitUntil: "networkidle0" });
 
-  const pdfBuffer = await page.pdf({ format: "A4" });
+  const pdfBuffer = await page.pdf({ 
+    format: "A4",
+    printBackground: true,
+    margin: {
+      top: '20mm',
+      right: '15mm',
+      bottom: '20mm',
+      left: '15mm'
+    }
+  });
 
   await browser.close();
 
