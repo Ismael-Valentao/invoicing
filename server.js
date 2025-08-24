@@ -39,7 +39,7 @@ app.use('/api/products', productsRoutes);
 app.use('/', pagesRoutes);
 
 
-mongoose.connect('mongodb+srv://bitiray2024:boN7ZXpca24PeKSE@invoicing.2hfwgjg.mongodb.net/?retryWrites=true&w=majority&appName=invoicing')
+mongoose.connect(process.env.MONGODB_URI)
 .then(() => {
   console.log('Conectado ao MongoDB');
 })

@@ -1,7 +1,7 @@
 const puppeteer = require("puppeteer");
 const { formatedDate } = require("./dateFormatter");
 const path = require("path");
-const logoPath = "http://localhost:3000/images/logos";
+const logoPath = "https://invoicing-oncv.onrender.com/images/logos";
 
 function formatCurrency(value, currencyNameOption = false) {
   const formatedValue = new Intl.NumberFormat("pt-MZ", {

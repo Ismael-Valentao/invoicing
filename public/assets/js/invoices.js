@@ -15,7 +15,7 @@ fetch('/api/invoices')
     .then(response => response.json())
     .then(data => {
         data.invoices.forEach(invoice => {
-            const actualArray = [invoice.invoiceNumber, invoice.clientName, invoice.totalAmount, new Date(invoice.date).toLocaleDateString(), statusBadge(invoice.status), `<a href="http://localhost:3000/api/invoices/${invoice._id}/pdf" class="btn btn-primary btn-sm text-center btn-download"><i class="fa-solid fa-download"></i></a>
+            const actualArray = [invoice.invoiceNumber, invoice.clientName, invoice.totalAmount, new Date(invoice.date).toLocaleDateString(), statusBadge(invoice.status), `<a href="/api/invoices/${invoice._id}/pdf" class="btn btn-primary btn-sm text-center btn-download"><i class="fa-solid fa-download"></i></a>
             <button type="button" class="btn btn-secondary btn-sm mx-2 btn-edit-invoice" id="${invoice._id}" stat="${invoice.status}"><i class="fa-solid fa-pen-to-square"></i></button>`];
             $('#dataTable').DataTable().row.add(actualArray).draw(false);
         });
