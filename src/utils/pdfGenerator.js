@@ -21,6 +21,7 @@ async function generateInvoicePDF(companyInfo, invoice) {
   const browser = await puppeteer.launch({
     headless: "new",
     args: ["--no-sandbox", "--disable-setuid-sandbox"],
+    executablePath: puppeteer.executablePath(),
   });
 
   const page = await browser.newPage();
@@ -183,7 +184,7 @@ async function generateInvoicePDF(companyInfo, invoice) {
                     <td>${formatCurrency(invoice.subTotal)}</td>
                 </tr>
                 <tr>
-                    <td colspan="3">IVA (${invoice.appliedTax*100}%):</td>
+                    <td colspan="3">IVA (${invoice.appliedTax * 100}%):</td>
                     <td>${formatCurrency(invoice.tax)}</td>
                 </tr>
                 <tr>
@@ -225,6 +226,7 @@ async function generateQuotationPDF(companyInfo, quotation) {
   const browser = await puppeteer.launch({
     headless: "new", // para evitar erros no Node.js moderno
     args: ["--no-sandbox", "--disable-setuid-sandbox"],
+     executablePath: puppeteer.executablePath() 
   });
 
   const page = await browser.newPage();
@@ -388,7 +390,7 @@ async function generateQuotationPDF(companyInfo, quotation) {
                     <td>${formatCurrency(quotation.subTotal)}</td>
                 </tr>
                 <tr>
-                    <td colspan="3">IVA (${quotation.appliedTax*100}%):</td>
+                    <td colspan="3">IVA (${quotation.appliedTax * 100}%):</td>
                     <td>${formatCurrency(quotation.tax)}</td>
                 </tr>
                 <tr>
@@ -428,6 +430,7 @@ async function generateVDPDF(companyInfo, vd) {
   const browser = await puppeteer.launch({
     headless: "new",
     args: ["--no-sandbox", "--disable-setuid-sandbox"],
+     executablePath: puppeteer.executablePath() 
   });
 
   const page = await browser.newPage();
@@ -586,7 +589,7 @@ async function generateVDPDF(companyInfo, vd) {
                     <td>${formatCurrency(vd.subTotal)}</td>
                 </tr>
                 <tr>
-                    <td colspan="3">IVA (${vd.appliedTax*100}%):</td>
+                    <td colspan="3">IVA (${vd.appliedTax * 100}%):</td>
                     <td>${formatCurrency(vd.tax)}</td>
                 </tr>
                 <tr>
@@ -624,6 +627,7 @@ async function generateReciboPDF(companyInfo, invoice) {
   const browser = await puppeteer.launch({
     headless: "new",
     args: ["--no-sandbox", "--disable-setuid-sandbox"],
+     executablePath: puppeteer.executablePath() 
   });
 
   const page = await browser.newPage();
@@ -724,7 +728,10 @@ async function generateReciboPDF(companyInfo, invoice) {
 <body>
      <div class="page">
         <div class="invoice-header">
-            <div><img src="${path.join(logoPath,companyInfo.logoUrl ?? 'taimofakelogo.png')}" width="190" alt="logo"></div>
+            <div><img src="${path.join(
+              logoPath,
+              companyInfo.logoUrl ?? "taimofakelogo.png"
+            )}" width="190" alt="logo"></div>
             <div class="company-info">
                 <p><strong>${companyInfo.name}</strong></p>
                 <p>${companyInfo.address}</p>
@@ -754,13 +761,17 @@ async function generateReciboPDF(companyInfo, invoice) {
                 </tr>
             </thead>
             <tbody>
-                ${invoice.items.map(item => `
+                ${invoice.items
+                  .map(
+                    (item) => `
                 <tr>
                     <td>${item.description}</td>
                     <td>${item.quantity}</td>
                     <td>${formatCurrency(item.unitPrice)}</td>
                     <td>${formatCurrency(item.quantity * item.unitPrice)}</td>
-                </tr>`).join('')}
+                </tr>`
+                  )
+                  .join("")}
             </tbody>
             <tfoot>
                <tr>
@@ -768,7 +779,7 @@ async function generateReciboPDF(companyInfo, invoice) {
                     <td>${formatCurrency(invoice.subTotal)}</td>
                 </tr>
                 <tr>
-                    <td colspan="3">IVA (${invoice.appliedTax*100}%):</td>
+                    <td colspan="3">IVA (${invoice.appliedTax * 100}%):</td>
                     <td>${formatCurrency(invoice.tax)}</td>
                 </tr>
                 <tr>
@@ -780,8 +791,12 @@ async function generateReciboPDF(companyInfo, invoice) {
         <div class="invoice-footer">
             <div class="first">
                 <p>Este recibo confirma o pagamento referente aos serviços ou produtos descritos acima.</p>
-                <p>Data do pagamento: ${formatedDate(new Date().toISOString())}</p>
-                <p>Emitido por: ${companyInfo.name} | Contacto: ${companyInfo.contact}</p>
+                <p>Data do pagamento: ${formatedDate(
+                  new Date().toISOString()
+                )}</p>
+                <p>Emitido por: ${companyInfo.name} | Contacto: ${
+    companyInfo.contact
+  }</p>
             </div>
         </div>
     </div>
@@ -799,4 +814,9 @@ async function generateReciboPDF(companyInfo, invoice) {
   return pdfBuffer;
 }
 
-module.exports = { generateQuotationPDF, generateInvoicePDF, generateVDPDF, generateReciboPDF };
+module.exports = {
+  generateQuotationPDF,
+  generateInvoicePDF,
+  generateVDPDF,
+  generateReciboPDF,
+};
