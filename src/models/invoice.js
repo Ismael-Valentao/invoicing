@@ -7,12 +7,14 @@ const itemSchema = new mongoose.Schema({
 })
 
 const invoiceSchema = new mongoose.Schema({
+    docType: { type: String, default: 'invoice' },
     companyName: { type: String, required: true },
     clientName: { type: String, required: true },
     clientNUIT: { type: String, required: true },
-    invoiceNumber: { type: String, required: true, unique: true },
+    invoiceNumber: { type: String, required: true, unique: false },
     date: { type: Date, default: Date.now() },
     items: [itemSchema],
+    appliedTax: { type: Number, default: 0.16 },
     subTotal: { type: Number, required: true },
     tax: { type: Number, required: true },
     totalAmount: { type: Number, required: true },

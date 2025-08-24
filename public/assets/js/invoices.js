@@ -37,7 +37,6 @@ $('#dataTable').on('click', '.btn-download', function (e) {
             }
         })
         .then(blob => {
-            console.log(blob);
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
@@ -74,12 +73,12 @@ document.getElementById('btn-save-status').addEventListener('click', function (e
     const data = $("#status-form").serialize();
 
     fetch(`/api/invoices/${invoiceId}`, {
-        method: 'PATCH',
-        headers: {
-            'Content-Type': 'application/x-www-form-urlencoded'
-        },
-        body: data
-    })
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded'
+            },
+            body: data
+        })
         .then(response => response.json())
         .then(data => {
             if (data.success) {

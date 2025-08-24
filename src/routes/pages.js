@@ -38,6 +38,19 @@ router.get('/new-quotation', authMiddleware2, (req, res) => {
     res.render('new-quotation', { title: 'Nova Cotação', name: req.user.name, companyName:req.user.company.name });
 });
 
+router.get('/vd', authMiddleware2, (req, res) => {
+    res.render('vd', { title: 'VD', name: req.user.name, companyName:req.user.company.name });
+});
+
+router.get('/receipts', authMiddleware2, (req, res) => {
+    res.render('receipt', { title: 'Recibo', name: req.user.name, companyName:req.user.company.name });
+});
+
+
+router.get('/new-vd', authMiddleware2, (req, res) => {
+    res.render('new-vd', { title: 'Nova VD', name: req.user.name, companyName:req.user.company.name });
+});
+
 router.get('/clients', authMiddleware2, (req, res) => {
     res.render('clients', { title: 'Clientes', name: req.user.name, companyName:req.user.company.name });
 });

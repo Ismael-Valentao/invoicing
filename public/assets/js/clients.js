@@ -84,7 +84,7 @@ $('#dataTable').on('click', '.btn-delete-client', function () {
 
 document.getElementById('btn-open-client-modal').addEventListener('click', function () {
     document.getElementById('create-client-form').reset();
-    document.getElementById('clientId').value = '';
+    //document.getElementById('clientId').value = '';
     $('#createClientModal').modal('show');
 })
 

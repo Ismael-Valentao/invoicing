@@ -43,6 +43,37 @@
         </div>
     </li>
 
+        <!-- Nav Item - Pages Collapse Menu -->
+    <li class="nav-item <%= title === 'VD' || title === 'Nova VD' ? 'active' : '' %>">
+        <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseThree" aria-expanded="true"
+            aria-controls="collapseThree">
+            <i class="fa-solid fa-file-invoice-dollar"></i>
+            <span>VD</span>
+        </a>
+        <div id="collapseThree" class="collapse" aria-labelledby="headingThree" data-parent="#accordionSidebar">
+            <div class="bg-white py-2 collapse-inner rounded">
+                <h6 class="collapse-header">Opções:</h6>
+                <a class="collapse-item" href="/new-vd">Nova VD</a>
+                <a class="collapse-item" href="/vd">Listar VD</a>
+            </div>
+        </div>
+    </li>
+
+        <!-- Nav Item - Pages Collapse Menu -->
+    <li class="nav-item <%= title === 'Recibo' ? 'active' : '' %>">
+        <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseFour" aria-expanded="true"
+            aria-controls="collapseFour">
+            <i class="fa-solid fa-file-invoice-dollar"></i>
+            <span>Recibos</span>
+        </a>
+        <div id="collapseFour" class="collapse" aria-labelledby="headingFour" data-parent="#accordionSidebar">
+            <div class="bg-white py-2 collapse-inner rounded">
+                <h6 class="collapse-header">Opções:</h6>
+                <a class="collapse-item" href="/receipts">Listar Recibos</a>
+            </div>
+        </div>
+    </li>
+
     <!-- Nav Item - Pages Collapse Menu -->
     <li class="nav-item <%= title === 'Cotações' || title === 'Nova Cotação' ? 'active' : '' %>">
         <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseTwo2" aria-expanded="true"
@@ -95,6 +126,14 @@
             </div>
         </div>
     </li>
+    <hr class="sidebar-divider">
+    <!-- Nav Item - Charts -->
+    <li class="nav-item <%= title === 'Configurações' ? 'active' : '' %>">
+        <a class="nav-link" href="/settings">
+            <i class="fa-solid fa-cog"></i>
+            <span>Configurações</span></a>
+    </li>
+
     <hr class="sidebar-divider">
     <!-- Nav Item - Charts -->
     <li class="nav-item">

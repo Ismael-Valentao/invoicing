@@ -5,187 +5,38 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
-    <style>
-        body {
-            font-family: Helvetica, Arial, sans-serif;
-            padding: 20px;
-        }
-
-        .page {
-            position: relative;
-            width: 794px;
-            height: 1123px;
-            margin: 0 auto;
-            padding: 40px;
-            box-sizing: border-box;
-            background: white;
-            box-shadow: 0 10px 10px rgba(0, 0, 0, 0.3);
-        }
-
-        .company-info {
-            font-size: 0.8rem;
-        }
-
-        .company-info p {
-            margin: 0;
-            margin-bottom: 5px;
-        }
-
-        .invoice {
-            font-size: 1.2rem;
-            font-weight: bold;
-            margin: 30px auto;
-            text-align: center;
-        }
-
-        .invoice-header,
-        .invoice-client-info {
-            display: flex;
-            justify-content: space-between;
-        }
-
-        .invoice-client-info{
-            margin-bottom: 30px;
-        }
-
-        .invoice-client-info p {
-            font-size: 0.8rem;
-        }
-
-        .invoice-footer {
-            position: absolute;
-            left: 0;
-            right: 0;
-            bottom: 30px;
-            justify-content: center;
-        }
-
-        .invoice-footer div.first{
-            margin-bottom: 20px;
-        }
-
-        .invoice-footer p {
-            font-size: 0.7rem;
-            text-align: center;
-        }
-
-        h1 {
-            text-align: center;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-        }
-
-        th,
-        td {
-            border: 1px solid #ddd;
-            padding: 8px;
-            text-align: left;
-        }
-
-        th {
-            background-color: #f2f2f2;
-        }
-    </style>
 </head>
 
 <body>
-    <div class="page">
-        <div class="invoice-header">
-            <div><img src="./public/images/taimofakelogo.png" width="190" alt="logo"></div>
-            <div class="company-info">
-                <p><strong>BITIRAY TECHNOLOGY</strong></p>
-                <p>Av. Acordos de Lusaka, Rua 'D', <br>
-                    Quarteirão 21 nº 290 Bairro da Infulene 'A', Matola </p>
-                <p><strong>Cel:</strong> +258 87 69 06 925</p>
-                <p><strong>Email:</strong> info@bitiray.com </p>
-                <p><strong>NUIT:</strong> 400887314</p>
-            </div>
-        </div>
-        <p class="invoice">FACTURA</p>
-        <div class="invoice-client-info">
-            <div>
-                <p><strong>Cliente:</strong> ${invoice.clientName}</p>
-                <p><strong>NUIT: </strong>${invoice.clientNUIT}</p>
-            </div>
-            <div>
-                <div>
-                    <div>
-                        <p><strong>Factura Nº:</strong> 00004</p>
-                    </div>
-                    <div>
-                        <p><strong>Data:</strong> ${invoice.date}</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <table>
-            <thead>
-                <tr>
-                    <th>Descrição</th>
-                    <th>Quantidade</th>
-                    <th>Preço Unitário</th>
-                    <th>Total</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td>Serviço de Consultoria</td>
-                    <td>2</td>
-                    <td>5000</td>
-                    <td>10000.00</td>
-                </tr>
-                <tr>
-                    <td>Desenvolvimento de Website</td>
-                    <td>1</td>
-                    <td>15000</td>
-                    <td>15000.00</td>
-                </tr>
-                <tr>
-                    <td>Design de Logotipo</td>
-                    <td>3</td>
-                    <td>2000</td>
-                    <td>6000.00</td>
-                </tr>
-                <tr>
-                    <td>Manutenção Mensal</td>
-                    <td>1</td>
-                    <td>3000</td>
-                    <td>3000.00</td>
-                </tr>
-            </tbody>
-            <tfoot>
-                <tr>
-                    <td colspan="3">Sub-Total:</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td colspan="3">IVA (16%):</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td colspan="3">Total:</td>
-                    <td>34.000 MZN</td>
-                </tr>
-            </tfoot>
-        </table>
-        
-        <div class="invoice-footer">
-            <div class="first">
-                <p>Atenção: Esta factura serve como documento comprovativo de prestação de serviços e/ou fornecimento de
-                    materiais.</p>
-                <p>Prazo de pagamento: até 15 dias após a emissão da presente factura.</p>
-                <p>Em caso de dúvidas, contactar o departamento financeiro: financeiro@bitiray.com | +258 87 69 06 925</p>
-            </div>
-            <div>
-                <p>Nº Conta BCI: 29071288110001 | NIB: 0008000090721288110113</p>
-                <p>Maputo - Moçambique</p>
-            </div>
-        </div>
-    </div>
+    <canvas id="assinatura" width="400" height="200" style="border:1px solid #ccc"></canvas>
+    <button onclick="salvar()">Salvar Assinatura</button>
+    <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
+    <script>
+        const canvas = document.getElementById('assinatura');
+        const signaturePad = new SignaturePad(canvas);
+
+        function salvar() {
+            if (signaturePad.isEmpty()) {
+                alert("Por favor, assine primeiro.");
+                return;
+            }
+            const imagemBase64 = signaturePad.toDataURL(); // imagem da assinatura
+            const anchor = document.createElement('a');
+            anchor.href = imagemBase64; // URL da imagem
+            anchor.download = 'assinatura.png'; // nome do arquivo
+            document.body.appendChild(anchor); // adiciona o link ao DOM
+            anchor.click(); // inicia o download
+            document.body.removeChild(anchor); // remove o link do DOM
+
+            return
+            fetch('/api/assinatura', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ imagem: imagemBase64 })
+            });
+        }
+    </script>
+
 </body>
 
 </html>

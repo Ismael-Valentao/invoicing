@@ -1,4 +1,23 @@
-const input_logo = document.getElementById('input-logo');
+async function getCompanyInfo() {
+    fetch('/api/company/company')
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                const company = data.company;
+                document.getElementById('companyName').value = company.name;
+                document.getElementById('companyAddress').value = company.address;
+                document.getElementById('companyContact').value = company.contact;
+                document.getElementById('companyEmail').value = company.email;
+                document.getElementById('companyNUIT').value = company.nuit;
+            } else {
+                console.error('Error fetching company info:', data.message);
+            }
+        })
+        .catch(error => console.error('Error:', error));
+}
+
+document.addEventListener('DOMContentLoaded', async function () {
+    const input_logo = document.getElementById('input-logo');
 const logo_preview = document.getElementById('logo_preview');
 
 document.getElementById('btn-add-logo').addEventListener('click', function(e){
@@ -52,4 +71,7 @@ document.getElementById('btn-save').addEventListener('click', function(e){
             confirmButtonText: 'OK'
         })
     });
+})
+    getCompanyInfo();
+
 })

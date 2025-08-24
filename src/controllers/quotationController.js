@@ -13,6 +13,7 @@ exports.createQuotation = async (req, res) => {
         quotationNumber: req.body.quotationNumber,
         date: req.body.date,
         items: req.body.items,
+        appliedTax:req.body.iva*1*0.01,
         subTotal,
         tax,
         totalAmount,
@@ -22,7 +23,7 @@ exports.createQuotation = async (req, res) => {
     });
 
     await quotation.save();
-    res.status(201).json({ success: true, Quotation });
+    res.status(201).json({ status:"success" , Quotation });
 };
 
 exports.getQuotations = async (req, res) => {

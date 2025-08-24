@@ -7,27 +7,49 @@ const fs = require('fs');
 
 const logoDir = path.join(path.dirname(path.dirname(__dirname)), 'public', 'images', 'logos');
 
-if(!fs.existsSync(logoDir)){
+if (!fs.existsSync(logoDir)) {
     fs.mkdirSync(logoDir);
 }
 
 exports.createCompany = async (req, res) => {
     try {
-        const { name, address, contact, email, nuit, firstName, lastName, useremail, usercontact, userpassword } = req.body;
+        const {
+            name,
+            address,
+            contact,
+            email,
+            nuit,
+            firstName,
+            lastName,
+            useremail,
+            usercontact,
+            userpassword
+        } = req.body;
         if (!name || !address || !contact || !email || !nuit || !firstName || !lastName || !useremail || !usercontact || !userpassword) {
-            return res.status(400).json({ message: 'All fields are required' });
+            return res.status(400).json({
+                message: 'All fields are required'
+            });
         }
 
-        const existingCompany = await company.find({ name });
+        const existingCompany = await company.find({
+            name
+        });
         if (existingCompany.length > 0) {
-            return res.status(400).json({ message: 'Company already exists' });
+            return res.status(400).json({
+                message: 'Company already exists'
+            });
         }
 
         const newCompany = new company(req.body);
         await newCompany.save();
-        const existingUser = await User.find({ email: email, companyId: newCompany._id });
+        const existingUser = await User.find({
+            email: email,
+            companyId: newCompany._id
+        });
         if (existingUser.length > 0) {
-            return res.status(400).json({ error: 'Usuário já existe' });
+            return res.status(400).json({
+                error: 'Usuário já existe'
+            });
         }
 
         const hashedPassword = bcrypt.hashSync(userpassword, 10);
@@ -42,82 +64,158 @@ exports.createCompany = async (req, res) => {
 
         await user.save();
 
-        res.status(201).json({ status: 'success', message: 'Company created successfully', company: newCompany, user });
+        res.status(201).json({
+            status: 'success',
+            message: 'Company created successfully',
+            company: newCompany,
+            user
+        });
     } catch (error) {
-        res.status(500).json({ message: 'Error creating company', error });
+        res.status(500).json({
+            message: 'Error creating company',
+            error
+        });
         console.log(error);
     }
+}
+
+exports.getCompany = async (req, res) => {
+    const companyId = req.user.company._id;
+    try {
+        const companyData = await company.findById(companyId);
+        if (!companyData) {
+            return res.status(404).json({
+                message: 'Company not found'
+            });
+        }
+        res.status(200).json({
+            status: 'success',
+            company: companyData
+        });
+    } catch (error) {
+        res.status(500).json({
+            message: 'Error fetching company',
+            error
+        });
+    }
+
 }
 
 exports.getCompanies = async (req, res) => {
     try {
         const companies = await company.find();
-        res.status(200).json({ companies });
+        res.status(200).json({
+            companies
+        });
     } catch (error) {
-        res.status(500).json({ message: 'Error fetching companies', error });
+        res.status(500).json({
+            message: 'Error fetching companies',
+            error
+        });
     }
 }
 
 exports.getCompanyById = async (req, res) => {
     try {
-        const { id } = req.params;
+        const {
+            id
+        } = req.params;
         const companyData = await company.findById(id);
         if (!companyData) {
-            return res.status(404).json({ message: 'Company not found' });
+            return res.status(404).json({
+                message: 'Company not found'
+            });
         }
-        res.status(200).json({ company: companyData });
+        res.status(200).json({
+            company: companyData
+        });
     } catch (error) {
-        res.status(500).json({ message: 'Error fetching company', error });
+        res.status(500).json({
+            message: 'Error fetching company',
+            error
+        });
     }
 }
 
 exports.updateCompany = async (req, res) => {
     try {
-        const { id } = req.params;
-        const updatedCompany = await company.findByIdAndUpdate(id, req.body, { new: true });
+        const {
+            id
+        } = req.params;
+        const updatedCompany = await company.findByIdAndUpdate(id, req.body, {
+            new: true
+        });
         if (!updatedCompany) {
-            return res.status(404).json({ message: 'Company not found' });
+            return res.status(404).json({
+                message: 'Company not found'
+            });
         }
-        res.status(200).json({ message: 'Company updated successfully', company: updatedCompany });
+        res.status(200).json({
+            message: 'Company updated successfully',
+            company: updatedCompany
+        });
     } catch (error) {
-        res.status(500).json({ message: 'Error updating company', error });
+        res.status(500).json({
+            message: 'Error updating company',
+            error
+        });
     }
 }
 
 exports.deleteCompany = async (req, res) => {
     try {
-        const { id } = req.params;
+        const {
+            id
+        } = req.params;
         const deletedCompany = await company.findByIdAndDelete(id);
         if (!deletedCompany) {
-            return res.status(404).json({ message: 'Company not found' });
+            return res.status(404).json({
+                message: 'Company not found'
+            });
         }
-        res.status(200).json({ message: 'Company deleted successfully' });
+        res.status(200).json({
+            message: 'Company deleted successfully'
+        });
     } catch (error) {
-        res.status(500).json({ message: 'Error deleting company', error });
+        res.status(500).json({
+            message: 'Error deleting company',
+            error
+        });
     }
 }
 
+let logoFileName = '';
 const storage = multer.diskStorage({
-    destination: logoDir, 
-    filename: (req, file, cb)=>{
+    destination: logoDir,
+    filename: (req, file, cb) => {
         const companyId = req.user.company._id;
-        cb(null, 'logo_company_v1_'+companyId);
+        logoFileName = 'logo_company_v1_' + companyId + path.extname(file.originalname);
+        cb(null, 'logo_company_v1_' + companyId + path.extname(file.originalname));
     }
 })
 
-exports.upload = multer({storage});
+exports.upload = multer({
+    storage
+});
 
-exports.registCompanyLogo = async (req, res)=>{
+exports.registCompanyLogo = async (req, res) => {
     const companyId = req.user.company._id;
-    const theCompany = await company.findOne({_id: companyId});
+    const theCompany = await company.findOne({
+        _id: companyId
+    });
 
     if (!theCompany) {
-        return res.status(404).json({ error: 'Empresa não encontrada' });
+        return res.status(404).json({
+            error: 'Empresa não encontrada'
+        });
     }
 
-    theCompany.logoUrl = 'logo_company_v1_'+companyId;
+    theCompany.logoUrl = logoFileName;
 
     await theCompany.save();
 
-    return res.status(200).json({status:'success', company:theCompany})
+    return res.status(200).json({
+        status: 'success',
+        company: theCompany
+    })
 }
