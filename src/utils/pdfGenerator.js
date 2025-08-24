@@ -21,7 +21,7 @@ async function generateInvoicePDF(companyInfo, invoice) {
   const browser = await puppeteer.launch({
     headless: "new",
     args: ["--no-sandbox", "--disable-setuid-sandbox"],
-    executablePath: '/opt/render/.cache/puppeteer/chrome/linux-137.0.7151.55/chrome-linux64/chrome',
+    executablePath: puppeteer.executablePath(),
   });
 
   const page = await browser.newPage();
@@ -226,7 +226,7 @@ async function generateQuotationPDF(companyInfo, quotation) {
   const browser = await puppeteer.launch({
     headless: "new", // para evitar erros no Node.js moderno
     args: ["--no-sandbox", "--disable-setuid-sandbox"],
-     executablePath: '/opt/render/.cache/puppeteer/chrome/linux-137.0.7151.55/chrome-linux64/chrome' 
+     executablePath: puppeteer.executablePath() 
   });
 
   const page = await browser.newPage();
@@ -430,7 +430,7 @@ async function generateVDPDF(companyInfo, vd) {
   const browser = await puppeteer.launch({
     headless: "new",
     args: ["--no-sandbox", "--disable-setuid-sandbox"],
-     executablePath: '/opt/render/.cache/puppeteer/chrome/linux-137.0.7151.55/chrome-linux64/chrome' 
+     executablePath: puppeteer.executablePath() 
   });
 
   const page = await browser.newPage();
@@ -627,7 +627,7 @@ async function generateReciboPDF(companyInfo, invoice) {
   const browser = await puppeteer.launch({
     headless: "new",
     args: ["--no-sandbox", "--disable-setuid-sandbox"],
-     executablePath: '/opt/render/.cache/puppeteer/chrome/linux-137.0.7151.55/chrome-linux64/chrome' 
+     executablePath: puppeteer.executablePath() 
   });
 
   const page = await browser.newPage();
