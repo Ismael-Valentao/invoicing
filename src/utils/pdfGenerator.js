@@ -137,7 +137,7 @@ async function generateInvoicePDF(companyInfo, invoice) {
 <body>
     <div class="page">
         <div class="invoice-header">
-            <div><img src="${logoUrl}" width="190" alt="logo"></div>
+            <div><img src="https://bitiray.com/public/assets/images/logos/logo-white.png" width="190" alt="logo"></div>
             <div class="company-info">
                 <p><strong>${companyInfo.name}</strong></p>
                 <p>${companyInfo.address}</p>
