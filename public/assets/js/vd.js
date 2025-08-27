@@ -15,7 +15,7 @@ fetch('/api/vd')
     .then(response => response.json())
     .then(data => {
         data.vds.forEach(vd => {
-            const actualArray = [vd.invoiceNumber, vd.clientName, vd.totalAmount, new Date(vd.date).toLocaleDateString(), statusBadge(vd.status), `<a href="http://localhost:3000/api/vd/${vd._id}/pdf" class="btn btn-primary btn-sm text-center btn-download"><i class="fa-solid fa-download"></i></a>
+            const actualArray = [vd.invoiceNumber, vd.clientName, vd.totalAmount, new Date(vd.date).toLocaleDateString(), statusBadge(vd.status), `<a href="/api/vd/${vd._id}/pdf" class="btn btn-primary btn-sm text-center btn-download"><i class="fa-solid fa-download"></i></a>
             `];
             $('#dataTable').DataTable().row.add(actualArray).draw(false);
         });

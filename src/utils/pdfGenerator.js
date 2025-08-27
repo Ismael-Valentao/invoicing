@@ -1,6 +1,7 @@
 const puppeteer = require("puppeteer");
 const path = require("path");
 const { formatedDate } = require("./dateFormatter");
+require("dotenv").config();
 
 function formatCurrency(value, currencyNameOption = false) {
   const formatedValue = new Intl.NumberFormat("pt-MZ", {
@@ -19,28 +20,27 @@ function formatCurrency(value, currencyNameOption = false) {
 async function generateInvoicePDF(companyInfo, invoice) {
   // Configuração compatível com Render
   const browserArgs = [
-    '--no-sandbox',
-    '--disable-setuid-sandbox',
-    '--disable-dev-shm-usage',
-    '--disable-accelerated-2d-canvas',
-    '--no-first-run',
-    '--no-zygote',
-    '--single-process',
-    '--disable-gpu'
+    "--no-sandbox",
+    "--disable-setuid-sandbox",
+    "--no-zygote",
+    "--single-process",
   ];
 
   const browser = await puppeteer.launch({
     headless: "new",
     args: browserArgs,
-    executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || undefined,
+    executablePath:
+      process.env.NODE_ENV === "Production"
+        ? process.env.PUPPETEER_EXECUTABLE_PATH
+        : puppeteer.executablePath(),
   });
 
   const page = await browser.newPage();
 
   // Corrigir o caminho da logo - use URL absoluta
-  const logoUrl = companyInfo.logoUrl 
-    ? `https://invoicing-oncv.onrender.com/images/logos/${companyInfo.logoUrl}`
-    : 'https://invoicing-oncv.onrender.com/images/logos/taimofakelogo.png';
+  const logoUrl = companyInfo.logoUrl
+    ? `${process.env.DOMAIN_NAME}/images/logos/${companyInfo.logoUrl}`
+    : `${process.env.DOMAIN_NAME}/images/logos/taimofakelogo.png`;
 
   const html = `
 <html lang="en">
@@ -155,10 +155,14 @@ async function generateInvoicePDF(companyInfo, invoice) {
             <div>
                 <div>
                     <div>
-                        <p><strong>Factura Nº:</strong> ${invoice.invoiceNumber}</p>
+                        <p><strong>Factura Nº:</strong> ${
+                          invoice.invoiceNumber
+                        }</p>
                     </div>
                     <div>
-                        <p><strong>Data:</strong> ${formatedDate(invoice.date)}</p>
+                        <p><strong>Data:</strong> ${formatedDate(
+                          invoice.date
+                        )}</p>
                     </div>
                 </div>
             </div>
@@ -173,14 +177,18 @@ async function generateInvoicePDF(companyInfo, invoice) {
                 </tr>
             </thead>
             <tbody>
-                ${invoice.items.map(item => `
+                ${invoice.items
+                  .map(
+                    (item) => `
                 <tr>
                     <td>${item.description}</td>
                     <td>${item.quantity}</td>
                     <td>${formatCurrency(item.unitPrice)}</td>
                     <td>${formatCurrency(item.quantity * item.unitPrice)}</td>
                 </tr>
-                `).join("")}
+                `
+                  )
+                  .join("")}
             </tbody>
             <tfoot>
                 <tr>
@@ -203,7 +211,9 @@ async function generateInvoicePDF(companyInfo, invoice) {
                 <p>Atenção: Esta factura serve como documento comprovativo de prestação de serviços e/ou fornecimento de
                     materiais.</p>
                 <p>Prazo de pagamento: até 15 dias após a emissão da presente factura.</p>
-                <p>Em caso de dúvidas, contactar o departamento financeiro: ${companyInfo.email} | ${companyInfo.contact}</p>
+                <p>Em caso de dúvidas, contactar o departamento financeiro: ${
+                  companyInfo.email
+                } | ${companyInfo.contact}</p>
             </div>
             <div>
                 <p>Maputo - Moçambique</p>
@@ -216,15 +226,15 @@ async function generateInvoicePDF(companyInfo, invoice) {
 
   await page.setContent(html, { waitUntil: "networkidle0" });
 
-  const pdfBuffer = await page.pdf({ 
+  const pdfBuffer = await page.pdf({
     format: "A4",
     printBackground: true,
     margin: {
-      top: '20mm',
-      right: '15mm',
-      bottom: '20mm',
-      left: '15mm'
-    }
+      top: "20mm",
+      right: "15mm",
+      bottom: "20mm",
+      left: "15mm",
+    },
   });
 
   await browser.close();
@@ -233,10 +243,20 @@ async function generateInvoicePDF(companyInfo, invoice) {
 }
 
 async function generateQuotationPDF(companyInfo, quotation) {
+  const browserArgs = [
+    "--no-sandbox",
+    "--disable-setuid-sandbox",
+    "--no-zygote",
+    "--single-process",
+  ];
+
   const browser = await puppeteer.launch({
-    headless: "new", // para evitar erros no Node.js moderno
-    args: ["--no-sandbox", "--disable-setuid-sandbox"],
-     executablePath: puppeteer.executablePath() 
+    headless: "new",
+    args: browserArgs,
+    executablePath:
+      process.env.NODE_ENV === "Production"
+        ? process.env.PUPPETEER_EXECUTABLE_PATH
+        : puppeteer.executablePath(),
   });
 
   const page = await browser.newPage();
@@ -437,10 +457,20 @@ async function generateQuotationPDF(companyInfo, quotation) {
 }
 
 async function generateVDPDF(companyInfo, vd) {
+  const browserArgs = [
+    "--no-sandbox",
+    "--disable-setuid-sandbox",
+    "--no-zygote",
+    "--single-process",
+  ];
+
   const browser = await puppeteer.launch({
     headless: "new",
-    args: ["--no-sandbox", "--disable-setuid-sandbox"],
-     executablePath: puppeteer.executablePath() 
+    args: browserArgs,
+    executablePath:
+      process.env.NODE_ENV === "Production"
+        ? process.env.PUPPETEER_EXECUTABLE_PATH
+        : puppeteer.executablePath(),
   });
 
   const page = await browser.newPage();
@@ -634,10 +664,20 @@ async function generateVDPDF(companyInfo, vd) {
 }
 
 async function generateReciboPDF(companyInfo, invoice) {
+  const browserArgs = [
+    "--no-sandbox",
+    "--disable-setuid-sandbox",
+    "--single-process",
+    "--no-zygote",
+  ];
+
   const browser = await puppeteer.launch({
     headless: "new",
-    args: ["--no-sandbox", "--disable-setuid-sandbox"],
-     executablePath: puppeteer.executablePath() 
+    args: browserArgs,
+    executablePath:
+      process.env.NODE_ENV === "Production"
+        ? process.env.PUPPETEER_EXECUTABLE_PATH
+        : puppeteer.executablePath(),
   });
 
   const page = await browser.newPage();

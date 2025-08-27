@@ -3,7 +3,7 @@ fetch('/api/recibos')
     .then(response => response.json())
     .then(data => {
         data.recibos.forEach(invoice => {
-            const actualArray = [invoice.reciboNumber, invoice.clientName, invoice.totalAmount, new Date(invoice.date).toLocaleDateString(), `<a href="http://localhost:3000/api/recibos/${invoice._id}/pdf" class="btn btn-primary btn-sm text-center btn-download"><i class="fa-solid fa-download"></i></a>
+            const actualArray = [invoice.reciboNumber, invoice.clientName, invoice.totalAmount, new Date(invoice.date).toLocaleDateString(), `<a href="/api/recibos/${invoice._id}/pdf" class="btn btn-primary btn-sm text-center btn-download"><i class="fa-solid fa-download"></i></a>
             `];
             $('#dataTable').DataTable().row.add(actualArray).draw(false);
         });
