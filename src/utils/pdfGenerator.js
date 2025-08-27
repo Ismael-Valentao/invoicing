@@ -29,10 +29,6 @@ async function generateInvoicePDF(companyInfo, invoice) {
   const browser = await puppeteer.launch({
     headless: "new",
     args: browserArgs,
-    executablePath:
-      process.env.NODE_ENV === "Production"
-        ? process.env.PUPPETEER_EXECUTABLE_PATH
-        : puppeteer.executablePath(),
   });
 
   const page = await browser.newPage();
