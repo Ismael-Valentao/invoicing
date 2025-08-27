@@ -33,11 +33,6 @@ async function generateInvoicePDF(companyInfo, invoice) {
 
   const page = await browser.newPage();
 
-  // Corrigir o caminho da logo - use URL absoluta
-  const logoUrl = companyInfo.logoUrl
-    ? `${process.env.DOMAIN_NAME}/images/logos/${companyInfo.logoUrl}`
-    : `${process.env.DOMAIN_NAME}/images/logos/taimofakelogo.png`;
-
   const html = `
 <html lang="en">
 <head>
