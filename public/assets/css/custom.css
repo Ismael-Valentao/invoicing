@@ -1,0 +1,70 @@
+/* Estilo padrão (desktop) mantém tabela */
+#itemsTable {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+table tr td:last-child {
+  text-align: center !important;
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+  #itemsTable thead {
+    display: none; /* esconde cabeçalho */
+  }
+
+  #itemsTable,
+  #itemsTable tbody,
+  #itemsTable tr,
+  #itemsTable td {
+    display: block;
+    width: 100%;
+  }
+
+  #itemsTable tr {
+    margin-bottom: 1rem;
+    border: 1px solid #ddd;
+    padding: 1rem;
+    border-radius: 8px;
+    background: #fff;
+  }
+
+  #itemsTable td {
+    margin-bottom: 0.75rem;
+  }
+
+  /* Coloca label antes dos inputs */
+  #itemsTable td:nth-child(1)::before {
+    content: "Descrição";
+    font-weight: bold;
+    display: block;
+    margin-bottom: 0.25rem;
+  }
+  #itemsTable td:nth-child(2)::before {
+    content: "Quantidade";
+    font-weight: bold;
+    display: block;
+    margin-bottom: 0.25rem;
+  }
+  #itemsTable td:nth-child(3)::before {
+    content: "Preço Unitário";
+    font-weight: bold;
+    display: block;
+    margin-bottom: 0.25rem;
+  }
+  #itemsTable td:nth-child(4)::before {
+    content: "Ações";
+    font-weight: bold;
+    display: block;
+    margin-bottom: 0.25rem;
+  }
+
+  .btn-open-products-list.ml-3 {
+    margin-left: 0 !important;
+    margin-top: 0.5rem;
+  }
+  table tbody tr td.d-flex {
+    display: block !important;
+  }
+}

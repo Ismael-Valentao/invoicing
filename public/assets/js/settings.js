@@ -9,6 +9,9 @@ async function getCompanyInfo() {
         document.getElementById("companyContact").value = company.contact;
         document.getElementById("companyEmail").value = company.email;
         document.getElementById("companyNUIT").value = company.nuit;
+        if(company.logoUrl){
+            document.getElementById("company_logo_preview").src = 'https://bitiray.com/public/invoicing-logos/'+ company.logoUrl;
+        }
       } else {
         console.error("Error fetching company info:", data.message);
       }
@@ -68,7 +71,7 @@ document.addEventListener("DOMContentLoaded", async function () {
             Swal.fire({
               icon: "success",
               title: "Sucesso!",
-              text: "Logo actualizada com sucesso.",
+              text: "Logo actualizada com sucesso. Faça logout e login para ver as alterações.",
               showConfirmButton: true,
               confirmButtonText: "OK",
             });
