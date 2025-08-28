@@ -18,6 +18,7 @@ const reciboRoutes = require('./src/routes/receipt');
 
 const app = express();
 const PORT = 3000;
+const mongodbURI = process.env.NODE_ENV.toLowerCase() === 'production' ? process.env.MONGODB_URI : 'mongodb://localhost:27017/invoicesdb';
 
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
@@ -39,7 +40,7 @@ app.use('/api/products', productsRoutes);
 app.use('/', pagesRoutes);
 
 
-mongoose.connect(process.env.MONGODB_URI)
+mongoose.connect(mongodbURI)
 .then(() => {
   console.log('Conectado ao MongoDB');
 })

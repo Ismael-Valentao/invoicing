@@ -3,6 +3,11 @@ const path = require("path");
 const { formatedDate } = require("./dateFormatter");
 require("dotenv").config();
 
+const logoPath =
+  process.env.NODE_ENV.toLowerCase() === "production"
+    ? "https://bitiray.com/public/invoicing-logos/"
+    : "http://localhost:3000/images/logos/";
+
 function formatCurrency(value, currencyNameOption = false) {
   const formatedValue = new Intl.NumberFormat("pt-MZ", {
     style: "currency",
@@ -18,13 +23,15 @@ function formatCurrency(value, currencyNameOption = false) {
 }
 
 async function generateInvoicePDF(companyInfo, invoice) {
-  // Configuração compatível com Render
-  const browserArgs = [
-    "--no-sandbox",
-    "--disable-setuid-sandbox",
-    "--no-zygote",
-    "--single-process",
-  ];
+  const browserArgs =
+    process.env.NODE_ENV.toLowerCase() === "production"
+      ? [
+          "--no-sandbox",
+          "--disable-setuid-sandbox",
+          "--no-zygote",
+          "--single-process",
+        ]
+      : ["--no-sandbox", "--disable-setuid-sandbox"];
 
   const browser = await puppeteer.launch({
     headless: "new",
@@ -128,7 +135,11 @@ async function generateInvoicePDF(companyInfo, invoice) {
 <body>
     <div class="page">
         <div class="invoice-header">
-            <div><img src="https://bitiray.com/public/assets/images/logos/logo-white.png" width="190" alt="logo"></div>
+            <div><img src="${
+              companyInfo.logoUrl
+                ? logoPath + companyInfo.logoUrl
+                : logoPath + "logo-default.png"
+            }" width="190" alt="logo"></div>
             <div class="company-info">
                 <p><strong>${companyInfo.name}</strong></p>
                 <p>${companyInfo.address}</p>
@@ -234,20 +245,19 @@ async function generateInvoicePDF(companyInfo, invoice) {
 }
 
 async function generateQuotationPDF(companyInfo, quotation) {
-  const browserArgs = [
-    "--no-sandbox",
-    "--disable-setuid-sandbox",
-    "--no-zygote",
-    "--single-process",
-  ];
+  const browserArgs =
+    process.env.NODE_ENV.toLowerCase() === "production"
+      ? [
+          "--no-sandbox",
+          "--disable-setuid-sandbox",
+          "--no-zygote",
+          "--single-process",
+        ]
+      : ["--no-sandbox", "--disable-setuid-sandbox"];
 
   const browser = await puppeteer.launch({
     headless: "new",
     args: browserArgs,
-    executablePath:
-      process.env.NODE_ENV === "Production"
-        ? process.env.PUPPETEER_EXECUTABLE_PATH
-        : puppeteer.executablePath(),
   });
 
   const page = await browser.newPage();
@@ -349,10 +359,11 @@ async function generateQuotationPDF(companyInfo, quotation) {
 <body>
     <div class="page">
         <div class="invoice-header">
-            <div><img src="${path.join(
-              logoPath,
-              companyInfo.logoUrl ?? "taimofakelogo.png"
-            )}" width="190" alt="logo"></div>
+            <div><img src="${
+              companyInfo.logoUrl
+                ? logoPath + companyInfo.logoUrl
+                : logoPath + "logo-default.png"
+            }" width="190" alt="logo"></div>
             <div class="company-info">
                 <p><strong>${companyInfo.name}</strong></p>
                 <p>${companyInfo.address}</p>
@@ -448,20 +459,19 @@ async function generateQuotationPDF(companyInfo, quotation) {
 }
 
 async function generateVDPDF(companyInfo, vd) {
-  const browserArgs = [
-    "--no-sandbox",
-    "--disable-setuid-sandbox",
-    "--no-zygote",
-    "--single-process",
-  ];
+  const browserArgs =
+    process.env.NODE_ENV.toLowerCase() === "production"
+      ? [
+          "--no-sandbox",
+          "--disable-setuid-sandbox",
+          "--no-zygote",
+          "--single-process",
+        ]
+      : ["--no-sandbox", "--disable-setuid-sandbox"];
 
   const browser = await puppeteer.launch({
     headless: "new",
     args: browserArgs,
-    executablePath:
-      process.env.NODE_ENV === "Production"
-        ? process.env.PUPPETEER_EXECUTABLE_PATH
-        : puppeteer.executablePath(),
   });
 
   const page = await browser.newPage();
@@ -562,10 +572,11 @@ async function generateVDPDF(companyInfo, vd) {
 <body>
     <div class="page">
         <div class="invoice-header">
-            <div><img src="${path.join(
-              logoPath,
-              companyInfo.logoUrl ?? "taimofakelogo.png"
-            )}" width="190" alt="logo"></div>
+            <div><img src="${
+              companyInfo.logoUrl
+                ? logoPath + companyInfo.logoUrl
+                : logoPath + "logo-default.png"
+            }" width="190" alt="logo"></div>
             <div class="company-info">
                 <p><strong>${companyInfo.name}</strong></p>
                 <p>${companyInfo.address}</p>
@@ -655,20 +666,19 @@ async function generateVDPDF(companyInfo, vd) {
 }
 
 async function generateReciboPDF(companyInfo, invoice) {
-  const browserArgs = [
-    "--no-sandbox",
-    "--disable-setuid-sandbox",
-    "--single-process",
-    "--no-zygote",
-  ];
+  const browserArgs =
+    process.env.NODE_ENV.toLowerCase() === "production"
+      ? [
+          "--no-sandbox",
+          "--disable-setuid-sandbox",
+          "--no-zygote",
+          "--single-process",
+        ]
+      : ["--no-sandbox", "--disable-setuid-sandbox"];
 
   const browser = await puppeteer.launch({
     headless: "new",
     args: browserArgs,
-    executablePath:
-      process.env.NODE_ENV === "Production"
-        ? process.env.PUPPETEER_EXECUTABLE_PATH
-        : puppeteer.executablePath(),
   });
 
   const page = await browser.newPage();
@@ -769,10 +779,11 @@ async function generateReciboPDF(companyInfo, invoice) {
 <body>
      <div class="page">
         <div class="invoice-header">
-            <div><img src="${path.join(
-              logoPath,
-              companyInfo.logoUrl ?? "taimofakelogo.png"
-            )}" width="190" alt="logo"></div>
+            <div><img src="${
+              companyInfo.logoUrl
+                ? logoPath + companyInfo.logoUrl
+                : logoPath + "logo-default.png"
+            }" width="190" alt="logo"></div>
             <div class="company-info">
                 <p><strong>${companyInfo.name}</strong></p>
                 <p>${companyInfo.address}</p>

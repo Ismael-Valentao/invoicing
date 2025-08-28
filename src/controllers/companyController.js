@@ -219,3 +219,26 @@ exports.registCompanyLogo = async (req, res) => {
         company: theCompany
     })
 }
+
+exports.registCompanyLogoProdVersion = async (req, res) => {
+    const { logo_name } = req.body;
+    const companyId = req.user.company._id;
+    const theCompany = await company.findOne({
+        _id: companyId
+    });
+
+    if (!theCompany) {
+        return res.status(404).json({
+            error: 'Empresa não encontrada'
+        });
+    }
+
+    theCompany.logoUrl = logo_name;
+
+    await theCompany.save();
+
+    return res.status(200).json({
+        status: 'success',
+        company: theCompany
+    })
+}
