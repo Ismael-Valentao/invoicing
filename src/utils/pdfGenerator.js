@@ -226,7 +226,7 @@ async function generateInvoicePDF(companyInfo, invoice) {
 </html>
   `;
 
-  await page.setContent(html, { waitUntil: "networkidle0" });
+  await page.setContent(html, { waitUntil: "networkidle0", timeout: 0 });
 
   const pdfBuffer = await page.pdf({
     format: "A4",
@@ -449,7 +449,7 @@ async function generateQuotationPDF(companyInfo, quotation) {
 </html>
   `;
 
-  await page.setContent(html, { waitUntil: "networkidle0" });
+  await page.setContent(html, { waitUntil: "networkidle0", timeout: 0 });
 
   const pdfBuffer = await page.pdf({ format: "A4" });
 
@@ -656,7 +656,7 @@ async function generateVDPDF(companyInfo, vd) {
 </html>
   `;
 
-  await page.setContent(html, { waitUntil: "networkidle0" });
+  await page.setContent(html, { waitUntil: "networkidle0", timeout: 0 });
 
   const pdfBuffer = await page.pdf({ format: "A4" });
 
@@ -857,7 +857,7 @@ async function generateReciboPDF(companyInfo, invoice) {
 </html>
   `;
 
-  await page.setContent(html, { waitUntil: "networkidle0" });
+  await page.setContent(html, { waitUntil: "networkidle0", timeout: 0 });
 
   const pdfBuffer = await page.pdf({ format: "A4" });
 
