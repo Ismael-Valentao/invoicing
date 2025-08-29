@@ -139,10 +139,15 @@ exports.getCompanyById = async (req, res) => {
 
 exports.updateCompany = async (req, res) => {
     try {
-        const {
-            id
-        } = req.params;
-        const updatedCompany = await company.findByIdAndUpdate(id, req.body, {
+        const companyId = req.user.company._id;
+        const {companyNUIT, companyContact, companyEmail, companyAddress} = req.body;
+        const data = {
+            address: companyAddress,
+            contact: companyContact,
+            email: companyEmail,
+            nuit: companyNUIT,
+        }
+        const updatedCompany = await company.findByIdAndUpdate({_id:companyId}, data, {
             new: true
         });
         if (!updatedCompany) {
@@ -151,6 +156,7 @@ exports.updateCompany = async (req, res) => {
             });
         }
         res.status(200).json({
+            status:'success',
             message: 'Company updated successfully',
             company: updatedCompany
         });

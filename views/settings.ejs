@@ -73,10 +73,13 @@
           <!-- Begin Page Content -->
           <div class="container-fluid">
             <div class="card">
-              <div class="card-header">
+              <div class="card-header d-flex justify-content-between align-items-center">
                 <h6 class="m-0 font-weight-bold text-primary">
                   <i class="fa-solid fa-gear"></i> Dados da Empresa
                 </h6>
+                <button class="btn btn-primary btn-sm" id="btn-edit-compnay-info" type="button" data-toggle="modal" data-target="#companyModal">
+                    <i class="fas fa-pen-to-square fa-sm"></i> Editar
+                </button>
               </div>
               <div class="card-body">
                 <div class="row g-3">
@@ -239,6 +242,107 @@
       </div>
     </div>
 
+    <!-- Company data update modal-->
+    <div
+      class="modal fade"
+      id="companyModal"
+      tabindex="-1"
+      role="dialog"
+      aria-labelledby="exampleModalLabel"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h6 class="modal-title" id="exampleModalLabel">
+              <strong
+                ><i class="fa-solid fa-pen-to-square"></i>
+                Editar Dados da Empresa</strong
+              >
+            </h6>
+            <button
+              class="close"
+              type="button"
+              data-dismiss="modal"
+              aria-label="Close"
+            >
+              <span aria-hidden="true">×</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            <form id="companyForm">
+              <div class="row g-3">
+                <div class="form-group col-md-6">
+                  <label for="">Nome da Empresa</label>
+                  <input
+                    type="text"
+                    class="form-control form-control-sm"
+                    id="companyNameModal"
+                    name="companyNameModal"
+                    required
+                    readonly
+                  />
+                </div>
+                <div class="form-group col-md-6">
+                  <label>NUIT</label>
+                  <input
+                    type="text"
+                    class="form-control form-control-sm"
+                    id="companyNUITModal"
+                    name="companyNUITModal"
+                    required
+                    readonly
+                  />
+                </div>
+                <div class="form-group col-md-6">
+                  <label>Contacto</label>
+                  <input
+                    type="text"
+                    class="form-control form-control-sm"
+                    id="companyContactModal"
+                    name="companyContactModal"
+                    required
+                  />
+                </div>
+                <div class="form-group col-md-6">
+                  <label>E-mail</label>
+                  <input
+                    type="text"
+                    class="form-control form-control-sm"
+                    id="companyEmailModal"
+                    name="companyEmailModal"
+                    required
+                  />
+                </div>
+                <div class="form-group col-md-12">
+                  <label>Endereço</label>
+                  <input
+                    type="text"
+                    class="form-control form-control-sm"
+                    id="companyAddressModal"
+                    name="companyAddressModal"
+                    required
+                  />
+                </div>
+              </div>
+            </form>
+          </div>
+          <div class="modal-footer">
+            <button
+              class="btn btn-secondary btn-sm"
+              type="button"
+              data-dismiss="modal"
+            >
+              Cancelar
+            </button>
+            <button id="btn-update-company" class="btn btn-primary btn-sm">
+              Actualizar
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <%- include('partials/footer') %>
 
     <!-- Page level plugins -->
@@ -248,5 +352,109 @@
     <!-- Page level custom scripts -->
     <script src="assets/js/demo/datatables-demo.js"></script>
     <script src="assets/js/settings.js"></script>
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        const btnEditCompanyInfo = document.getElementById("btn-edit-compnay-info");
+        btnEditCompanyInfo.addEventListener("click", function () {
+          // Fetch current company data from the input fields
+          const companyName = document.getElementById("companyName").value;
+          const companyNUIT = document.getElementById("companyNUIT").value;
+          const companyContact = document.getElementById("companyContact").value;
+          const companyEmail = document.getElementById("companyEmail").value;
+          const companyAddress = document.getElementById("companyAddress").value;
+
+          // Populate the modal input fields with the current data
+          document.getElementById("companyNameModal").value = companyName;
+          document.getElementById("companyNUITModal").value = companyNUIT;
+          document.getElementById("companyContactModal").value = companyContact;
+          document.getElementById("companyEmailModal").value = companyEmail;
+          document.getElementById("companyAddressModal").value = companyAddress;
+        });
+
+        document.getElementById("btn-update-company").addEventListener("click", function (e){
+          e.preventDefault();
+          const data = {
+                companyName: document.getElementById("companyNameModal").value,
+                companyNUIT: document.getElementById("companyNUITModal").value,
+                companyContact: document.getElementById("companyContactModal").value,
+                companyEmail: document.getElementById("companyEmailModal").value,
+                companyAddress: document.getElementById("companyAddressModal").value
+              }
+
+          let isFormValid = validateForm(document.getElementById('companyForm'))
+
+          if(isFormValid){
+            fetch('/api/company', {
+              method: 'PUT',
+              headers: {
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify(data)
+            }).then(response => response.json())
+              .then(data => {
+                if(data.status ==='success'){
+                  console.log(data.company)
+                  document.getElementById("companyName").value = document.getElementById("companyNameModal").value;
+                  document.getElementById("companyNUIT").value = document.getElementById("companyNUITModal").value;
+                  document.getElementById("companyContact").value = document.getElementById("companyContactModal").value;
+                  document.getElementById("companyEmail").value = document.getElementById("companyEmailModal").value;
+                  document.getElementById("companyAddress").value = document.getElementById("companyAddressModal").value;
+
+                  // Close the modal
+                  $('#companyModal').modal('hide');
+
+                  Swal.fire({
+                    icon: 'success',
+                    text: 'Dados da empresa actualizados com sucesso!',
+                    showConfirmButton: false,
+                    timer: 1500
+                  });
+                } else {
+                  console.log('Some error here')
+                  Swal.fire({
+                    icon: 'error',
+                    text: 'Erro ao actualizar os dados da empresa. Por favor, tente novamente.',
+                    showConfirmButton: true
+                  });
+                }
+              })
+              .catch(error => {
+                console.error('Error:', error);
+                Swal.fire({
+                  icon: 'error',
+                  text: 'Erro ao actualizar os dados da empresa. Por favor, tente novamente.',
+                  showConfirmButton: true
+                });
+              });
+
+        }
+        else{
+          Swal.fire({
+            icon: 'error',
+            title: 'Todos os campos devem estar devidamente preenchidos.',
+            showConfirmButton: true
+          });
+        }
+      })
+
+    function validateForm() {
+      const form = document.getElementById("companyForm");
+      const inputs = form.querySelectorAll("input[required]");
+      let isValid = true;
+
+      inputs.forEach((input) => {
+        if (input.value.trim() === "") {
+          input.style.border = "1px solid red";
+          isValid = false;
+        } else {
+          input.style.border = "1px solid #ced4da"; // cor padrão do bootstrap
+        }
+      });
+
+      return isValid;
+  }
+
+      })
+    </script>
   </body>
 </html>
