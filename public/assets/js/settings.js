@@ -4,6 +4,7 @@ document.addEventListener("DOMContentLoaded", function () {
   document.getElementById("btn-open-modalbankInfo").addEventListener("click", function (e) {
     // Pegando os valores existentes
     const bankName = document.getElementById("bank_name").value;
+    if(!bankName || bankName.trim() === '') return
     const accountName = document.getElementById("bank_user_name").value;
     const accountNumber = document.getElementById("bank_num_account").value;
     const nib = document.getElementById("bank_nib").value;
@@ -167,11 +168,11 @@ async function getCompanyInfo() {
         }
         if (!company.bankDetails) {
           //document.getElementById("row-bank-info").classList.add("d-none");
-          document.getElementById("btn-open-modalbankInfo").innerText = 'Adicionar Dados Bancários'
+          document.getElementById("btn-open-modalbankInfo-span").innerText = 'Adicionar Dados Bancários'
           return
         }
 
-        document.getElementById("btn-open-modalbankInfo").innerText = 'Actualizar Dados Bancários'
+        document.getElementById("btn-open-modalbankInfo-span").innerText = 'Actualizar Dados Bancários'
         document.getElementById("bank_name").value = company.bankDetails.bank;
         document.getElementById("bank_user_name").value = company.bankDetails.account_name;
         document.getElementById("bank_num_account").value = company.bankDetails.account_number;
