@@ -3,40 +3,214 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Cotação Fictícia</title>
+    <style>
+        body {
+            font-family: Helvetica, Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+
+        .page {
+            position: relative;
+            width: 794px;
+            height: 1123px;
+            margin: 0 auto;
+            padding: 40px;
+            box-sizing: border-box;
+            background: white;
+            box-shadow: 0 10px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        .company-info {
+            font-size: 0.8rem;
+        }
+
+        .company-info p {
+            margin: 0;
+            margin-bottom: 5px;
+        }
+
+        .invoice {
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin: 30px auto;
+            text-align: center;
+        }
+
+        .invoice-header,
+        .invoice-client-info {
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .invoice-client-info {
+            margin-bottom: 30px;
+        }
+
+        .invoice-client-info p {
+            font-size: 0.8rem;
+            margin: 2px 0;
+        }
+
+        .invoice-footer {
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: 30px;
+            text-align: center;
+        }
+
+        .invoice-footer div.first {
+            margin-bottom: 20px;
+        }
+
+        .invoice-footer p {
+            font-size: 0.7rem;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        th,
+        td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            font-size: 0.8rem;
+        }
+
+        th {
+            background-color: #f2f2f2;
+        }
+
+        .text-center {
+            text-align: center;
+        }
+
+        .text-right {
+            text-align: right;
+        }
+
+        .bank-details {
+            margin-top: 35px;
+            padding: 10px;
+            border: 1px solid #e0e0e0;
+            background-color: #fafafa;
+            font-size: 0.8rem;
+            max-width: 750px;
+        }
+
+        .bank-details h4 {
+            margin: 0 0 15px 0;
+            font-size: 0.95rem;
+            text-align: center;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .bank-details div {
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 5px;
+        }
+
+        .bank-column {
+            flex: 1;
+            min-width: 220px;
+            max-width: fit-content;
+        }
+
+        .bank-column p {
+            margin: 5px 0;
+            width: 100%;
+        }
+    </style>
 </head>
 
 <body>
-    <canvas id="assinatura" width="400" height="200" style="border:1px solid #ccc"></canvas>
-    <button onclick="salvar()">Salvar Assinatura</button>
-    <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
-    <script>
-        const canvas = document.getElementById('assinatura');
-        const signaturePad = new SignaturePad(canvas);
+    <div class="page">
+        <div class="invoice-header">
+            <div><img src="logo-default.png" width="190" alt="logo"></div>
+            <div class="company-info">
+                <p><strong>Empresa Fictícia Lda.</strong></p>
+                <p>Av. Central, Nº 123, Maputo</p>
+                <p><strong>Cell:</strong> +258 84 123 4567</p>
+                <p><strong>Email:</strong> info@empresa-ficticia.co.mz</p>
+                <p><strong>NUIT:</strong> 123456789</p>
+            </div>
+        </div>
 
-        function salvar() {
-            if (signaturePad.isEmpty()) {
-                alert("Por favor, assine primeiro.");
-                return;
-            }
-            const imagemBase64 = signaturePad.toDataURL(); // imagem da assinatura
-            const anchor = document.createElement('a');
-            anchor.href = imagemBase64; // URL da imagem
-            anchor.download = 'assinatura.png'; // nome do arquivo
-            document.body.appendChild(anchor); // adiciona o link ao DOM
-            anchor.click(); // inicia o download
-            document.body.removeChild(anchor); // remove o link do DOM
+        <p class="invoice">COTAÇÃO</p>
 
-            return
-            fetch('/api/assinatura', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ imagem: imagemBase64 })
-            });
-        }
-    </script>
+        <div class="invoice-client-info">
+            <div>
+                <p><strong>Cliente:</strong> João da Silva</p>
+                <p><strong>NUIT:</strong> 987654321</p>
+            </div>
+            <div>
+                <p><strong>COTAÇÃO Nº:</strong> 2025-001</p>
+                <p><strong>Data:</strong> 03/09/2025</p>
+            </div>
+        </div>
 
+        <table>
+            <thead>
+                <tr>
+                    <th>Descrição</th>
+                    <th class="text-center">Quantidade</th>
+                    <th class="text-center">Preço Unitário</th>
+                    <th class="text-right">Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Serviço de Consultoria</td>
+                    <td class="text-center">2</td>
+                    <td class="text-center">MT 25,000.00</td>
+                    <td class="text-right">MT 50,000.00</td>
+                </tr>
+                <tr>
+                    <td>Fornecimento de Software</td>
+                    <td class="text-center">1</td>
+                    <td class="text-center">MT 75,000.00</td>
+                    <td class="text-right">MT 75,000.00</td>
+                </tr>
+            </tbody>
+            <tfoot>
+                <tr>
+                    <td colspan="3">Sub-Total:</td>
+                    <td class="text-right">MT 125,000.00</td>
+                </tr>
+                <tr>
+                    <td colspan="3">IVA (17%):</td>
+                    <td class="text-right">MT 21,250.00</td>
+                </tr>
+                <tr>
+                    <td colspan="3"><strong>Total:</strong></td>
+                    <td class="text-right"><strong>MT 146,250.00</strong></td>
+                </tr>
+            </tfoot>
+        </table>
+        <div class="invoice-footer">
+            <div class="first">
+                <p>Atenção: Esta cotação serve como documento comprovativo da proposta de prestação de serviços e/ou
+                    fornecimento de materiais.</p>
+                <p>Em caso de dúvidas, contactar o departamento financeiro: info@empresa-ficticia.co.mz | +258 84 123
+                    4567</p>
+                <div>
+                        <p><strong>Banco:</strong> BIM - Banco Internacional de Moçambique | <strong>Nome da Conta:</strong> Empresa Fictícia Lda.</p>
+                        <p><strong>Nº da Conta:</strong> 00123456789 | <strong>NIB:</strong> 1234567890112345678901234567890234567890</p>
+                    </div>
+                </div>
+            <div>
+                <p>Maputo - Moçambique</p>
+            </div>
+        </div>
+    </div>
 </body>
 
 </html>

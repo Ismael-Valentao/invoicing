@@ -3,7 +3,7 @@ const { generateVDPDF } = require("../utils/pdfGenerator");
 const { amounts } = require("../utils/amountCalculator");
 
 exports.createVD = async (req, res) => {
-  const { subTotal, tax, totalAmount } = amounts(req.body.items);
+  const { subTotal, tax, totalAmount } = amounts(req.body.items, req.body.iva*1*0.1);
   const userId = req.user._id;
   const companyId = req.user.company._id;
   const vd = new Invoice({

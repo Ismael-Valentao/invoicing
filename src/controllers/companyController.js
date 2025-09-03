@@ -140,14 +140,14 @@ exports.getCompanyById = async (req, res) => {
 exports.updateCompany = async (req, res) => {
     try {
         const companyId = req.user.company._id;
-        const {companyNUIT, companyContact, companyEmail, companyAddress} = req.body;
+        const { companyNUIT, companyContact, companyEmail, companyAddress } = req.body;
         const data = {
             address: companyAddress,
             contact: companyContact,
             email: companyEmail,
             nuit: companyNUIT,
         }
-        const updatedCompany = await company.findByIdAndUpdate({_id:companyId}, data, {
+        const updatedCompany = await company.findByIdAndUpdate({ _id: companyId }, data, {
             new: true
         });
         if (!updatedCompany) {
@@ -156,7 +156,7 @@ exports.updateCompany = async (req, res) => {
             });
         }
         res.status(200).json({
-            status:'success',
+            status: 'success',
             message: 'Company updated successfully',
             company: updatedCompany
         });
@@ -167,6 +167,58 @@ exports.updateCompany = async (req, res) => {
         });
     }
 }
+
+exports.updateCompanyBank = async (req, res) => {
+    try {
+        // pega o ID da empresa associada ao usuário logado
+        const companyId = req.user.company._id;
+
+        // dados vindos do frontend
+        const { bankDetails } = req.body;
+
+        if (!bankDetails) {
+            return res.status(400).json({
+                message: "Os dados bancários são obrigatórios no body."
+            });
+        }
+
+        // monta o objeto a atualizar
+        const data = {
+            bankDetails: {
+                bank: bankDetails.bank,
+                account_name: bankDetails.account_name,
+                account_number: bankDetails.account_number,
+                nib: bankDetails.nib,
+                nuib: bankDetails.nuib
+            }
+        };
+
+        // atualiza empresa
+        const updatedCompany = await company.findByIdAndUpdate(
+            { _id: companyId },
+            data,
+            { new: true, runValidators: true }
+        );
+
+        if (!updatedCompany) {
+            return res.status(404).json({
+                message: "Company not found"
+            });
+        }
+
+        res.status(200).json({
+            status: "success",
+            message: "Dados bancários actualizados com sucesso",
+            bankDetails: updatedCompany.bankDetails
+        });
+    } catch (error) {
+        res.status(500).json({
+            message: "Erro ao actualizar dados bancários",
+            error
+        });
+    }
+};
+
 
 exports.deleteCompany = async (req, res) => {
     try {

@@ -59,6 +59,10 @@ router.get('/products', authMiddleware2, (req, res) => {
     res.render('products', { title: 'products', name: req.user.name, companyName:req.user.company.name });
 });
 
+router.get('/reports', authMiddleware2, (req, res)=>{
+    res.render('reports', { title: 'Relatórios', name: req.user.name, companyName:req.user.company.name })
+})
+
 router.get('/invoices/:id', authMiddleware2, (req, res) => {
     const invoiceId = req.params.id;
     res.render('invoice-detail', { title: `Fatura ${invoiceId}`, invoiceId, companyName:req.user.company.name });
