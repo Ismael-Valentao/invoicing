@@ -56,6 +56,7 @@ async function generateInvoicePDF(companyInfo, invoice) {
             height: 1123px;
             margin: 0;
             padding: 40px;
+            padding-top:20px;
             box-sizing: border-box;
             background: white;
             box-shadow: 0 10px 10px rgba(0, 0, 0, 0.3);
@@ -288,6 +289,7 @@ async function generateQuotationPDF(companyInfo, quotation) {
             height: 1123px;
             margin: 0;
             padding: 40px;
+            padding-top:30px;
             box-sizing: border-box;
             background: white;
             box-shadow: 0 10px 10px rgba(0, 0, 0, 0.3);
@@ -511,6 +513,7 @@ async function generateVDPDF(companyInfo, vd) {
             height: 1123px;
             margin: 0;
             padding: 40px;
+            padding-top:30px;
             box-sizing: border-box;
             background: white;
             box-shadow: 0 10px 10px rgba(0, 0, 0, 0.3);
@@ -724,6 +727,7 @@ async function generateReciboPDF(companyInfo, invoice) {
             height: 1123px;
             margin: 0;
             padding: 40px;
+            padding-top:30px;
             box-sizing: border-box;
             background: white;
             box-shadow: 0 10px 10px rgba(0, 0, 0, 0.3);

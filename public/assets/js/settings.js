@@ -167,7 +167,6 @@ async function getCompanyInfo() {
           document.getElementById("company_logo_preview").src = 'https://bitiray.com/public/invoicing-logos/' + company.logoUrl;
         }
         if (!company.bankDetails) {
-          //document.getElementById("row-bank-info").classList.add("d-none");
           document.getElementById("btn-open-modalbankInfo-span").innerText = 'Adicionar Dados Bancários'
           return
         }

@@ -5,7 +5,7 @@ $('#addRow').click(function () {
          <tr>
             <td class="d-flex"><input type="text" name="items[${rowIndex}][description]" class="form-control form-control-sm description" required> <button type="button" class="btn btn-primary btn-sm ml-3 d-flex align-items-center btn-open-products-list"><i class="fa-solid fa-table-list mr-2"></i> Selecionar</button></td>
             <td><input type="number" name="items[${rowIndex}][quantity]" value="1" min="1" class="form-control form-control-sm quantity" required></td>
-            <td><input type="number" name="items[${rowIndex}][unitPrice]" min="1" placeholder="0" class="form-control form-control-sm unitPrice" required></td>
+            <td><input type="text" name="items[${rowIndex}][unitPrice]" min="1" placeholder="0" class="form-control form-control-sm unitPrice" required></td>
             <td><button type="button" class="btn btn-danger btn-sm remove-row"><i class="fas fa-trash"></i></button></td>
         </tr>
     `);
