@@ -1,10 +1,13 @@
 const Invoice = require("../models/invoice");
 const Recibo = require("../models/recibo");
 const { generateInvoicePDF } = require("../utils/pdfGenerator");
-const { amounts } = require("../utils/amountCalculator");
+const { amounts, normalizeItems } = require("../utils/amountCalculator");
 
 exports.createInvoice = async (req, res) => {
   const { subTotal, tax, totalAmount } = amounts(req.body.items, req.body.iva*1*0.01);
+
+  const cleanedItems = normalizeItems(req.body.items);
+  
   const userId = req.user._id;
   const companyId = req.user.company._id;
   const invoice = new Invoice({
@@ -14,7 +17,7 @@ exports.createInvoice = async (req, res) => {
     clientNUIT: req.body.clientNUIT,
     invoiceNumber: req.body.invoiceNumber,
     date: req.body.date,
-    items: req.body.items,
+    items: cleanedItems,
     appliedTax:req.body.iva*1*0.01,
     subTotal,
     tax,
