@@ -10,7 +10,7 @@
     <meta name="author" content="">
 
     <title>Invoicing | <%- title %></title>
-
+    <link rel="icon" type="image/png" href="images/invoicing-logo-simple.png" />
     <!-- Custom fonts for this template -->
     <link href="assets/vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
     <link
@@ -138,13 +138,13 @@
                     <div class="modal-body">
                         <div class="form-group">
                             <label for="product-name">Nome do Produto</label>
-                            <input type="text" class="form-control form-control-sm" id="add-product-name" name="product-name"
-                                placeholder="Nome do Produto" required>
+                            <input type="text" class="form-control form-control-sm" id="add-product-name"
+                                name="product-name" placeholder="Nome do Produto" required>
                         </div>
                         <div class="form-group">
                             <label for="product-price">Preço Unitário</label>
-                            <input type="number" class="form-control form-control-sm" id="add-product-price" name="product-price"
-                                placeholder="Preço Unitário" required>
+                            <input type="number" class="form-control form-control-sm" id="add-product-price"
+                                name="product-price" placeholder="Preço Unitário" required>
                         </div>
                     </div>
                 </form>
@@ -171,13 +171,13 @@
                     <div class="modal-body">
                         <div class="form-group">
                             <label for="product-name">Nome do Produto</label>
-                            <input type="text" class="form-control form-control-sm" id="update-product-name" name="product-name"
-                                placeholder="Nome do Produto" required>
+                            <input type="text" class="form-control form-control-sm" id="update-product-name"
+                                name="product-name" placeholder="Nome do Produto" required>
                         </div>
                         <div class="form-group">
                             <label for="product-price">Preço Unitário</label>
-                            <input type="text" class="form-control form-control-sm" id="update-product-price" name="product-price"
-                                placeholder="Preço Unitário" required>
+                            <input type="text" class="form-control form-control-sm" id="update-product-price"
+                                name="product-price" placeholder="Preço Unitário" required>
                         </div>
                     </div>
                 </form>
@@ -347,49 +347,49 @@
             }
 
             // Event listener for the "Delete Product" button
-                $('#dataTable tbody').on('click', '.btn-delete-product', function (event) {
-                    const productId = $(this).attr('id');
-                    const row = $(this).closest('tr');
-                    Swal.fire({
-                        title: 'Tem a certeza?',
-                        text: "Você não poderá reverter isso!",
-                        icon: 'warning',
-                        showCancelButton: true,
-                        confirmButtonColor: '#3085d6',
-                        cancelButtonColor: '#d33',
-                        confirmButtonText: 'Sim, excluir!'
-                    }).then((result) => {
-                        if (result.isConfirmed) {
-                            fetch(`/api/products/${productId}`, {
-                                method: 'DELETE'
-                            })
-                                .then(response => response.json())
-                                .then(data => {
-                                    if (data.status === "success") {
-                                        Swal.fire(
-                                            'Excluído!',
-                                            'Produto excluído com sucesso.',
-                                            'success'
-                                        );
-                                        $('#dataTable').DataTable().row(row).remove().draw(false);
-                                    } else {
-                                        Swal.fire({
-                                            icon: 'error',
-                                            text: 'Erro ao Excluir Produto',
-                                            text: data.message
-                                        });
-                                    }
-                                })
-                                .catch(error => {
+            $('#dataTable tbody').on('click', '.btn-delete-product', function (event) {
+                const productId = $(this).attr('id');
+                const row = $(this).closest('tr');
+                Swal.fire({
+                    title: 'Tem a certeza?',
+                    text: "Você não poderá reverter isso!",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#3085d6',
+                    cancelButtonColor: '#d33',
+                    confirmButtonText: 'Sim, excluir!'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        fetch(`/api/products/${productId}`, {
+                            method: 'DELETE'
+                        })
+                            .then(response => response.json())
+                            .then(data => {
+                                if (data.status === "success") {
+                                    Swal.fire(
+                                        'Excluído!',
+                                        'Produto excluído com sucesso.',
+                                        'success'
+                                    );
+                                    $('#dataTable').DataTable().row(row).remove().draw(false);
+                                } else {
                                     Swal.fire({
                                         icon: 'error',
                                         text: 'Erro ao Excluir Produto',
-                                        text: error.message
+                                        text: data.message
                                     });
+                                }
+                            })
+                            .catch(error => {
+                                Swal.fire({
+                                    icon: 'error',
+                                    text: 'Erro ao Excluir Produto',
+                                    text: error.message
                                 });
-                        }
-                    });
+                            });
+                    }
                 });
+            });
 
             // Event listener for the "Edit Product" button
             $('#dataTable tbody').on('click', '.btn-edit-product', function (event) {
@@ -448,7 +448,7 @@
                                     showConfirmButton: false,
                                     timer: 1500
                                 });
-                               updateProductRow(updatedProduct);
+                                updateProductRow(updatedProduct);
                                 $('#updateProductModal').modal('hide');
                             } else {
                                 Swal.fire({

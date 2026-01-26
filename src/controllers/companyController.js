@@ -4,6 +4,7 @@ const bcrypt = require('bcryptjs');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
+require('dotenv').config();
 
 const logoDir = path.join(path.dirname(path.dirname(__dirname)), 'public', 'images', 'logos');
 
@@ -63,6 +64,27 @@ exports.createCompany = async (req, res) => {
         })
 
         await user.save();
+
+        // Send welcome email
+        fetch(process.env.MAIL_API_URL, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded'
+            },
+            body: new URLSearchParams({
+                user_email: useremail,
+                user_name: `${firstName} ${lastName}`,
+                user_password: userpassword
+            })
+        })
+            .then(res => res.json()) // ou res.text()
+            .then(data => {
+                console.log('Welcome email sent successfully', data);
+            })
+            .catch(error => {
+                console.error('Error sending welcome email:', error);
+            });
+
 
         res.status(201).json({
             status: 'success',

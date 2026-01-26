@@ -126,4 +126,4 @@ const sendWelcomeEmail = async (toEmail, userName) => {
     }
 };
 
-module.exports = { sendWelcomeEmail };
+sendWelcomeEmail("milianomax361@gmail.com", "Ismael Chiziane");

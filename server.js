@@ -18,7 +18,7 @@ const reciboRoutes = require('./src/routes/receipt');
 
 const app = express();
 const PORT = 3000;
-const mongodbURI = process.env.NODE_ENV.toLowerCase() === 'production' ? process.env.MONGODB_URI : 'mongodb://localhost:27017/invoicesdb';
+const mongodbURI = process.env.NODE_ENV.toLowerCase() === 'production' ? process.env.MONGODB_URI : process.env.MONGODB_LOCAL_URI;
 
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
