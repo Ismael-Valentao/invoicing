@@ -2,14 +2,16 @@ const Client = require('../models/client');
 
 exports.createClient = async (req, res) => {
     const { name, email, phone, address, nuit } = req.body;
-    console.log(req.body)
     const companyId = req.user.company._id;
+    const clientNuit = nuit || 'N/A';
+    const clientPhone = phone || 'N/A';
+
     const client = new Client({
         name,
         email,
-        phone,
+        phone: clientPhone,
         address,
-        nuit,
+        nuit: clientNuit,
         companyId
     });
 

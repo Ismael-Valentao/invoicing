@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta content="width=device-width, initial-scale=1.0" name="viewport">
+  <title>Invoicing - Website</title>
+  <meta name="description" content="">
+  <meta name="keywords" content="">
+
+  <!-- Favicons -->
+  <link href="site-assets/img/favicon.png" rel="icon">
+  <link href="site-assets/img/apple-touch-icon.png" rel="apple-touch-icon">
+
+  <!-- Fonts -->
+  <link href="https://fonts.googleapis.com" rel="preconnect">
+  <link href="https://fonts.gstatic.com" rel="preconnect" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Raleway:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap"
+    rel="stylesheet">
+
+  <!-- Vendor CSS Files -->
+  <link href="site-assets/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+  <link href="site-assets/vendor/bootstrap-icons/bootstrap-icons.css" rel="stylesheet">
+  <link href="site-assets/vendor/aos/aos.css" rel="stylesheet">
+  <link href="site-assets/vendor/glightbox/css/glightbox.min.css" rel="stylesheet">
+  <link href="site-assets/vendor/swiper/swiper-bundle.min.css" rel="stylesheet">
+
+  <!-- Main CSS File -->
+  <link href="site-assets/css/main.css" rel="stylesheet">
+  <link href="site-assets/css/custom.css" rel="stylesheet">
+</head>
+
+<body class="index-page">
+
+  <header id="header" class="header d-flex align-items-center fixed-top">
+    <div class="container-fluid container-xl position-relative d-flex align-items-center justify-content-between">
+
+      <!-- Logo -->
+      <a href="/" class="logo d-flex align-items-center">
+        <h1 class="sitename">Invoicing</h1>
+      </a>
+
+      <!-- Navigation -->
+      <nav id="navmenu" class="navmenu">
+        <ul>
+          <li><a href="#hero" class="active">Início</a></li>
+          <li><a href="#about">Sobre</a></li>
+          <li><a href="#features">Funcionalidades</a></li>
+          <li><a href="#pricing">Planos & Preços</a></li>
+          <li><a href="#faq">Ajuda</a></li>
+
+          <!-- CTA -->
+          <li>
+            <a href="/login" class="btn btn-primary" style="padding: 10px; border-radius: 25px;">Área do Cliente</a>
+          </li>
+        </ul>
+
+        <i class="mobile-nav-toggle d-xl-none bi bi-list"></i>
+      </nav>
+
+    </div>
+  </header>
+
+
+  <main class="main">
+
+    <!-- Hero Section -->
+    <section id="hero" class="hero section dark-background">
+      <img src="site-assets/img/hero-bg-2.jpg" alt="" class="hero-bg">
+
+      <div class="container">
+        <div class="row gy-4 justify-content-between align-items-center">
+
+          <!-- Imagem -->
+          <div class="col-lg-5 order-lg-last hero-img" data-aos="zoom-out" data-aos-delay="100">
+            <img src="site-assets/img/laptop.png" class="img-fluid animated"
+              alt="Plataforma Invoicing para cotações e facturas">
+          </div>
+
+          <!-- Conteúdo -->
+          <div class="col-lg-6 d-flex flex-column justify-content-center" data-aos="fade-in">
+            <h1>
+              Crie <span>cotações</span>, <span>facturas</span> e <span>recibos</span>
+              de forma simples e profissional
+            </h1>
+
+            <div class="d-flex gap-3 mt-4">
+              <a href="/register" class="btn-get-started">
+                Começar grátis
+              </a>
+
+              <a href="#features" class="btn-watch-video d-flex align-items-center">
+                <i class="bi bi-check-circle"></i>
+                <span>Ver funcionalidades</span>
+              </a>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Waves -->
+      <svg class="hero-waves" xmlns="http://www.w3.org/2000/svg" viewBox="0 24 150 28" preserveAspectRatio="none">
+        <defs>
+          <path id="wave-path" d="M-160 44c30 0 58-18 88-18s58 18 88 18
+           58-18 88-18 58 18 88 18 v44h-352z">
+          </path>
+        </defs>
+        <g class="wave1">
+          <use href="#wave-path" x="50" y="3"></use>
+        </g>
+        <g class="wave2">
+          <use href="#wave-path" x="50" y="0"></use>
+        </g>
+        <g class="wave3">
+          <use href="#wave-path" x="50" y="9"></use>
+        </g>
+      </svg>
+
+    </section>
+    <!-- /Hero Section -->
+
+
+    <!-- About Section -->
+    <section id="about" class="about section">
+
+      <div class="container" data-aos="fade-up" data-aos-delay="100">
+        <div class="row align-items-xl-center gy-5">
+
+          <!-- Texto principal -->
+          <div class="col-xl-5 content">
+            <h3>Sobre o Invoicing</h3>
+            <h2>Gestão de facturação simples, moderna e pensada para o seu negócio</h2>
+
+            <p>
+              O <strong>Invoicing</strong> nasceu para ajudar microempreendedores e pequenas
+              e médias empresas a criarem cotações, facturas e recibos de forma rápida,
+              organizada e profissional — sem complicações técnicas.
+            </p>
+
+            <p>
+              Centralize a informação dos seus clientes, acompanhe pagamentos e mantenha
+              o controlo financeiro do seu negócio num único lugar.
+            </p>
+
+            <a href="#features" class="read-more">
+              <span>Ver funcionalidades</span>
+              <i class="bi bi-arrow-right"></i>
+            </a>
+          </div>
+
+          <!-- Blocos de valor -->
+          <div class="col-xl-7">
+            <div class="row gy-4 icon-boxes">
+
+              <div class="col-md-6" data-aos="fade-up" data-aos-delay="200">
+                <div class="icon-box">
+                  <i class="bi bi-lightning-charge"></i>
+                  <h3>Rápido e intuitivo</h3>
+                  <p>
+                    Crie cotações e facturas em poucos cliques, mesmo sem experiência
+                    em sistemas de facturação.
+                  </p>
+                </div>
+              </div>
+
+              <div class="col-md-6" data-aos="fade-up" data-aos-delay="300">
+                <div class="icon-box">
+                  <i class="bi bi-file-earmark-text"></i>
+                  <h3>Documentos profissionais</h3>
+                  <p>
+                    Gere documentos bem estruturados, prontos para enviar aos seus clientes
+                    e reforçar a credibilidade do seu negócio.
+                  </p>
+                </div>
+              </div>
+
+              <div class="col-md-6" data-aos="fade-up" data-aos-delay="400">
+                <div class="icon-box">
+                  <i class="bi bi-people"></i>
+                  <h3>Gestão de clientes</h3>
+                  <p>
+                    Organize os dados dos seus clientes, histórico de facturas e
+                    cotações num único sistema.
+                  </p>
+                </div>
+              </div>
+
+              <div class="col-md-6" data-aos="fade-up" data-aos-delay="500">
+                <div class="icon-box">
+                  <i class="bi bi-graph-up-arrow"></i>
+                  <h3>Controlo do crescimento</h3>
+                  <p>
+                    Acompanhe o desempenho do seu negócio e tome decisões com base
+                    em informação clara e organizada.
+                  </p>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </section>
+    <!-- /About Section -->
+
+
+    <!-- Features Section -->
+    <section id="features" class="features section">
+
+      <div class="container">
+
+        <div class="row gy-4">
+
+          <div class="col-lg-3 col-md-4" data-aos="fade-up" data-aos-delay="100">
+            <div class="features-item">
+              <i class="bi bi-file-earmark-text" style="color: #228CDF;"></i>
+              <h3><a href="#" class="stretched-link">Cotações rápidas</a></h3>
+            </div>
+          </div>
+
+          <div class="col-lg-3 col-md-4" data-aos="fade-up" data-aos-delay="200">
+            <div class="features-item">
+              <i class="bi bi-receipt" style="color: #5578ff;"></i>
+              <h3><a href="#" class="stretched-link">Facturas e recibos</a></h3>
+            </div>
+          </div>
+
+          <div class="col-lg-3 col-md-4" data-aos="fade-up" data-aos-delay="300">
+            <div class="features-item">
+              <i class="bi bi-people" style="color: #11dbcf;"></i>
+              <h3><a href="#" class="stretched-link">Gestão de clientes</a></h3>
+            </div>
+          </div>
+
+          <div class="col-lg-3 col-md-4" data-aos="fade-up" data-aos-delay="400">
+            <div class="features-item">
+              <i class="bi bi-building" style="color: #ffbb2c;"></i>
+              <h3><a href="#" class="stretched-link">Dados da empresa</a></h3>
+            </div>
+          </div>
+
+          <div class="col-lg-3 col-md-4" data-aos="fade-up" data-aos-delay="500">
+            <div class="features-item">
+              <i class="bi bi-file-pdf" style="color: #e80368;"></i>
+              <h3><a href="#" class="stretched-link">Exportação em PDF</a></h3>
+            </div>
+          </div>
+
+          <div class="col-lg-3 col-md-4" data-aos="fade-up" data-aos-delay="600">
+            <div class="features-item">
+              <i class="bi bi-send" style="color: #47aeff;"></i>
+              <h3><a href="#" class="stretched-link">Envio por e-mail</a></h3>
+            </div>
+          </div>
+
+          <div class="col-lg-3 col-md-4" data-aos="fade-up" data-aos-delay="700">
+            <div class="features-item">
+              <i class="bi bi-clock-history" style="color: #ffa76e;"></i>
+              <h3><a href="#" class="stretched-link">Histórico completo</a></h3>
+            </div>
+          </div>
+
+          <div class="col-lg-3 col-md-4" data-aos="fade-up" data-aos-delay="800">
+            <div class="features-item">
+              <i class="bi bi-shield-check" style="color: #29cc61;"></i>
+              <h3><a href="#" class="stretched-link">Segurança dos dados</a></h3>
+            </div>
+          </div>
+
+          <div class="col-lg-3 col-md-4" data-aos="fade-up" data-aos-delay="900">
+            <div class="features-item">
+              <i class="bi bi-graph-up" style="color: #4233ff;"></i>
+              <h3><a href="#" class="stretched-link">Relatórios simples</a></h3>
+            </div>
+          </div>
+
+          <div class="col-lg-3 col-md-4" data-aos="fade-up" data-aos-delay="1000">
+            <div class="features-item">
+              <i class="bi bi-currency-dollar" style="color: #b2904f;"></i>
+              <h3><a href="#" class="stretched-link">Controlo financeiro</a></h3>
+            </div>
+          </div>
+
+          <div class="col-lg-3 col-md-4" data-aos="fade-up" data-aos-delay="1100">
+            <div class="features-item">
+              <i class="bi bi-cloud" style="color: #5578ff;"></i>
+              <h3><a href="#" class="stretched-link">Acesso online</a></h3>
+            </div>
+          </div>
+
+          <div class="col-lg-3 col-md-4" data-aos="fade-up" data-aos-delay="1200">
+            <div class="features-item">
+              <i class="bi bi-lightning-charge" style="color: #ff5828;"></i>
+              <h3><a href="#" class="stretched-link">Fácil de usar</a></h3>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+    </section>
+    <!-- /Features Section -->
+
+    <!-- Pricing Section -->
+    <section id="pricing" class="pricing section">
+
+      <!-- Section Title -->
+      <div class="container section-title" data-aos="fade-up">
+        <h2>Planos & Preços</h2>
+        <div>
+          <span>Escolha o</span>
+          <span class="description-title">plano ideal para si</span>
+        </div>
+      </div><!-- End Section Title -->
+
+      <div class="container">
+
+        <div class="row gy-4">
+
+          <!-- Free Plan -->
+          <div class="col-lg-4" data-aos="zoom-in" data-aos-delay="100">
+            <div class="pricing-item">
+              <h3>Plano Gratuito</h3>
+              <p class="description">
+                Ideal para pequenos negócios que estão a começar.
+              </p>
+              <h4><sup>MT</sup>0<span> / mês</span></h4>
+              <a href="#" class="cta-btn">Começar grátis</a>
+              <p class="text-center small">Sem cartão, sem compromisso</p>
+              <ul>
+                <li><i class="bi bi-check"></i> <span>Criação de cotações e facturas</span></li>
+                <li><i class="bi bi-check"></i> <span>Gestão básica de clientes</span></li>
+                <li><i class="bi bi-check"></i> <span>Histórico limitado</span></li>
+                <li class="na"><i class="bi bi-x"></i> <span>Relatórios financeiros</span></li>
+                <li><i class="bi bi-check"></i> <span>Exportação em PDF</span></li>
+                <li><i class="bi bi-check"></i></i> <span>Suporte prioritário</span></li>
+                <li class="na"><i class="bi bi-x"></i> <span>Multi-utilizador</span></li>
+              </ul>
+            </div>
+          </div><!-- End Pricing Item -->
+
+          <!-- Professional Plan -->
+          <div class="col-lg-4" data-aos="zoom-in" data-aos-delay="200">
+            <div class="pricing-item featured">
+              <p class="popular">Mais Popular</p>
+              <h3>Plano Profissional</h3>
+              <p class="description">
+                Ideal para micro e pequenas empresas em crescimento.
+              </p>
+              <h4><sup>MT</sup>499<span> / mês</span></h4>
+              <a href="#" class="cta-btn">Testar gratuitamente</a>
+              <p class="text-center small">7 dias grátis</p>
+              <ul>
+                <li><i class="bi bi-check"></i> <span>Todas as funções do plano gratuito</span></li>
+                <li><i class="bi bi-check"></i> <span>Facturas ilimitadas</span></li>
+                <li><i class="bi bi-check"></i> <span>Relatórios de vendas</span></li>
+                <li><i class="bi bi-check"></i> <span>Exportação em PDF</span></li>
+                <li><i class="bi bi-check"></i> <span>Gestão de impostos</span></li>
+                <li><i class="bi bi-check"></i> <span>Suporte prioritário</span></li>
+                <li class="na"><i class="bi bi-x"></i> <span>API & Integrações</span></li>
+              </ul>
+            </div>
+          </div><!-- End Pricing Item -->
+
+          <!-- Enterprise / Developer Plan -->
+          <div class="col-lg-4" data-aos="zoom-in" data-aos-delay="300">
+            <div class="pricing-item">
+              <h3>Plano Empresarial</h3>
+              <p class="description">
+                Para PME, startups e empresas com maior volume de operações.
+              </p>
+              <h4><sup>MT</sup>899<span> / mês</span></h4>
+              <a href="#" class="cta-btn">Falar connosco</a>
+              <p class="text-center small">Solução completa</p>
+              <ul>
+                <li><i class="bi bi-check"></i> <span>Todas as funcionalidades disponíveis</span></li>
+                <li><i class="bi bi-check"></i> <span>Múltiplos utilizadores</span></li>
+                <li><i class="bi bi-check"></i> <span>API & integrações externas</span></li>
+                <li><i class="bi bi-check"></i> <span>Relatórios avançados</span></li>
+                <li><i class="bi bi-check"></i> <span>Customizações</span></li>
+                <li><i class="bi bi-check"></i> <span>Backup automático</span></li>
+                <li><i class="bi bi-check"></i> <span>Suporte técnico dedicado</span></li>
+              </ul>
+            </div>
+          </div><!-- End Pricing Item -->
+
+        </div>
+
+      </div>
+
+    </section><!-- /Pricing Section -->
+
+
+
+    <!-- Faq Section -->
+    <section id="faq" class="faq section light-background">
+
+      <div class="container-fluid">
+
+        <div class="row gy-4">
+
+          <div class="col-lg-7 d-flex flex-column justify-content-center order-2 order-lg-1">
+
+            <div class="content px-xl-5" data-aos="fade-up" data-aos-delay="100">
+              <h3><span>Perguntas </span><strong>Frequentes</strong></h3>
+              <p>
+                Aqui respondemos às dúvidas mais comuns para ajudá-lo a compreender melhor a nossa plataforma
+                e começar com total confiança.
+              </p>
+            </div>
+
+            <div class="faq-container px-xl-5" data-aos="fade-up" data-aos-delay="200">
+
+              <!-- FAQ Item -->
+              <div class="faq-item faq-active">
+                <i class="faq-icon bi bi-question-circle"></i>
+                <h3>Preciso de cartão de crédito para começar?</h3>
+                <div class="faq-content">
+                  <p>
+                    Não. Pode criar a sua conta e utilizar o plano gratuito sem inserir qualquer informação de
+                    pagamento.
+                  </p>
+                </div>
+                <i class="faq-toggle bi bi-chevron-right"></i>
+              </div><!-- End Faq item-->
+
+              <!-- FAQ Item -->
+              <div class="faq-item">
+                <i class="faq-icon bi bi-question-circle"></i>
+                <h3>Posso mudar de plano a qualquer momento?</h3>
+                <div class="faq-content">
+                  <p>
+                    Sim. Pode fazer upgrade ou downgrade do seu plano quando quiser, sem perda de dados ou interrupções.
+                  </p>
+                </div>
+                <i class="faq-toggle bi bi-chevron-right"></i>
+              </div><!-- End Faq item-->
+
+              <!-- FAQ Item -->
+              <div class="faq-item">
+                <i class="faq-icon bi bi-question-circle"></i>
+                <h3>Os meus dados estão seguros?</h3>
+                <div class="faq-content">
+                  <p>
+                    Sim. Utilizamos boas práticas de segurança, encriptação e controlo de acesso para proteger
+                    todas as informações dos nossos utilizadores.
+                  </p>
+                </div>
+                <i class="faq-toggle bi bi-chevron-right"></i>
+              </div><!-- End Faq item-->
+
+              <!-- FAQ Item -->
+              <div class="faq-item">
+                <i class="faq-icon bi bi-question-circle"></i>
+                <h3>Existe suporte técnico disponível?</h3>
+                <div class="faq-content">
+                  <p>
+                    Sim. Oferecemos suporte por e-mail e whatsapp. Todas as duvidas serão respondidas o mais rápido
+                    possível.
+                  </p>
+                </div>
+                <i class="faq-toggle bi bi-chevron-right"></i>
+              </div><!-- End Faq item-->
+
+            </div>
+
+          </div>
+
+          <div class="col-lg-5 order-1 order-lg-2">
+            <img src="site-assets/img/laptop.png" class="img-fluid" alt="Perguntas frequentes" data-aos="zoom-in"
+              data-aos-delay="100">
+          </div>
+
+        </div>
+
+      </div>
+
+    </section><!-- /Faq Section -->
+
+
+  </main>
+
+  <footer id="footer" class="footer dark-background">
+
+    <div class="container footer-top">
+      <div class="row gy-4">
+
+        <!-- About -->
+        <div class="col-lg-4 col-md-6 footer-about">
+          <a href="index.html" class="logo d-flex align-items-center">
+            <span class="sitename">Invoicing</span>
+          </a>
+          <div class="footer-contact pt-3">
+            <p>Matola, Maputo, Moçambique</p>
+            <p class="mt-3"><strong>Telefone:</strong> <span>+258 84 000 0000</span></p>
+            <p><strong>Email: </strong> <a href="mailto:suporte@bitiray.com">suporte@bitiray.com</a></p>
+          </div>
+          <div class="social-links d-flex mt-4">
+            <a href="#" title="Twitter"><i class="bi bi-twitter-x"></i></a>
+            <a href="#" title="Facebook"><i class="bi bi-facebook"></i></a>
+            <a href="#" title="Instagram"><i class="bi bi-instagram"></i></a>
+            <a href="#" title="LinkedIn"><i class="bi bi-linkedin"></i></a>
+          </div>
+        </div>
+
+        <!-- Links -->
+        <div class="col-lg-4 col-md-3 footer-links">
+          <h4>Links Úteis</h4>
+          <ul>
+            <li><a href="#hero">Início</a></li>
+            <li><a href="#about">Sobre</a></li>
+            <li><a href="#features">Funcionalidades</a></li>
+            <li><a href="#pricing">Planos</a></li>
+            <li><a href="#faq">Ajuda</a></li>
+          </ul>
+        </div>
+        <!-- Newsletter -->
+        <div class="col-lg-4 col-md-12 footer-newsletter">
+          <h4>Newsletter</h4>
+          <p>
+            Subscreva a nossa newsletter e receba novidades, atualizações e dicas diretamente no seu email.
+          </p>
+          <form action="forms/newsletter.php" method="post" class="php-email-form">
+            <div class="newsletter-form">
+              <input type="email" name="email" placeholder="Seu email" required>
+              <input type="submit" value="Subscrever">
+            </div>
+            <div class="loading">A enviar...</div>
+            <div class="error-message"></div>
+            <div class="sent-message">Obrigado! A sua subscrição foi recebida.</div>
+          </form>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Copyright -->
+    <div class="container copyright text-center mt-4">
+      <p>
+        <strong class="px-1 sitename">Invoicing</strong>
+        © <span>2026</span>.
+        <span>Todos os direitos reservados</span>
+      </p>
+    </div>
+
+  </footer>
+
+
+  <!-- Scroll Top -->
+  <a href="#" id="scroll-top" class="scroll-top d-flex align-items-center justify-content-center"><i
+      class="bi bi-arrow-up-short"></i></a>
+
+  <!-- Preloader -->
+  <div id="preloader"></div>
+
+  <!-- Vendor JS Files -->
+  <script src="site-assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+  <script src="site-assets/vendor/php-email-form/validate.js"></script>
+  <script src="site-assets/vendor/aos/aos.js"></script>
+  <script src="site-assets/vendor/glightbox/js/glightbox.min.js"></script>
+  <script src="site-assets/vendor/purecounter/purecounter_vanilla.js"></script>
+  <script src="site-assets/vendor/swiper/swiper-bundle.min.js"></script>
+
+  <!-- Main JS File -->
+  <script src="site-assets/js/main.js"></script>
+
+</body>
+
+</html>

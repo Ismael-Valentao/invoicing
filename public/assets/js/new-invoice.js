@@ -73,7 +73,6 @@ const getLastInvoiceNumber = async () => {
     const response = await fetch('/api/invoices/last-invoice');
     const data = await response.json();
     if (data.success) {
-        console.log(data)
         const lastInvoiceNumber = data.lastInvoice;
         const newInvoiceNumber = (lastInvoiceNumber * 1 + 1).toString().padStart(4, 0);
         document.getElementById('invoiceNumber').value = newInvoiceNumber;
@@ -103,7 +102,6 @@ async function getClients() {
 
             if (data.status === "success" && data.clients.length > 0) {
                 const clients = data.clients;
-                console.log(clients)
                 let clientsOptions = clients.map(client => `<option value="${client.nuit}">${client.name}</option>`).join('');
                 $('#client-select').append(clientsOptions);
             }

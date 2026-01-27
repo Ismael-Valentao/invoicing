@@ -10,7 +10,7 @@ exports.createVD = async (req, res) => {
     docType: "vd",
     companyName: req.body.companyName,
     clientName: req.body.clientName,
-    clientNUIT: req.body.clientNUIT,
+    clientNUIT: req.body.clientNUIT || 'N/A',
     invoiceNumber: req.body.invoiceNumber,
     date: req.body.date,
     items: req.body.items,

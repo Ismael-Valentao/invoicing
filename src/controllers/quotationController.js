@@ -6,14 +6,13 @@ exports.createQuotation = async (req, res) => {
     const { subTotal, tax, totalAmount } = amounts(req.body.items, req.body.iva * 1 * 0.01);
     console.log(req.body.iva*1*0.1)
     const cleanedItems = normalizeItems(req.body.items);
-    console.log(subTotal, tax, totalAmount)
-    console.log(req.body.items)
+
     const userId = req.user._id;
     const companyId = req.user.company._id;
     const quotation = new Quotation({
         companyName: req.body.companyName,
         clientName: req.body.clientName,
-        clientNUIT: req.body.clientNUIT,
+        clientNUIT: req.body.clientNUIT || 'N/A',
         quotationNumber: req.body.quotationNumber,
         date: req.body.date,
         items: cleanedItems,

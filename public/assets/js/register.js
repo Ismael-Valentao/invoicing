@@ -67,13 +67,13 @@ document.getElementById('btn-save').addEventListener('click', function (e) {
                 Swal.fire({
                     icon: 'success',
                     title: 'Sucesso!',
-                    text: 'Empresa criada com sucesso.',
+                    text: 'Empresa criada com sucesso. Veja o seu email para os detalhes de login.',
                     showConfirmButton: true,
                     confirmButtonText: 'Fechar'
                 });
                 setTimeout(() => {
                     window.location.href = '/login';
-                }, 2000);
+                }, 4000);
             } else {
                 Swal.fire({
                     icon: 'error',

@@ -4,6 +4,7 @@ const bcrypt = require('bcryptjs');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
+const mongoose = require('mongoose');
 require('dotenv').config();
 
 const logoDir = path.join(path.dirname(path.dirname(__dirname)), 'public', 'images', 'logos');
@@ -13,93 +14,170 @@ if (!fs.existsSync(logoDir)) {
 }
 
 exports.createCompany = async (req, res) => {
-    try {
-        const {
-            name,
-            address,
-            contact,
-            email,
-            nuit,
-            firstName,
-            lastName,
-            useremail,
-            usercontact,
-            userpassword
-        } = req.body;
-        if (!name || !address || !contact || !email || !nuit || !firstName || !lastName || !useremail || !usercontact || !userpassword) {
-            return res.status(400).json({
-                message: 'All fields are required'
+    const NODE_ENV = process.env.NODE_ENV || 'development';
+
+    if (NODE_ENV === 'production') {
+        const session = await mongoose.startSession();
+
+        try {
+            const {
+                name,
+                address,
+                contact,
+                email,
+                nuit,
+                firstName,
+                lastName,
+                useremail,
+                usercontact,
+                userpassword
+            } = req.body;
+
+            if (!name || !address || !contact || !email || !nuit ||
+                !firstName || !lastName || !useremail || !usercontact || !userpassword) {
+                return res.status(400).json({ message: "All fields are required" });
+            }
+
+            session.startTransaction();
+
+            const existingCompany = await company.findOne({ name }).session(session);
+            if (existingCompany) {
+                await session.abortTransaction();
+                return res.status(400).json({ message: "Company already exists" });
+            }
+
+            const existingUser = await User.findOne({ email: useremail }).session(session);
+            if (existingUser) {
+                await session.abortTransaction();
+                return res.status(400).json({ message: "Usuário já existe" });
+            }
+
+            const newCompany = await company.create([{
+                name,
+                address,
+                contact,
+                email,
+                nuit
+            }], { session });
+
+            const hashedPassword = bcrypt.hashSync(userpassword, 10);
+
+            const user = await User.create([{
+                name: `${firstName} ${lastName}`,
+                email: useremail,
+                contact: usercontact,
+                password: hashedPassword,
+                companyId: newCompany[0]._id
+            }], { session });
+
+            await session.commitTransaction();
+            session.endSession();
+
+            // Email fora da transação
+            fetch(process.env.MAIL_API_URL, {
+                method: "POST",
+                headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                body: new URLSearchParams({
+                    user_email: useremail,
+                    user_name: `${firstName} ${lastName}`,
+                    user_password: userpassword
+                })
+            }).catch(console.error);
+
+            return res.status(201).json({
+                status: "success",
+                message: "Company created successfully",
+                company: newCompany[0],
+                user: user[0]
+            });
+
+        } catch (error) {
+            await session.abortTransaction();
+            session.endSession();
+
+            console.error(error);
+            return res.status(500).json({
+                message: "Error creating company",
+                error
             });
         }
-
-        const existingCompany = await company.find({
-            name
-        });
-        if (existingCompany.length > 0) {
-            return res.status(400).json({
-                message: 'Company already exists'
-            });
-        }
-
-        const newCompany = new company(req.body);
-        await newCompany.save();
-        const existingUser = await User.find({
-            email: email,
-            companyId: newCompany._id
-        });
-        if (existingUser.length > 0) {
-            return res.status(400).json({
-                error: 'Usuário já existe'
-            });
-        }
-
-        const hashedPassword = bcrypt.hashSync(userpassword, 10);
-
-        const user = new User({
-            name: `${firstName} ${lastName}`,
-            email: useremail,
-            contact: usercontact,
-            password: hashedPassword,
-            companyId: newCompany._id
-        })
-
-        await user.save();
-
-        // Send welcome email
-        fetch(process.env.MAIL_API_URL, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded'
-            },
-            body: new URLSearchParams({
-                user_email: useremail,
-                user_name: `${firstName} ${lastName}`,
-                user_password: userpassword
-            })
-        })
-            .then(res => res.json()) // ou res.text()
-            .then(data => {
-                console.log('Welcome email sent successfully', data);
-            })
-            .catch(error => {
-                console.error('Error sending welcome email:', error);
-            });
-
-
-        res.status(201).json({
-            status: 'success',
-            message: 'Company created successfully',
-            company: newCompany,
-            user
-        });
-    } catch (error) {
-        res.status(500).json({
-            message: 'Error creating company',
-            error
-        });
-        console.log(error);
     }
-}
+    else {
+        try {
+            const {
+                name,
+                address,
+                contact,
+                email,
+                nuit,
+                firstName,
+                lastName,
+                useremail,
+                usercontact,
+                userpassword
+            } = req.body;
+
+            if (!name || !address || !contact || !email || !nuit ||
+                !firstName || !lastName || !useremail || !usercontact || !userpassword) {
+                return res.status(400).json({ message: "Todos os campos são obrigatórios" });
+            }
+
+            const existingCompany = await company.findOne({ name });
+            if (existingCompany) {
+                return res.status(400).json({ message: "Empresa já existe" });
+            }
+
+            const existingUser = await User.findOne({ email: useremail });
+            if (existingUser) {
+                return res.status(400).json({ message: "Usuário já existe" });
+            }
+
+            const newCompany = await company.create({
+                name,
+                address,
+                contact,
+                email,
+                nuit
+            });
+
+            const hashedPassword = bcrypt.hashSync(userpassword, 10);
+
+            const user = await User.create({
+                name: `${firstName} ${lastName}`,
+                email: useremail,
+                contact: usercontact,
+                password: hashedPassword,
+                companyId: newCompany._id
+            });
+
+            // Enviar email fora do fluxo principal
+            fetch(process.env.MAIL_API_URL, {
+                method: "POST",
+                headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                body: new URLSearchParams({
+                    user_email: useremail,
+                    user_name: `${firstName} ${lastName}`,
+                    user_password: userpassword
+                })
+            }).catch(console.error);
+
+            return res.status(201).json({
+                status: "success",
+                message: "Empresa criada com sucesso",
+                company: newCompany,
+                user
+            });
+
+        } catch (error) {
+            console.error(error);
+
+            return res.status(500).json({
+                message: "Erro ao criar empresa",
+                error
+            });
+        }
+    }
+};
 
 exports.getCompany = async (req, res) => {
     const companyId = req.user.company._id;

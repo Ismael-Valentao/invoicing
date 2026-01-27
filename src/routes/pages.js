@@ -7,7 +7,7 @@ const router = express.Router();
 // Rotas principais do sistema
 router.get('/', (req, res) => {
     //res.render('index', { title: 'Home' });
-    res.redirect('/dashboard');
+    res.render("site", { title: 'Website' });
 });
 
 router.get('/about', (req, res) => {

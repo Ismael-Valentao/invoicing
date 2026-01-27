@@ -3,10 +3,7 @@ const path = require("path");
 const { formatedDate } = require("./dateFormatter");
 require("dotenv").config();
 
-const logoPath =
-    process.env.NODE_ENV.toLowerCase() === "production"
-        ? "https://bitiray.com/public/invoicing-logos/"
-        : "http://localhost:3000/images/logos/";
+const logoPath = process.env.LOGO_PATH || "https://bitiray.com/public/invoicing-logos/";
 
 function formatCurrency(value, currencyNameOption = false) {
     const formatedValue = new Intl.NumberFormat("pt-MZ", {
@@ -59,7 +56,6 @@ async function generateInvoicePDF(companyInfo, invoice) {
             padding-top:20px;
             box-sizing: border-box;
             background: white;
-            box-shadow: 0 10px 10px rgba(0, 0, 0, 0.3);
         }
 
         .company-info {
@@ -292,7 +288,6 @@ async function generateQuotationPDF(companyInfo, quotation) {
             padding-top:30px;
             box-sizing: border-box;
             background: white;
-            box-shadow: 0 10px 10px rgba(0, 0, 0, 0.3);
         }
 
         .company-info {
@@ -516,7 +511,6 @@ async function generateVDPDF(companyInfo, vd) {
             padding-top:30px;
             box-sizing: border-box;
             background: white;
-            box-shadow: 0 10px 10px rgba(0, 0, 0, 0.3);
         }
 
         .company-info {
@@ -730,7 +724,6 @@ async function generateReciboPDF(companyInfo, invoice) {
             padding-top:30px;
             box-sizing: border-box;
             background: white;
-            box-shadow: 0 10px 10px rgba(0, 0, 0, 0.3);
         }
 
         .company-info {

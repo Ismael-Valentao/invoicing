@@ -13,7 +13,7 @@ const companySchema = new mongoose.Schema({
     address: { type: String, required: true },
     contact: { type: String, required: true },
     email: { type: String, required: true },
-    nuit: { type: String, required: true },
+    nuit: { type: String, required: true, default: 'N/A' },
     logoUrl: { type: String },
     bankDetails: bankDetailsSchema
 }, {
