@@ -4,7 +4,7 @@ document.addEventListener("DOMContentLoaded", function () {
   document.getElementById("btn-open-modalbankInfo").addEventListener("click", function (e) {
     // Pegando os valores existentes
     const bankName = document.getElementById("bank_name").value;
-    if(!bankName || bankName.trim() === '') return
+    if (!bankName || bankName.trim() === '') return
     const accountName = document.getElementById("bank_user_name").value;
     const accountNumber = document.getElementById("bank_num_account").value;
     const nib = document.getElementById("bank_nib").value;
@@ -158,6 +158,7 @@ async function getCompanyInfo() {
     .then((data) => {
       if (data.status === "success") {
         const company = data.company;
+        const visibility = company.showBankDetails || {};
         document.getElementById("companyName").value = company.name;
         document.getElementById("companyAddress").value = company.address;
         document.getElementById("companyContact").value = company.contact;
@@ -166,6 +167,13 @@ async function getCompanyInfo() {
         if (company.logoUrl) {
           document.getElementById("company_logo_preview").src = 'https://bitiray.com/public/invoicing-logos/' + company.logoUrl;
         }
+
+        document.querySelector('[data-field="invoices"]').checked = !!visibility.invoices;
+        document.querySelector('[data-field="quotations"]').checked = !!visibility.quotations;
+        document.querySelector('[data-field="receipts"]') &&
+          (document.querySelector('[data-field="receipts"]').checked = !!visibility.receipts);
+        document.querySelector('[data-field="vds"]').checked = !!visibility.vds;
+
         if (!company.bankDetails) {
           document.getElementById("btn-open-modalbankInfo-span").innerText = 'Adicionar Dados Bancários'
           return
@@ -186,6 +194,7 @@ async function getCompanyInfo() {
 }
 
 async function updateLogoUrl(url) {
+  console.log("Updating logo URL to:", url);
   const response = await fetch("/api/company/logo", {
     method: "POST",
     headers: {
@@ -193,7 +202,9 @@ async function updateLogoUrl(url) {
     },
     body: JSON.stringify({ logo_name: url }),
   });
-  return response.json();
+  const data = await response.json();
+  console.log("Response from updating logo URL:", data);
+  return data;
 }
 
 document.addEventListener("DOMContentLoaded", async function () {
@@ -241,6 +252,7 @@ document.addEventListener("DOMContentLoaded", async function () {
         );
         const data = await response.json();
         if (data.status === "success") {
+          console.log("Logo uploaded successfully:", data);
           const updateResponse = await updateLogoUrl(data.fileName);
           if (updateResponse.status === "success") {
             Swal.fire({
@@ -363,4 +375,49 @@ document.addEventListener("DOMContentLoaded", function () {
       });
     }
   });
+
+
+  document.querySelectorAll('.bank-toggle').forEach(checkbox => {
+    checkbox.addEventListener('change', async () => {
+
+      const showBankDetails = {
+        invoices: document.querySelector('[data-field="invoices"]')?.checked || false,
+        quotations: document.querySelector('[data-field="quotations"]')?.checked || false,
+        receipts: document.querySelector('[data-field="receipts"]')?.checked || false,
+        vds: document.querySelector('[data-field="vds"]')?.checked || false,
+      };
+
+      try {
+        const response = await fetch('/api/company/update-bank-visibility', {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('token')}` // se usas JWT
+          },
+          body: JSON.stringify({ showBankDetails })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.message || 'Erro ao actualizar');
+        }
+
+        Swal.fire({
+          icon: 'success',
+          title: 'Visibilidade actualizada',
+          showConfirmButton: true
+        });
+
+      } catch (err) {
+        console.error('❌ Erro:', err.message);
+        Swal.fire({
+          icon: 'error',
+          title: 'Erro ao actualizar visibilidade dos dados bancários.',
+          showConfirmButton: true
+        });
+      }
+    });
+  });
+
 });

@@ -10,7 +10,7 @@
 
   <title>Invoicing | <%- title %></title>
 
-  <link rel="icon" type="image/png" href="images/invoicing-logo-simple.png"/>
+  <link rel="icon" type="image/png" href="images/invoicing-logo-simple.png" />
   <!-- Custom fonts for this template -->
   <link href="assets/vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css" />
   <link
@@ -42,6 +42,10 @@
 
     table tr td {
       text-align: center !important;
+    }
+
+    .form-check-input {
+      accent-color: #4e73df;
     }
   </style>
 </head>
@@ -123,6 +127,34 @@
                       <input type="text" class="form-control form-control-sm" id="bank_nuib" name="bank_nuib" required
                         readonly />
                     </div>
+                    <p class="col-md-12 text-primary"><strong>Mostrar Dados Bancários em: </strong></p>
+                    <div class="form-group col-md-12 d-flex" style="align-items: center; gap:15px;">
+
+                      <div class="form-check">
+                        <input class="form-check-input bank-toggle" type="checkbox" data-field="invoices"
+                          id="showInvoices">
+                        <label class="form-check-label" for="showInvoices">
+                          Facturas
+                        </label>
+                      </div>
+
+                      <div class="form-check">
+                        <input class="form-check-input bank-toggle" type="checkbox" data-field="quotations"
+                          id="showQuotations" checked>
+                        <label class="form-check-label" for="showQuotations">
+                          Cotações
+                        </label>
+                      </div>
+
+                      <div class="form-check">
+                        <input class="form-check-input bank-toggle" type="checkbox" data-field="vds" id="showVds">
+                        <label class="form-check-label" for="showVds">
+                          Factura-Recibo (VD)
+                        </label>
+                      </div>
+
+                    </div>
+
                     <div class="form-group col-md-6 d-none">
                       <label for="">Adicionar Logotipo</label>
                       <input type="file" name="logo" id="input-logo" accept="image/png" />
@@ -141,7 +173,7 @@
                     </button>
                     <button type="button" class="btn btn-primary btn-sm" id="btn-open-modalbankInfo" data-toggle="modal"
                       data-target="#bank_account_modal">
-                      <i class="fa-solid fa-building-columns"></i> 
+                      <i class="fa-solid fa-building-columns"></i>
                       <span id="btn-open-modalbankInfo-span">Adicionar Dados Bancários</span>
                     </button>
                   </div>

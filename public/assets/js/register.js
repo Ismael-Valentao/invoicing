@@ -64,16 +64,19 @@ document.getElementById('btn-save').addEventListener('click', function (e) {
         .then(response => response.json())
         .then(data => {
             if (data.status === "success") {
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Sucesso!',
-                    text: 'Empresa criada com sucesso. Veja o seu email para os detalhes de login.',
-                    showConfirmButton: true,
-                    confirmButtonText: 'Fechar'
-                });
+                launchConfetti()
+                setTimeout(() => {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Sucesso!',
+                        text: 'Empresa criada com sucesso. Veja o seu email para os detalhes de login.',
+                        showConfirmButton: true,
+                        confirmButtonText: 'Fechar'
+                    });
+                }, 2000)
                 setTimeout(() => {
                     window.location.href = '/login';
-                }, 4000);
+                }, 8000);
             } else {
                 Swal.fire({
                     icon: 'error',

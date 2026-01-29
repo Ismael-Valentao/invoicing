@@ -357,6 +357,7 @@ exports.upload = multer({
 });
 
 exports.registCompanyLogo = async (req, res) => {
+    const { logo_name } = req.body;
     const companyId = req.user.company._id;
     const theCompany = await company.findOne({
         _id: companyId
@@ -368,7 +369,7 @@ exports.registCompanyLogo = async (req, res) => {
         });
     }
 
-    theCompany.logoUrl = logoFileName;
+    theCompany.logoUrl = logo_name;
 
     await theCompany.save();
 
@@ -400,3 +401,72 @@ exports.registCompanyLogoProdVersion = async (req, res) => {
         company: theCompany
     })
 }
+
+exports.updateBankDetailsVisibility = async (req, res) => {
+    try {
+        const companyId = req.user.company._id;
+        const { showBankDetails } = req.body;
+        if (!showBankDetails) {
+            return res.status(400).json({
+                message: "Os dados de visibilidade são obrigatórios no body."
+            });
+        }
+        const data = {
+            showBankDetails: {
+                invoices: showBankDetails.invoices,
+                quotations: showBankDetails.quotations,
+                receipts: showBankDetails.receipts,
+                vds: showBankDetails.vds
+            }
+        };
+
+        const updatedCompany = await company.findByIdAndUpdate(
+            { _id: companyId },
+            data,
+            { new: true, runValidators: true }
+        );
+
+        if (!updatedCompany) {
+            return res.status(404).json({
+                message: "Company not found"
+            });
+        }
+        res.status(200).json({
+            status: "success",
+            message: "Visibilidade dos dados bancários actualizada com sucesso",
+            showBankDetails: updatedCompany.showBankDetails
+        });
+    } catch (error) {
+         console.log(error)
+        res.status(500).json({
+            message: "Erro ao actualizar visibilidade dos dados bancários",
+            error
+        });
+    }
+};
+
+// controller
+exports.getBankDetailsVisibility = async (req, res) => {
+    try {
+        const companyId = req.user.company._id;
+
+        const companyData = await company.findById(companyId)
+            .select('showBankDetails');
+
+        if (!companyData) {
+            return res.status(404).json({ message: 'Company not found' });
+        }
+
+        res.status(200).json({
+            status: 'success',
+            showBankDetails: companyData.showBankDetails
+        });
+
+    } catch (error) {
+        console.log(error)
+        res.status(500).json({
+            message: 'Erro ao buscar visibilidade',
+            error
+        });
+    }
+};

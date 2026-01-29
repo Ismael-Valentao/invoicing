@@ -18,6 +18,8 @@ const reciboSchema = new mongoose.Schema({
     tax: { type: Number, required: true },
     totalAmount: { type: Number, required: true },
     dueDate: { type: Date },
+    showNotes: { type: Boolean, default: true },
+    showBankDetails: { type: Boolean, default: true },
     companyId: { type: mongoose.Schema.Types.ObjectId, ref: 'Company' },
     userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
 }, { timestamps: true });

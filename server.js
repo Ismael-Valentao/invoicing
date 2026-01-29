@@ -15,6 +15,7 @@ const companyRoutes = require('./src/routes/companies');
 const clientsRoutes = require('./src/routes/clients');
 const productsRoutes = require('./src/routes/products');
 const reciboRoutes = require('./src/routes/receipt');
+const newsletterRoutes = require('./src/routes/newsletter')
 
 const app = express();
 const PORT = 3000;
@@ -37,6 +38,7 @@ app.use('/api/recibos', reciboRoutes);
 app.use('/api/quotations', quotationRoutes)
 app.use('/api/company', companyRoutes);
 app.use('/api/products', productsRoutes);
+app.use('/api/newsletter', newsletterRoutes)
 app.use('/', pagesRoutes);
 
 

@@ -217,13 +217,10 @@ async function generateInvoicePDF(companyInfo, invoice) {
                 <p>Prazo de pagamento: até 15 dias após a emissão da presente factura.</p>
                 <p>Em caso de dúvidas, contactar o departamento financeiro: ${companyInfo.email
         } | ${companyInfo.contact}</p>
-         ${companyInfo.bankDetails && companyInfo.bankDetails.bank ? `<div>
+         ${companyInfo.showBankDetails.invoices && companyInfo.bankDetails && companyInfo.bankDetails.bank ? `<div>
             <p><strong>Banco:</strong> ${companyInfo.bankDetails.bank} | <strong>Nome da Conta:</strong> ${companyInfo.bankDetails.account_name}</p>
             <p><strong>Nº da Conta:</strong> ${companyInfo.bankDetails.account_number} | <strong>NIB:</strong> ${companyInfo.bankDetails.nib || '-'}</p>
         </div>` :``}
-            </div>
-            <div>
-                <p>Maputo - Moçambique</p>
             </div>
         </div>
     </div>
@@ -449,13 +446,10 @@ async function generateQuotationPDF(companyInfo, quotation) {
                 <p>Em caso de dúvidas, contactar o departamento financeiro: ${companyInfo.email
         } | ${companyInfo.contact}</p>
 
-         ${companyInfo.bankDetails && companyInfo.bankDetails.bank ? `<div>
+         ${companyInfo.showBankDetails.quotations && companyInfo.bankDetails && companyInfo.bankDetails.bank ? `<div>
             <p><strong>Banco:</strong> ${companyInfo.bankDetails.bank} | <strong>Nome da Conta:</strong> ${companyInfo.bankDetails.account_name}</p>
             <p><strong>Nº da Conta:</strong> ${companyInfo.bankDetails.account_number} | <strong>NIB:</strong> ${companyInfo.bankDetails.nib || '-'}</p>
         </div>` :``}
-            </div>
-            <div>
-                <p>Maputo - Moçambique</p>
             </div>
         </div>
     </div>

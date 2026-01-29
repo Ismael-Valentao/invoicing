@@ -6,7 +6,7 @@
 * License: https://bootstrapmade.com/license/
 */
 
-(function() {
+(function () {
   "use strict";
 
   /**
@@ -50,7 +50,7 @@
    * Toggle mobile nav dropdowns
    */
   document.querySelectorAll('.navmenu .toggle-dropdown').forEach(navmenu => {
-    navmenu.addEventListener('click', function(e) {
+    navmenu.addEventListener('click', function (e) {
       e.preventDefault();
       this.parentNode.classList.toggle('active');
       this.parentNode.nextElementSibling.classList.toggle('dropdown-active');
@@ -118,7 +118,7 @@
    * Init swiper sliders
    */
   function initSwiper() {
-    document.querySelectorAll(".init-swiper").forEach(function(swiperElement) {
+    document.querySelectorAll(".init-swiper").forEach(function (swiperElement) {
       let config = JSON.parse(
         swiperElement.querySelector(".swiper-config").innerHTML.trim()
       );
@@ -145,7 +145,7 @@
   /**
    * Correct scrolling position upon page load for URLs containing hash links.
    */
-  window.addEventListener('load', function(e) {
+  window.addEventListener('load', function (e) {
     if (window.location.hash) {
       if (document.querySelector(window.location.hash)) {
         setTimeout(() => {
@@ -183,3 +183,85 @@
   document.addEventListener('scroll', navmenuScrollspy);
 
 })();
+
+document.addEventListener("DOMContentLoaded", () => {
+  document.getElementById('newsletterBtn').addEventListener('click', async () => {
+    const form = document.getElementById('newsletterForm');
+    const emailInput = form.querySelector('input[name="email"]');
+
+    const loading = form.querySelector('.loading');
+    const errorMessage = form.querySelector('.error-message');
+    const sentMessage = form.querySelector('.sent-message');
+
+    loading.style.display = 'block';
+    errorMessage.style.display = 'none';
+    sentMessage.style.display = 'none';
+
+    try {
+      const response = await fetch('/api/newsletter/subscribe', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          email: emailInput.value
+        })
+      });
+
+      const data = await response.json();
+
+      loading.style.display = 'none';
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Erro ao subscrever');
+      }
+
+      sentMessage.style.display = 'block';
+      emailInput.value = '';
+
+      launchConfetti();
+
+    } catch (err) {
+      loading.style.display = 'none';
+      errorMessage.textContent = err.message;
+      errorMessage.style.display = 'block';
+    }
+  });
+
+  const emailInput = document.getElementById('newsletterEmail');
+  const subscribeBtn = document.getElementById('newsletterBtn');
+
+  function isValidEmail(email) {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  }
+
+  emailInput.addEventListener('input', () => {
+    const email = emailInput.value.trim();
+
+    if (email === '') {
+      emailInput.classList.remove('valid', 'invalid');
+      subscribeBtn.disabled = true;
+      return;
+    }
+
+    if (isValidEmail(email)) {
+      emailInput.classList.add('valid');
+      emailInput.classList.remove('invalid');
+      subscribeBtn.disabled = false;
+    } else {
+      emailInput.classList.add('invalid');
+      emailInput.classList.remove('valid');
+      subscribeBtn.disabled = true;
+    }
+  });
+
+  function launchConfetti() {
+    confetti({
+      particleCount: 800,
+      spread: 100,
+      origin: { y: 0.8 },
+      colors: ['#228CDF', '#28a745', '#ffffff', '#ff0000']
+    });
+  }
+})
+
