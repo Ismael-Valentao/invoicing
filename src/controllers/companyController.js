@@ -1,10 +1,12 @@
 const company = require('../models/company');
+const Subscription = require('../models/subscription');
 const User = require('../models/user');
 const bcrypt = require('bcryptjs');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 const mongoose = require('mongoose');
+const { getFreePlanExpiration } = require("../utils/plans")
 require('dotenv').config();
 
 const logoDir = path.join(path.dirname(path.dirname(__dirname)), 'public', 'images', 'logos');
@@ -12,6 +14,7 @@ const logoDir = path.join(path.dirname(path.dirname(__dirname)), 'public', 'imag
 if (!fs.existsSync(logoDir)) {
     fs.mkdirSync(logoDir);
 }
+
 
 exports.createCompany = async (req, res) => {
     const NODE_ENV = process.env.NODE_ENV || 'development';
@@ -68,6 +71,14 @@ exports.createCompany = async (req, res) => {
                 contact: usercontact,
                 password: hashedPassword,
                 companyId: newCompany[0]._id
+            }], { session });
+
+            await Subscription.create([{
+                companyId: newCompany._id,
+                plan: 'FREE',
+                startDate: new Date(),
+                expiresAt: getFreePlanExpiration(),
+                status: 'active'
             }], { session });
 
             await session.commitTransaction();
@@ -149,6 +160,14 @@ exports.createCompany = async (req, res) => {
                 password: hashedPassword,
                 companyId: newCompany._id
             });
+
+            await Subscription.create([{
+                companyId: newCompany._id,
+                plan: 'FREE',
+                startDate: new Date(),
+                expiresAt: getFreePlanExpiration(),
+                status: 'active'
+            }], { session });
 
             // Enviar email fora do fluxo principal
             fetch(process.env.MAIL_API_URL, {
@@ -437,7 +456,7 @@ exports.updateBankDetailsVisibility = async (req, res) => {
             showBankDetails: updatedCompany.showBankDetails
         });
     } catch (error) {
-         console.log(error)
+        console.log(error)
         res.status(500).json({
             message: "Erro ao actualizar visibilidade dos dados bancários",
             error

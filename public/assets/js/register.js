@@ -18,40 +18,83 @@ document.getElementById('btn-prev').addEventListener('click', function () {
 });
 
 function validateForm() {
-    const companyName = document.getElementById('companyName').value;
-    const companyEmail = document.getElementById('companyEmail').value;
-    const companyPhone = document.getElementById('companyPhone').value;
-    const firstName = document.getElementById('firstName').value;
-    const lastName = document.getElementById('lastName').value;
-    const userEmail = document.getElementById('userEmail').value;
-    const userPhone = document.getElementById('userPhone').value;
+    const companyName = document.getElementById('companyName').value.trim();
+    const companyEmail = document.getElementById('companyEmail').value.trim();
+    const companyPhone = document.getElementById('companyPhone').value.trim();
+    const firstName = document.getElementById('firstName').value.trim();
+    const lastName = document.getElementById('lastName').value.trim();
+    const userEmail = document.getElementById('userEmail').value.trim();
+    const userPhone = document.getElementById('userPhone').value.trim();
 
     if (!companyName || !companyEmail || !companyPhone || !lastName || !firstName || !userEmail || !userPhone) {
         Swal.fire({
             icon: 'error',
             title: 'Erro!',
-            text: 'Todos os campos são obrigatórios.',
-            showConfirmButton: true,
-            confirmButtonText: 'Fechar'
+            text: 'Todos os campos são obrigatórios.'
         });
         return false;
     }
+
+    if (!validateRealEmail(companyEmail) || !validateRealEmail(userEmail)) {
+        Swal.fire({
+            icon: 'error',
+            title: 'Email inválido',
+            text: 'Use um email real e válido.'
+        });
+        return false;
+    }
+
+    if (!validateMozPhone(companyPhone) || !validateMozPhone(userPhone)) {
+        Swal.fire({
+            icon: 'error',
+            title: 'Contacto inválido',
+            text: 'Use um número válido de Moçambique (ex: 84xxxxxxx ou +25884xxxxxxx).'
+        });
+        return false;
+    }
+
     return true;
 }
 
-function validateEmail() {
-    const companyEmail = document.getElementById('companyEmail').value;
-    const userEmail = document.getElementById('userEmail').value;
-    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return re.test(String(companyEmail).toLowerCase()) && re.test(String(userEmail).toLowerCase());
+function validateMozPhone(phone) {
+    const clean = phone.replace(/\s+/g, '');
+
+    // +25884xxxxxxx ou 84xxxxxxx
+    const mozRegex = /^(?:\+258)?(82|83|84|85|86|87)\d{7}$/;
+
+    return mozRegex.test(clean);
+}
+
+
+function validateRealEmail(email) {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    const blockedPatterns = [
+        /^teste/i,
+        /^test/i,
+        /^admin/i,
+        /^example/i,
+        /^fake/i
+    ];
+
+    if (!emailRegex.test(email)) return false;
+
+    const localPart = email.split('@')[0];
+
+    if (blockedPatterns.some(rx => rx.test(localPart))) {
+        return false;
+    }
+
+    return true;
 }
 
 
 document.getElementById('btn-save').addEventListener('click', function (e) {
     e.preventDefault();
-    if (!validateForm() || !validatePassword() || !validateEmail()) {
+    if (!validateForm() || !validatePassword()) {
         return;
     }
+
     const form = $('#register-form').serialize();
 
     fetch('/api/company', {

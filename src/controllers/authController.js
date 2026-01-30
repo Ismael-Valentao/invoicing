@@ -30,6 +30,10 @@ exports.login = async (req, res) => {
 
   const user = await User.findOne({email}).populate('companyId');
 
+  if(user.status === "blocked"){
+    return res.status(401).json({success: false, message: "Conta bloqueiada. Por favor, contacte o administrador!!!"})
+  }
+
   if (!user || !bcrypt.compareSync(password, user.password)) {
     return res.status(401).json({success: false, message: 'E-mail ou password inválidos' });
   }
