@@ -46,8 +46,10 @@ exports.createCompany = async (req, res) => {
             const existingCompany = await company.findOne({ name }).session(session);
             if (existingCompany) {
                 await session.abortTransaction();
+                session.endSession();
                 return res.status(400).json({ message: "Company already exists" });
             }
+
 
             const existingUser = await User.findOne({ email: useremail }).session(session);
             if (existingUser) {
@@ -74,12 +76,13 @@ exports.createCompany = async (req, res) => {
             }], { session });
 
             await Subscription.create([{
-                companyId: newCompany._id,
+                companyId: newCompany[0]._id,
                 plan: 'FREE',
                 startDate: new Date(),
                 expiresAt: getFreePlanExpiration(),
                 status: 'active'
             }], { session });
+
 
             await session.commitTransaction();
             session.endSession();
@@ -103,8 +106,11 @@ exports.createCompany = async (req, res) => {
             });
 
         } catch (error) {
-            await session.abortTransaction();
-            session.endSession();
+            if (session) {
+                await session.abortTransaction();
+                session.endSession();
+            }
+
 
             console.error(error);
             return res.status(500).json({
