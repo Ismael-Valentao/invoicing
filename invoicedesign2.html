@@ -1,0 +1,223 @@
+const html = `
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<style>
+  body {
+    margin: 0;
+    background: #eaeaea;
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  }
+
+  .page {
+    width: 794px;
+    height: 1123px;
+    margin: auto;
+    background: #ffffff;
+    position: relative;
+    box-sizing: border-box;
+  }
+
+  /* HEADER */
+  .header {
+    background: #111;
+    color: #fff;
+    padding: 45px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .header img {
+    max-height: 70px;
+  }
+
+  .header .company {
+    text-align: right;
+    font-size: 0.8rem;
+    line-height: 1.6;
+  }
+
+  /* TITLE */
+  .title {
+    text-align: center;
+    margin: 40px 0 10px;
+    font-size: 2rem;
+    letter-spacing: 6px;
+    font-weight: 600;
+  }
+
+  .subtitle {
+    text-align: center;
+    font-size: 0.75rem;
+    color: #777;
+    margin-bottom: 40px;
+  }
+
+  /* INFO BLOCK */
+  .info {
+    padding: 0 45px;
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.85rem;
+  }
+
+  .info div {
+    width: 48%;
+  }
+
+  .info p {
+    margin: 6px 0;
+  }
+
+  /* TABLE */
+  table {
+    width: calc(100% - 90px);
+    margin: 40px auto;
+    border-collapse: collapse;
+    font-size: 0.85rem;
+  }
+
+  thead th {
+    text-transform: uppercase;
+    font-size: 0.7rem;
+    letter-spacing: 1px;
+    padding-bottom: 12px;
+    border-bottom: 2px solid #111;
+    text-align: left;
+  }
+
+  tbody td {
+    padding: 14px 0;
+    border-bottom: 1px solid #eee;
+  }
+
+  .text-right { text-align: right; }
+  .text-center { text-align: center; }
+
+  /* TOTAL */
+  .total-section {
+    padding: 0 45px;
+    display: flex;
+    justify-content: flex-end;
+  }
+
+  .total-box {
+    width: 320px;
+    border-top: 3px solid #111;
+    padding-top: 15px;
+    font-size: 0.9rem;
+  }
+
+  .total-box div {
+    display: flex;
+    justify-content: space-between;
+    margin: 8px 0;
+  }
+
+  .grand {
+    font-size: 1.4rem;
+    font-weight: bold;
+    margin-top: 12px;
+  }
+
+  /* FOOTER */
+  .footer {
+    position: absolute;
+    bottom: 35px;
+    left: 45px;
+    right: 45px;
+    font-size: 0.7rem;
+    color: #666;
+    text-align: center;
+    line-height: 1.6;
+  }
+
+  .bank {
+    margin-top: 10px;
+  }
+</style>
+</head>
+
+<body>
+<div class="page">
+
+  <!-- HEADER -->
+  <div class="header">
+    <img src="${companyInfo.logoUrl ? logoPath + companyInfo.logoUrl : logoPath + 'logo-default.png'}">
+    <div class="company">
+      <strong>${companyInfo.name}</strong><br>
+      ${companyInfo.address}<br>
+      ${companyInfo.contact}<br>
+      ${companyInfo.email}<br>
+      NUIT: ${companyInfo.nuit}
+    </div>
+  </div>
+
+  <!-- TITLE -->
+  <div class="title">COTAÇÃO</div>
+  <div class="subtitle">DOCUMENTO COMERCIAL</div>
+
+  <!-- INFO -->
+  <div class="info">
+    <div>
+      <p><strong>Cliente</strong></p>
+      <p>${quotation.clientName}</p>
+      <p>NUIT: ${quotation.clientNUIT}</p>
+    </div>
+    <div style="text-align:right">
+      <p><strong>Nº Documento</strong></p>
+      <p>${quotation.quotationNumber}</p>
+      <p>${formatedDate(quotation.date)}</p>
+    </div>
+  </div>
+
+  <!-- TABLE -->
+  <table>
+    <thead>
+      <tr>
+        <th>Descrição</th>
+        <th class="text-center">Qtd</th>
+        <th class="text-right">Preço</th>
+        <th class="text-right">Total</th>
+      </tr>
+    </thead>
+    <tbody>
+      ${quotation.items.map(item => `
+      <tr>
+        <td>${item.description}</td>
+        <td class="text-center">${item.quantity}</td>
+        <td class="text-right">${formatCurrency(item.unitPrice)}</td>
+        <td class="text-right">${formatCurrency(item.quantity * item.unitPrice)}</td>
+      </tr>`).join("")}
+    </tbody>
+  </table>
+
+  <!-- TOTAL -->
+  <div class="total-section">
+    <div class="total-box">
+      <div><span>Sub-Total</span><span>${formatCurrency(quotation.subTotal)}</span></div>
+      <div><span>IVA (${quotation.appliedTax * 100}%)</span><span>${formatCurrency(quotation.tax)}</span></div>
+      <div class="grand"><span>Total</span><span>${formatCurrency(quotation.totalAmount, true)}</span></div>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <div class="footer">
+    Este documento constitui uma proposta comercial válida.<br>
+    Contacto: ${companyInfo.email} | ${companyInfo.contact}
+
+    ${companyInfo.showBankDetails?.quotations && companyInfo.bankDetails ? `
+    <div class="bank">
+      Banco: ${companyInfo.bankDetails.bank} |
+      Conta: ${companyInfo.bankDetails.account_name} |
+      Nº: ${companyInfo.bankDetails.account_number} |
+      NIB: ${companyInfo.bankDetails.nib || '-'}
+    </div>` : ``}
+  </div>
+
+</div>
+</body>
+</html>
+`;

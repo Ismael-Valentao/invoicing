@@ -114,7 +114,7 @@ exports.createCompany = async (req, res) => {
 
             console.error(error);
             return res.status(500).json({
-                message: "Error creating company",
+                message: "Erro ao criar conta! Por favor, contacte o suporte técnico...",
                 error
             });
         }
@@ -173,7 +173,7 @@ exports.createCompany = async (req, res) => {
                 startDate: new Date(),
                 expiresAt: getFreePlanExpiration(),
                 status: 'active'
-            }], { session });
+            }]);
 
             // Enviar email fora do fluxo principal
             fetch(process.env.MAIL_API_URL, {

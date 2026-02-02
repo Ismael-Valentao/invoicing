@@ -220,6 +220,7 @@ document.addEventListener("DOMContentLoaded", () => {
       emailInput.value = '';
 
       launchConfetti();
+      localStorage.setItem("newsletter_subscribed", "true");
 
     } catch (err) {
       loading.style.display = 'none';
@@ -264,4 +265,3 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 })
-

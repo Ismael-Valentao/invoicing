@@ -48,6 +48,25 @@
         #conteiner {
             padding-bottom: 5px !important;
         }
+
+        /* Classe para labels de campos obrigatórios */
+        label.required::after {
+            content: " *";
+            /* o asterisco */
+            color: #dc3545;
+            /* vermelho bootstrap */
+            font-weight: bold;
+            margin-left: 2px;
+        }
+
+        /* Nota sobre campos obrigatórios */
+        .required-note {
+            font-size: 0.85rem;
+            color: #6c757d;
+            /* cinza suave */
+            margin-bottom: 1rem;
+            display: block;
+        }
     </style>
 </head>
 
@@ -69,34 +88,38 @@
                                 </div>
                                 <hr>
 
-                                <form id="register-form" class="user" id="register-form">
+                                <form class="user" id="register-form">
+                                    <span class="required-note text-center"><strong>Atenção: </strong> campos com <span
+                                            class="text-danger">*</span> são
+                                        obrigatórios.</span>
+
                                     <div id="companyInfo">
 
                                         <div class="row g-3">
                                             <div class="form-group col-md-7">
-                                                <label for="">Nome da Empresa</label>
+                                                <label for="" class="required">Nome da Empresa</label>
                                                 <input type="text" class="form-control form-control-user"
                                                     id="companyName" placeholder="Company Name" name="name" required>
                                             </div>
                                             <div class="form-group col-md-5">
-                                                <label for="">NUIT</label>
+                                                <label for="" class="required">NUIT</label>
                                                 <input type="text" class="form-control form-control-user"
                                                     id="companyNuit" placeholder="Company NUIT" name="nuit" required>
                                             </div>
-                                            <div class="form-group col-md-12">
-                                                <label for="">Endereço</label>
+                                            <div class="form-group col-md-8">
+                                                <label for="" class="required">Endereço</label>
                                                 <input type="text" class="form-control form-control-user"
                                                     id="exampleCompanyAddress" placeholder="Company Address"
                                                     name="address" required>
                                             </div>
-                                            <div class="form-group col-md-6">
-                                                <label for="">Contacto</label>
+                                            <div class="form-group col-md-4">
+                                                <label for="" class="required">Contacto</label>
                                                 <input type="text" class="form-control form-control-user"
                                                     id="companyPhone" placeholder="Company Phone" name="contact"
                                                     required>
                                             </div>
                                             <div class="form-group col-md-6">
-                                                <label for="">E-mail</label>
+                                                <label for="" class="required">E-mail</label>
                                                 <input type="text" class="form-control form-control-user"
                                                     id="companyEmail" placeholder="Company Email" name="email" required>
                                             </div>
@@ -111,28 +134,28 @@
                                     <div id="userInfo" class="d-none">
                                         <div class="row g-3">
                                             <div class="form-group col-md-6">
-                                                <label for="">Nome</label>
+                                                <label for="" class="required">Nome</label>
                                                 <input type="text" class="form-control form-control-user" id="firstName"
                                                     placeholder="First Name" name="firstName" required>
                                             </div>
                                             <div class="form-group col-md-6">
-                                                <label for="">Sobrenome</label>
+                                                <label for="" class="required">Sobrenome</label>
                                                 <input type="text" class="form-control form-control-user" id="lastName"
                                                     placeholder="Last Name" name="lastName" required>
                                             </div>
                                             <div class="form-group col-md-6">
-                                                <label for="">E-mail</label>
+                                                <label for="" class="required">E-mail</label>
                                                 <input type="email" class="form-control form-control-user"
                                                     id="userEmail" placeholder="Email Address" name="useremail"
                                                     required>
                                             </div>
                                             <div class="form-group col-md-6">
-                                                <label for="">Telefone</label>
+                                                <label for="" class="required">Telefone</label>
                                                 <input type="text" class="form-control form-control-user" id="userPhone"
                                                     placeholder="+258 8X XX XX XXX" name="usercontact" required>
                                             </div>
                                             <div class="form-group col-md-12">
-                                                <label for="">Palavra-passe</label>
+                                                <label for="" class="required">Palavra-passe</label>
 
                                                 <div class="input-group">
                                                     <input type="password" class="form-control form-control-user"
@@ -169,7 +192,7 @@
 
 
                                             <div class="form-group col-md-12">
-                                                <label for="">Repetir palavra-passe</label>
+                                                <label for="" class="required">Repetir palavra-passe</label>
                                                 <input type="password" class="form-control form-control-user"
                                                     id="repeatPassword" placeholder="Repeat Password" name="password2"
                                                     required>
@@ -202,7 +225,8 @@
     <%- include('partials/footer') %>
 
         <!-- Bootstrap core JavaScript-->
-        <script src="assets/vendor/jquery/jquery.min.js"></script>
+        <script src="https://code.jquery.com/jquery-3.7.1.js"
+            integrity="sha256-eKhayi8LEQwp4NKxN+CfCh+3qOVUtJn3QNZ0TciWLP4=" crossorigin="anonymous"></script>
         <script src="assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
 
         <!-- Core plugin JavaScript-->

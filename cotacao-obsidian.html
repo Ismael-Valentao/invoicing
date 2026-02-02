@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<title>Cotação Obsidian Luxe</title>
+
+<style>
+  body {
+    margin: 0;
+    background: #e6e6e6;
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    color: #0f0f0f;
+  }
+
+  .page {
+    width: 794px;
+    height: 1123px;
+    margin: 40px auto;
+    background: #fafafa;
+    position: relative;
+    box-sizing: border-box;
+    padding: 70px 70px 60px 70px;
+  }
+
+  /* ACCENT LINE */
+  .accent {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 10px;
+    background: linear-gradient(180deg, #000, #2b2b2b);
+  }
+
+  /* HEADER */
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 70px;
+  }
+
+  .logo {
+    font-size: 1.4rem;
+    font-weight: 700;
+    letter-spacing: 3px;
+  }
+
+  .company {
+    text-align: right;
+    font-size: 0.75rem;
+    line-height: 1.8;
+    color: #333;
+  }
+
+  /* TITLE */
+  .title {
+    font-size: 2.8rem;
+    font-weight: 800;
+    letter-spacing: 8px;
+    margin-bottom: 6px;
+  }
+
+  .subtitle {
+    font-size: 0.75rem;
+    letter-spacing: 3px;
+    color: #777;
+    margin-bottom: 55px;
+  }
+
+  /* INFO GRID */
+  .info {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 50px;
+    margin-bottom: 60px;
+    font-size: 0.85rem;
+  }
+
+  .info h4 {
+    font-size: 0.7rem;
+    letter-spacing: 2px;
+    color: #777;
+    margin-bottom: 10px;
+  }
+
+  .info p {
+    margin: 6px 0;
+  }
+
+  /* TABLE */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85rem;
+  }
+
+  thead th {
+    text-align: left;
+    font-size: 0.7rem;
+    letter-spacing: 2px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid #111;
+  }
+
+  tbody td {
+    padding: 20px 0;
+    border-bottom: 1px solid #e1e1e1;
+  }
+
+  .text-right { text-align: right; }
+  .text-center { text-align: center; }
+
+  /* TOTAL */
+  .total {
+    margin-top: 65px;
+    display: flex;
+    justify-content: flex-end;
+  }
+
+  .total-box {
+    width: 420px;
+    text-align: right;
+  }
+
+  .total-box p {
+    margin: 8px 0;
+    font-size: 0.9rem;
+  }
+
+  .grand-total {
+    margin-top: 18px;
+    font-size: 2.6rem;
+    font-weight: 800;
+    letter-spacing: 1px;
+  }
+
+  .currency {
+    font-size: 1rem;
+    color: #777;
+  }
+
+  /* FOOTER */
+  .footer {
+    position: absolute;
+    bottom: 50px;
+    left: 70px;
+    right: 70px;
+    font-size: 0.7rem;
+    color: #666;
+    border-top: 1px solid #ddd;
+    padding-top: 20px;
+    line-height: 1.8;
+  }
+
+  .bank {
+    margin-top: 10px;
+  }
+</style>
+</head>
+
+<body>
+
+<div class="page">
+  <div class="accent"></div>
+
+  <!-- HEADER -->
+  <div class="header">
+    <div class="logo">OBSIDIAN</div>
+    <div class="company">
+      <strong>Obsidian Digital Group, Lda</strong><br>
+      Torre Empresarial Maputo, 12º Andar<br>
+      +258 84 555 8899<br>
+      billing@obsidian.co.mz<br>
+      NUIT: 401999888
+    </div>
+  </div>
+
+  <!-- TITLE -->
+  <div class="title">COTAÇÃO</div>
+  <div class="subtitle">PROPOSTA ESTRATÉGICA CONFIDENCIAL</div>
+
+  <!-- INFO -->
+  <div class="info">
+    <div>
+      <h4>CLIENTE</h4>
+      <p><strong>Atlas Holdings, SA</strong></p>
+      <p>NUIT: 500111222</p>
+      <p>Av. Marginal, Maputo</p>
+    </div>
+
+    <div style="text-align:right">
+      <h4>DOCUMENTO</h4>
+      <p>OBS-QT-2026-009</p>
+      <p>31 Janeiro 2026</p>
+      <p>Validade: 15 dias</p>
+    </div>
+  </div>
+
+  <!-- TABLE -->
+  <table>
+    <thead>
+      <tr>
+        <th>Descrição</th>
+        <th class="text-center">Qtd</th>
+        <th class="text-right">Preço</th>
+        <th class="text-right">Total</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Plataforma Corporativa Custom (Web + API)</td>
+        <td class="text-center">1</td>
+        <td class="text-right">320 000,00</td>
+        <td class="text-right">320 000,00</td>
+      </tr>
+      <tr>
+        <td>Aplicação Mobile Executiva (iOS & Android)</td>
+        <td class="text-center">1</td>
+        <td class="text-right">240 000,00</td>
+        <td class="text-right">240 000,00</td>
+      </tr>
+      <tr>
+        <td>Suporte Estratégico & SLA Premium (12 meses)</td>
+        <td class="text-center">1</td>
+        <td class="text-right">140 000,00</td>
+        <td class="text-right">140 000,00</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- TOTAL -->
+  <div class="total">
+    <div class="total-box">
+      <p>Sub-Total: 700 000,00 MT</p>
+      <p>IVA (17%): 119 000,00 MT</p>
+      <div class="grand-total">
+        819 000,00 <span class="currency">MT</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <div class="footer">
+    Esta proposta é confidencial e destinada exclusivamente ao destinatário.<br>
+    Contacto: billing@obsidian.co.mz | +258 84 555 8899
+
+    <div class="bank">
+      Banco: Standard Bank Moçambique<br>
+      Conta: Obsidian Digital Group, Lda<br>
+      Nº: 987654321 | NIB: 0001.0000.9999.8888.7777.6
+    </div>
+  </div>
+
+</div>
+
+</body>
+</html>

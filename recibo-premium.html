@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<title>Recibo Nº 00017</title>
+
+<style>
+    body {
+        background:#f4f6f8;
+        font-family: "Helvetica Neue", Arial, sans-serif;
+        margin:0;
+        padding:40px 0;
+    }
+
+    .page {
+        width: 794px;
+        min-height: 1123px;
+        background: #fff;
+        margin: auto;
+        padding: 50px;
+        box-sizing: border-box;
+        position: relative;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+    }
+
+    .header {
+        display:flex;
+        justify-content:space-between;
+        align-items:flex-start;
+        border-bottom:2px solid #111;
+        padding-bottom:20px;
+        margin-bottom:30px;
+    }
+
+    .logo {
+        font-size:26px;
+        font-weight:bold;
+        letter-spacing:1px;
+    }
+
+    .logo span {
+        color:#1e88e5;
+    }
+
+    .receipt-info {
+        text-align:right;
+        font-size:0.85rem;
+    }
+
+    .receipt-info p {
+        margin:4px 0;
+    }
+
+    .title {
+        text-align:center;
+        font-size:28px;
+        letter-spacing:2px;
+        margin:40px 0 30px;
+        font-weight:bold;
+    }
+
+    .client-section {
+        display:flex;
+        justify-content:space-between;
+        margin-bottom:30px;
+        font-size:0.9rem;
+    }
+
+    .client-section p {
+        margin:6px 0;
+    }
+
+    .badge {
+        display:inline-block;
+        padding:4px 10px;
+        border-radius:4px;
+        font-size:0.75rem;
+        background:#e3f2fd;
+        color:#1565c0;
+        font-weight:bold;
+    }
+
+    table {
+        width:100%;
+        border-collapse:collapse;
+        margin-top:20px;
+        font-size:0.9rem;
+    }
+
+    th {
+        background:#111;
+        color:#fff;
+        padding:10px;
+        text-align:left;
+        font-size:0.8rem;
+        letter-spacing:1px;
+    }
+
+    td {
+        padding:10px;
+        border-bottom:1px solid #e0e0e0;
+    }
+
+    td.center {
+        text-align:center;
+    }
+
+    td.right {
+        text-align:right;
+    }
+
+    .summary {
+        margin-top:30px;
+        width:100%;
+        display:flex;
+        justify-content:flex-end;
+    }
+
+    .summary table {
+        width:300px;
+        font-size:0.9rem;
+    }
+
+    .summary td {
+        padding:8px;
+    }
+
+    .summary tr.total {
+        font-weight:bold;
+        font-size:1.05rem;
+        border-top:2px solid #111;
+    }
+
+    .payment {
+        margin-top:40px;
+        font-size:0.9rem;
+    }
+
+    .payment p {
+        margin:6px 0;
+    }
+
+    .footer {
+        position:absolute;
+        bottom:40px;
+        left:50px;
+        right:50px;
+        text-align:center;
+        font-size:0.8rem;
+        color:#555;
+    }
+
+    .thank-you {
+        margin-top:20px;
+        font-weight:bold;
+        letter-spacing:1px;
+    }
+</style>
+</head>
+
+<body>
+
+<div class="page">
+
+    <!-- HEADER -->
+    <div class="header">
+        <div class="logo">
+            BITI<span>RAY</span>
+        </div>
+
+        <div class="receipt-info">
+            <p><strong>RECIBO Nº:</strong> 00017</p>
+            <p><strong>Data:</strong> 15/11/2025</p>
+            <p class="badge">DOCUMENTO ORIGINAL</p>
+        </div>
+    </div>
+
+    <!-- TITLE -->
+    <div class="title">RECIBO</div>
+
+    <!-- CLIENT INFO -->
+    <div class="client-section">
+        <div>
+            <p><strong>Emitido para:</strong></p>
+            <p>Horácio Guiamba</p>
+            <p>Av. Ferrão de Magalhães, Nº 61</p>
+            <p>Maputo - Moçambique</p>
+            <p><strong>Contacto:</strong> 87 014 7131 / 87 213 7284</p>
+        </div>
+
+        <div>
+            <p><strong>Emitente:</strong></p>
+            <p>Bitiray</p>
+            <p>Maputo - Moçambique</p>
+            <p><strong>Website:</strong> www.bitiray.com</p>
+        </div>
+    </div>
+
+    <!-- TABLE -->
+    <table>
+        <thead>
+            <tr>
+                <th>DESCRIÇÃO DO SERVIÇO</th>
+                <th class="center">QTD</th>
+                <th class="right">PREÇO (MT)</th>
+                <th class="right">TOTAL (MT)</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>Desenvolvimento de Website Portfólio Profissional</td>
+                <td class="center">1</td>
+                <td class="right">10.000,00</td>
+                <td class="right">10.000,00</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <!-- SUMMARY -->
+    <div class="summary">
+        <table>
+            <tr>
+                <td>Sub-Total</td>
+                <td class="right">10.000,00 MT</td>
+            </tr>
+            <tr class="total">
+                <td>Total Pago</td>
+                <td class="right">10.000,00 MT</td>
+            </tr>
+        </table>
+    </div>
+
+    <!-- PAYMENT -->
+    <div class="payment">
+        <p><strong>Forma de Pagamento:</strong> Numerário</p>
+    </div>
+
+    <!-- FOOTER -->
+    <div class="footer">
+        <p>Este recibo serve como comprovativo oficial de pagamento.</p>
+        <p class="thank-you">OBRIGADO PELA PREFERÊNCIA</p>
+    </div>
+
+</div>
+
+</body>
+</html>
