@@ -10,7 +10,8 @@ const {
   getPaidInvoices,
   getTotalAmountByMonth,
   updateInvoiceStatus,
-  downloadInvoicePDF
+  downloadInvoicePDF,
+  downloadInvoicesStatementExcel
 } = require('../controllers/invoiceController');
 
 const {authMiddleware} = require('../middlewares/authMiddleware');
@@ -24,6 +25,9 @@ router.get('/total-invoices', authMiddleware, getTotalInvoices);
 router.get('/total/months', authMiddleware, getTotalAmountByMonth);
 router.get('/:id',authMiddleware, getInvoiceById);
 router.get('/:id/pdf',authMiddleware, downloadInvoicePDF);
+router.get("/export/excel", authMiddleware,
+  downloadInvoicesStatementExcel
+);
 router.patch('/:id',authMiddleware, updateInvoiceStatus);
 
 

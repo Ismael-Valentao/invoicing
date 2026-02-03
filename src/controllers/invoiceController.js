@@ -1,13 +1,15 @@
+const ExcelJS = require("exceljs");
 const Invoice = require("../models/invoice");
 const Recibo = require("../models/recibo");
 const { generateInvoicePDF } = require("../utils/pdfGenerator");
 const { amounts, normalizeItems } = require("../utils/amountCalculator");
+const {normalizeInvoiceStatus} = require("../utils/normalizeStatus")
 
 exports.createInvoice = async (req, res) => {
-  const { subTotal, tax, totalAmount } = amounts(req.body.items, req.body.iva*1*0.01);
+  const { subTotal, tax, totalAmount } = amounts(req.body.items, req.body.iva * 1 * 0.01);
 
   const cleanedItems = normalizeItems(req.body.items);
-  
+
   const userId = req.user._id;
   const companyId = req.user.company._id;
   const invoice = new Invoice({
@@ -18,7 +20,7 @@ exports.createInvoice = async (req, res) => {
     invoiceNumber: req.body.invoiceNumber,
     date: req.body.date,
     items: cleanedItems,
-    appliedTax:req.body.iva*1*0.01,
+    appliedTax: req.body.iva * 1 * 0.01,
     subTotal,
     tax,
     totalAmount,
@@ -147,16 +149,16 @@ exports.updateInvoiceStatus = async (req, res) => {
   await invoice.save();
 
   if (invoice.status === "paid") {
-      const lastReciboNumber = await Recibo.findOne({
-        companyId,
-      }).sort({ createdAt: -1 });
-      let newNumber = "0001";
-      if (lastReciboNumber) {
-        const lastNumber = parseInt(lastReciboNumber.reciboNumber);
-        newNumber = (lastNumber + 1).toString().padStart(4, "0"); // Ensure 6 digits
-      } else {
-        newNumber = "0001"; // Start with 0001 if no previous recibos exist
-      }
+    const lastReciboNumber = await Recibo.findOne({
+      companyId,
+    }).sort({ createdAt: -1 });
+    let newNumber = "0001";
+    if (lastReciboNumber) {
+      const lastNumber = parseInt(lastReciboNumber.reciboNumber);
+      newNumber = (lastNumber + 1).toString().padStart(4, "0"); // Ensure 6 digits
+    } else {
+      newNumber = "0001"; // Start with 0001 if no previous recibos exist
+    }
 
     const recibo = new Recibo({
       docType: "recibo",
@@ -232,6 +234,83 @@ exports.downloadInvoicePDF = async (req, res) => {
     console.error("Erro ao gerar PDF:", err);
     res.status(500).json({
       error: "Erro ao gerar o PDF da fatura",
+    });
+  }
+};
+
+exports.downloadInvoicesStatementExcel = async (req, res) => {
+  try {
+    const companyId = req.user.company._id;
+
+    const invoices = await Invoice.find({ companyId }).sort({ date: -1 });
+
+    if (!invoices || invoices.length === 0) {
+      return res.status(404).json({ error: "Nenhuma fatura encontrada" });
+    }
+
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet("Extrato de Facturas");
+
+    // Cabeçalhos
+    worksheet.columns = [
+      { header: "Nº Factura", key: "invoiceNumber", width: 18 },
+      { header: "Cliente", key: "clientName", width: 30 },
+      { header: "NUIT", key: "clientNUIT", width: 18 },
+      { header: "Data", key: "date", width: 15 },
+      { header: "Vencimento", key: "dueDate", width: 15 },
+      { header: "Subtotal", key: "subTotal", width: 15 },
+      { header: "IVA", key: "tax", width: 15 },
+      { header: "Total", key: "totalAmount", width: 15 },
+      { header: "Estado", key: "status", width: 15 },
+    ];
+
+    // Estilo do cabeçalho
+    worksheet.getRow(1).font = { bold: true };
+
+    // Dados
+    invoices.forEach((invoice) => {
+      worksheet.addRow({
+        invoiceNumber: invoice.invoiceNumber,
+        clientName: invoice.clientName,
+        clientNUIT: invoice.clientNUIT,
+        date: invoice.date ? invoice.date.toISOString().split("T")[0] : "",
+        dueDate: invoice.dueDate
+          ? invoice.dueDate.toISOString().split("T")[0]
+          : "",
+        subTotal: invoice.subTotal,
+        tax: invoice.tax,
+        totalAmount: invoice.totalAmount,
+        status: normalizeInvoiceStatus(invoice.status),
+      });
+    });
+
+    // Totais no fim (opcional mas MUITO bom)
+    const totalRow = worksheet.addRow({
+      clientName: "TOTAL",
+      totalAmount: invoices.reduce(
+        (acc, inv) => acc + inv.totalAmount,
+        0
+      ),
+    });
+
+    totalRow.font = { bold: true };
+
+    // Resposta
+    res.setHeader(
+      "Content-Type",
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    );
+    res.setHeader(
+      "Content-Disposition",
+      "attachment; filename=extrato-facturas.xlsx"
+    );
+
+    await workbook.xlsx.write(res);
+    res.end();
+  } catch (error) {
+    console.error("Erro ao gerar Excel:", error);
+    res.status(500).json({
+      error: "Erro ao gerar extrato de facturas",
     });
   }
 };

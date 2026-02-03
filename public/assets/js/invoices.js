@@ -73,12 +73,12 @@ document.getElementById('btn-save-status').addEventListener('click', function (e
     const data = $("#status-form").serialize();
 
     fetch(`/api/invoices/${invoiceId}`, {
-            method: 'PATCH',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded'
-            },
-            body: data
-        })
+        method: 'PATCH',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body: data
+    })
         .then(response => response.json())
         .then(data => {
             if (data.success) {
@@ -95,3 +95,32 @@ document.getElementById('btn-save-status').addEventListener('click', function (e
             alert('Erro ao actualizar factura. Tente novamente.');
         });
 })
+
+document.getElementById("btn-export").addEventListener("click", async function (e) {
+    e.preventDefault();
+
+    try {
+        const response = await fetch("/api/invoices/export/excel", {
+            method: "GET",
+        });
+
+        if (!response.ok) {
+            throw new Error("Erro ao gerar extrato");
+        }
+
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "extrato-facturas.xlsx";
+        document.body.appendChild(a);
+        a.click();
+
+        a.remove();
+        window.URL.revokeObjectURL(url);
+    } catch (error) {
+        console.error(error);
+        alert("Não foi possível baixar o extrato");
+    }
+});

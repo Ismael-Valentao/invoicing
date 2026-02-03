@@ -62,7 +62,8 @@ exports.createCompany = async (req, res) => {
                 address,
                 contact,
                 email,
-                nuit
+                nuit,
+                showBankDetails: {}
             }], { session });
 
             const hashedPassword = bcrypt.hashSync(userpassword, 10);

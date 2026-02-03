@@ -10,7 +10,7 @@
     <meta name="author" content="">
 
     <title>Invoicing | <%- title %></title>
-<link rel="icon" type="image/png" href="images/invoicing-logo-simple.png"/>
+    <link rel="icon" type="image/png" href="images/invoicing-logo-simple.png" />
     <!-- Custom fonts for this template -->
     <link href="assets/vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
     <link
@@ -64,10 +64,15 @@
                         <div class="container-fluid">
                             <!-- DataTales Example -->
                             <div class="card shadow mb-4">
-                                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                                <div
+                                    class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
                                     <h6 class="m-0 font-weight-bold text-primary">Tabela de Facturas</h6>
-                                    <a href="/new-invoice" class="btn btn-primary btn-sm"><i class="fa-solid fa-plus"></i>
-                                        Nova Factura</a>
+                                    <div class="d-flex flex-row align-items-center" style="column-gap: 10px;">
+                                        <a href="/new-invoice" class="btn btn-primary btn-sm"><i
+                                                class="fa-solid fa-plus"></i>
+                                            Nova Factura</a>
+                                        <button id="btn-export" class="btn btn-secondary btn-sm"><i class="fa fa-file-excel" aria-hidden="true"></i> Exportar</button>
+                                    </div>
                                 </div>
                                 <div class="card-body">
                                     <div class="table-responsive">
