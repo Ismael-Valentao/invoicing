@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+    <meta name="description" content="" />
+    <meta name="author" content="" />
+
+    <title>Invoicing | <%- title %></title>
+
+    <link rel="icon" type="image/png" href="images/invoicing-logo-simple.png" />
+    <!-- Custom fonts for this template -->
+    <link href="assets/vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css" />
+    <link
+        href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i"
+        rel="stylesheet" />
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css"
+        integrity="sha512-Evv84Mr4kqVGRNSgIGL/F/aIDqQb7xQ2vcrdIwxfjThSH8CSR7PBEakCr51Ck+w+/U6swU2Im1vVX0SVk9ABhg=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <!-- Custom styles for this template -->
+    <link href="assets/css/sb-admin-2.min.css" rel="stylesheet" />
+
+    <!-- Custom styles for this page -->
+    <link href="assets/vendor/datatables/dataTables.bootstrap4.min.css" rel="stylesheet" />
+
+    <style>
+        body {
+            font-size: 0.85rem !important;
+        }
+
+        table {
+            font-size: 0.8rem !important;
+        }
+
+        table tr th,
+        table tr td {
+            padding: 0.3rem !important;
+        }
+
+        table tr td {
+            text-align: center !important;
+        }
+
+        .form-check-input {
+            accent-color: #4e73df;
+        }
+
+        /* ===============================
+   Geral da tabela e responsividade
+=================================*/
+        #reportTable {
+            border-collapse: separate !important;
+            border-spacing: 0 !important;
+            width: 100%;
+            font-size: 0.85rem;
+        }
+
+        #reportTable thead {
+            background-color: #4e73df;
+            /* azul escuro */
+            color: white;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+        }
+
+        #reportTable thead th {
+            padding: 0.6rem;
+            text-align: center;
+        }
+
+        #reportTable tbody td {
+            padding: 0.5rem;
+            text-align: center;
+            vertical-align: middle;
+        }
+
+        #reportTable tbody tr:nth-child(even) {
+            background-color: #f8f9fc;
+            /* leve cinza */
+        }
+
+        #reportTable tbody tr:hover {
+            background-color: #d1e7fd;
+            /* highlight hover azul */
+            cursor: pointer;
+        }
+
+        /* Badges de status */
+        .badge-status {
+            padding: 2px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: white;
+            display: inline-block;
+        }
+
+        /* Cores personalizadas */
+        .badge-paid {
+            background-color: #1cc88a;
+        }
+
+        /* verde */
+        .badge-unpaid {
+            background-color: #f6c23e;
+        }
+
+        /* amarelo */
+        .badge-overdue {
+            background-color: #e74a3b;
+        }
+
+        /* vermelho */
+        .badge-pending {
+            background-color: #36b9cc;
+        }
+
+        /* azul claro */
+
+        /* Botões de export melhorados */
+        #btn-export-excel,
+        #btn-export-pdf {
+            min-width: 46%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+        }
+    </style>
+</head>
+
+<body id="page-top">
+    <!-- Page Wrapper -->
+    <div id="wrapper">
+        <%- include('partials/sidebar') %>
+
+            <!-- Content Wrapper -->
+            <div id="content-wrapper" class="d-flex flex-column">
+                <!-- Main Content -->
+                <div id="content">
+                    <%- include('partials/topbar') %>
+
+                        <!-- Begin Page Content -->
+                        <div class="container-fluid">
+                            <div class="card shadow mb-4">
+                                <div class="card-header py-3">
+                                    <h6 class="m-0 font-weight-bold text-primary">
+                                        <i class="fa-solid fa-filter"></i> Filtros
+                                    </h6>
+                                </div>
+
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-3">
+                                            <label>Cliente</label>
+                                            <select id="filter-client" class="form-control form-control-sm">
+                                                <option value="">Todos</option>
+                                            </select>
+                                        </div>
+
+                                        <div class="col-md-2">
+                                            <label>Estado</label>
+                                            <select id="filter-status" class="form-control form-control-sm">
+                                                <option value="all">Todos</option>
+                                                <option value="paid">Pago</option>
+                                                <option value="unpaid">Em dívida</option>
+                                                <option value="overdue">Vencido</option>
+                                                <option value="pending">Pendente</option>
+                                            </select>
+                                        </div>
+
+                                        <div class="col-md-2">
+                                            <label>Data início</label>
+                                            <input type="date" id="filter-start" class="form-control form-control-sm">
+                                        </div>
+
+                                        <div class="col-md-2">
+                                            <label>Data fim</label>
+                                            <input type="date" id="filter-end" class="form-control form-control-sm">
+                                        </div>
+
+                                        <div class="col-md-3 d-flex align-items-end"
+                                            style="justify-content: space-between; gap: 10px;">
+                                            <button id="btn-apply-filters" class="btn btn-primary btn-sm w-100">
+                                                <i class="fa fa-search"></i> Filtrar
+                                            </button>
+                                            <button id="btn-export-excel" class="btn btn-success btn-sm" disabled>
+                                                <i class="fa fa-file-excel"></i> Exportar
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row mb-4" id="summary-cards" style="display:none;">
+                                <div class="col-md-3">
+                                    <div class="card border-left-primary shadow h-100 py-2">
+                                        <div class="card-body">
+                                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                                Facturas
+                                            </div>
+                                            <div class="h5 mb-0 font-weight-bold" id="summary-total-invoices">0</div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                 <div class="col-md-3">
+                                    <div class="card border-left-info shadow h-100 py-2">
+                                        <div class="card-body">
+                                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                                Total Facturado
+                                            </div>
+                                            <div class="h5 mb-0 font-weight-bold" id="summary-total-amount">0 MT</div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-3">
+                                    <div class="card border-left-success shadow h-100 py-2">
+                                        <div class="card-body">
+                                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                                Total Pago
+                                            </div>
+                                            <div class="h5 mb-0 font-weight-bold" id="summary-paid">0 MT</div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-3">
+                                    <div class="card border-left-warning shadow h-100 py-2">
+                                        <div class="card-body">
+                                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                                Em Dívida
+                                            </div>
+                                            <div class="h5 mb-0 font-weight-bold" id="summary-unpaid">0 MT</div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="card shadow mb-4 mt-4" style="width: 98%; padding: 0; margin: auto;">
+                                    <div class="card-header py-3">
+                                        <h6 class="m-0 font-weight-bold text-primary">
+                                            <i class="fa fa-table"></i> Resultados
+                                        </h6>
+                                    </div>
+
+                                    <div class="card-body">
+                                        <div class="table-responsive">
+                                            <table class="table table-bordered w-100" id="reportTable">
+                                                <thead class="bg-secondary text-white">
+                                                    <tr>
+                                                        <th>Nº</th>
+                                                        <th>Cliente</th>
+                                                        <th>Data</th>
+                                                        <th>Subtotal</th>
+                                                        <th>IVA</th>
+                                                        <th>Total</th>
+                                                        <th>Estado</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody></tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                            <!-- /.container-fluid -->
+                        </div>
+                        <!-- End of Main Content -->
+
+                        <%- include('partials/copyright') %>
+                </div>
+                <!-- End of Content Wrapper -->
+            </div>
+            <!-- End of Page Wrapper -->
+
+            <%- include('partials/footer') %>
+
+                <!-- Page level plugins -->
+                <script src="assets/vendor/datatables/jquery.dataTables.min.js"></script>
+                <script src="assets/vendor/datatables/dataTables.bootstrap4.min.js"></script>
+
+                <!-- Page level custom scripts -->
+                <script src="assets/js/demo/datatables-demo.js"></script>
+                <script src="assets/js/functionsClients.js"></script>
+                <script src="assets/js/reports.js"></script>
+</body>
+
+</html>

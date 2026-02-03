@@ -23,6 +23,7 @@ const invoiceSchema = new mongoose.Schema({
     dueDate: { type: Date, },
     companyId: { type: mongoose.Schema.Types.ObjectId, ref: 'Company' },
     userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    clientId: { type: mongoose.Schema.Types.ObjectId, ref: 'Client', default:null },
     status: { type: String, enum: ['paid', 'unpaid', 'overdue'], default: 'unpaid' }
 }, { timestamps: true });
 

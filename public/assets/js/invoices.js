@@ -100,7 +100,7 @@ document.getElementById("btn-export").addEventListener("click", async function (
     e.preventDefault();
 
     try {
-        const response = await fetch("/api/invoices/export/excel", {
+        const response = await fetch("/api/invoices/export/excel/false", {
             method: "GET",
         });
 

@@ -1,9 +1,12 @@
 const ExcelJS = require("exceljs");
+const mongoose = require("mongoose")
 const Invoice = require("../models/invoice");
 const Recibo = require("../models/recibo");
 const { generateInvoicePDF } = require("../utils/pdfGenerator");
 const { amounts, normalizeItems } = require("../utils/amountCalculator");
-const {normalizeInvoiceStatus} = require("../utils/normalizeStatus")
+const { normalizeInvoiceStatus } = require("../utils/normalizeStatus")
+const { buildInvoiceFilter } = require("../utils/invoiceFilter");
+const { generateStatementFileName} = require("../utils/extratoNameGenerator")
 
 exports.createInvoice = async (req, res) => {
   const { subTotal, tax, totalAmount } = amounts(req.body.items, req.body.iva * 1 * 0.01);
@@ -27,6 +30,7 @@ exports.createInvoice = async (req, res) => {
     dueDate: req.body.date,
     companyId,
     userId,
+    clientId:req.body.clientId
   });
 
   const existingInvoice = await Invoice.findOne({
@@ -238,13 +242,29 @@ exports.downloadInvoicePDF = async (req, res) => {
   }
 };
 
+
 exports.downloadInvoicesStatementExcel = async (req, res) => {
   try {
     const companyId = req.user.company._id;
+    const { filter: useFilter } = req.params;
+    const { client, status, startDate, endDate } = req.query;
 
-    const invoices = await Invoice.find({ companyId }).sort({ date: -1 });
+    const query = { companyId };
 
-    if (!invoices || invoices.length === 0) {
+    if (useFilter === "true") {
+      if (client && mongoose.Types.ObjectId.isValid(client)) query.clientId = client;
+      if (status && status !== "all") query.status = status;
+      if (startDate && endDate) {
+        query.date = { $gte: new Date(startDate), $lte: new Date(endDate) };
+      }
+    }
+
+    const invoices = await Invoice.find(query)
+      .populate("clientId", "name nuit")
+      .sort({ date: -1 })
+      .lean();
+
+    if (!invoices.length) {
       return res.status(404).json({ error: "Nenhuma fatura encontrada" });
     }
 
@@ -260,57 +280,146 @@ exports.downloadInvoicesStatementExcel = async (req, res) => {
       { header: "Vencimento", key: "dueDate", width: 15 },
       { header: "Subtotal", key: "subTotal", width: 15 },
       { header: "IVA", key: "tax", width: 15 },
-      { header: "Total", key: "totalAmount", width: 15 },
+      { header: "Total", key: "totalAmount", width: 18 },
       { header: "Estado", key: "status", width: 15 },
     ];
 
     // Estilo do cabeçalho
-    worksheet.getRow(1).font = { bold: true };
+    worksheet.getRow(1).font = { bold: true, color: { argb: "FFFFFFFF" } };
+    worksheet.getRow(1).fill = {
+      type: "pattern",
+      pattern: "solid",
+      fgColor: { argb: "FF4E73DF" }, // azul escuro
+    };
+    worksheet.getRow(1).alignment = { horizontal: "center", vertical: "middle" };
 
-    // Dados
+    // Linha de dados
     invoices.forEach((invoice) => {
-      worksheet.addRow({
+      const row = worksheet.addRow({
         invoiceNumber: invoice.invoiceNumber,
-        clientName: invoice.clientName,
-        clientNUIT: invoice.clientNUIT,
+        clientName: invoice.client?.name || invoice.clientName || "",
+        clientNUIT: invoice.client?.nuit || invoice.clientNUIT || "",
         date: invoice.date ? invoice.date.toISOString().split("T")[0] : "",
-        dueDate: invoice.dueDate
-          ? invoice.dueDate.toISOString().split("T")[0]
-          : "",
+        dueDate: invoice.dueDate ? invoice.dueDate.toISOString().split("T")[0] : "",
         subTotal: invoice.subTotal,
         tax: invoice.tax,
         totalAmount: invoice.totalAmount,
         status: normalizeInvoiceStatus(invoice.status),
       });
+
+      // Alinhamento e bordas para dados
+      row.eachCell((cell) => {
+        cell.alignment = { horizontal: "center", vertical: "middle" };
+        cell.border = {
+          top: { style: "thin" },
+          left: { style: "thin" },
+          bottom: { style: "thin" },
+          right: { style: "thin" },
+        };
+      });
+
+      // Formatação monetária
+      row.getCell("subTotal").numFmt = '#,##0.00 "MT"';
+      row.getCell("tax").numFmt = '#,##0.00 "MT"';
+      row.getCell("totalAmount").numFmt = '#,##0.00 "MT"';
     });
 
-    // Totais no fim (opcional mas MUITO bom)
+    // Total no fim
+    const totalAmount = invoices.reduce((acc, inv) => acc + inv.totalAmount, 0);
     const totalRow = worksheet.addRow({
       clientName: "TOTAL",
-      totalAmount: invoices.reduce(
-        (acc, inv) => acc + inv.totalAmount,
-        0
-      ),
+      totalAmount,
     });
 
     totalRow.font = { bold: true };
+    totalRow.eachCell((cell, colNumber) => {
+      cell.fill = {
+        type: "pattern",
+        pattern: "solid",
+        fgColor: { argb: "FFEAEAEA" }, // cinza claro
+      };
+      cell.alignment = { horizontal: colNumber === 2 ? "left" : "center" };
+      cell.border = {
+        top: { style: "thin" },
+        left: { style: "thin" },
+        bottom: { style: "thin" },
+        right: { style: "thin" },
+      };
+      if (colNumber >= 6 && colNumber <= 8) {
+        cell.numFmt = '#,##0.00 "MT"';
+      }
+    });
 
-    // Resposta
+    const filename = generateStatementFileName(
+      client === "all" || client === "" ? null : client,
+      startDate,
+      endDate
+    );
+
     res.setHeader(
       "Content-Type",
       "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     );
-    res.setHeader(
-      "Content-Disposition",
-      "attachment; filename=extrato-facturas.xlsx"
-    );
+    res.setHeader("Content-Disposition", `attachment; filename=${filename}`);
 
     await workbook.xlsx.write(res);
     res.end();
+
   } catch (error) {
     console.error("Erro ao gerar Excel:", error);
-    res.status(500).json({
-      error: "Erro ao gerar extrato de facturas",
-    });
+    res.status(500).json({ error: "Erro ao gerar extrato de facturas" });
+  }
+};
+
+
+exports.getInvoicesPreview = async (req, res) => {
+  try {
+    const companyId = req.user.company._id;
+    const filter = buildInvoiceFilter(companyId, req.query);
+
+    const invoices = await Invoice.find(filter)
+      .populate("clientId", "name nuit")
+      .sort({ date: -1 })
+      .limit(50) // preview limitado para performance
+      .lean();
+
+    const simplifiedInvoices = invoices.map(inv => ({
+      _id: inv._id,
+      invoiceNumber: inv.invoiceNumber,
+      subTotal:inv.subTotal,
+      tax:inv.tax,
+      clientName: inv.client?.name || inv.clientName,
+      date: inv.date ? inv.date.toISOString().split("T")[0] : "",
+      totalAmount: inv.totalAmount,
+      status: inv.status,
+    }));
+
+    res.json({ invoices: simplifiedInvoices });
+
+  } catch (error) {
+    console.error("Erro no preview de invoices:", error);
+    res.status(500).json({ error: "Erro ao gerar preview de facturas" });
+  }
+};
+
+exports.getInvoicesSummary = async (req, res) => {
+  try {
+    const companyId = req.user.company._id;
+    const filter = buildInvoiceFilter(companyId, req.query);
+
+    const invoices = await Invoice.find(filter).lean();
+
+    const totalInvoices = invoices.length;
+    const totalAmount = invoices.reduce((acc, inv) => acc + inv.totalAmount, 0);
+    const paidAmount = invoices
+      .filter(inv => inv.status === "paid")
+      .reduce((acc, inv) => acc + inv.totalAmount, 0);
+    const unpaidAmount = totalAmount - paidAmount;
+
+    res.json({ totalInvoices, totalAmount, paidAmount, unpaidAmount });
+
+  } catch (error) {
+    console.error("Erro no resumo de invoices:", error);
+    res.status(500).json({ error: "Erro ao gerar resumo de facturas" });
   }
 };

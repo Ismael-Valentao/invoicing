@@ -102,7 +102,7 @@ async function getClients() {
 
             if (data.status === "success" && data.clients.length > 0) {
                 const clients = data.clients;
-                let clientsOptions = clients.map(client => `<option value="${client.nuit}">${client.name}</option>`).join('');
+                let clientsOptions = clients.map(client => `<option data-id="${client._id}" value="${client.nuit}">${client.name}</option>`).join('');
                 $('#client-select').append(clientsOptions);
             }
         })
@@ -137,6 +137,7 @@ $("#client-select").on("change", function (e) {
     $("#companyName").val(companyName);
     $("#clientName").val(companyName);
     $("#clientNUIT").val(companyNUIT);
+    $("#clientId").val(selectedOption.attr("data-id"))
 })
 
 $('.table').on('click', '.btn-open-products-list', function () {
