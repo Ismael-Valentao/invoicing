@@ -10,6 +10,7 @@ const invoiceRoutes = require('./src/routes/invoices');
 const vdRoutes = require('./src/routes/vd');
 const quotationRoutes = require('./src/routes/quotation')
 const authRoutes = require('./src/routes/auth');
+const userRoutes = require('./src/routes/user');
 const pagesRoutes = require('./src/routes/pages');
 const companyRoutes = require('./src/routes/companies');
 const clientsRoutes = require('./src/routes/clients');
@@ -31,6 +32,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use(express.static('./public/'))
 app.use('/api/auth', authRoutes);
+app.use('/api/users', userRoutes)
 app.use('/api/clients', clientsRoutes);
 app.use('/api/invoices', invoiceRoutes);
 app.use('/api/vd', vdRoutes);

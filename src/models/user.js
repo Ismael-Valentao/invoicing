@@ -6,6 +6,17 @@ const userSchema = new mongoose.Schema({
     password: { type: String, required: true },
     contact: { type: String },
     companyId: { type: mongoose.Schema.Types.ObjectId, ref: 'Company' },
+    emailVerified: {
+        type: Boolean,
+        default: false
+    },
+    emailVerificationToken: {
+        type: String
+    },
+    emailVerificationExpires: {
+        type: Date
+    },
+
     status: {
         type: String,
         enum: ['active', 'blocked'],

@@ -49,17 +49,87 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     const COMMON_DOMAINS = ['gmail.com', 'outlook.com', 'hotmail.com', 'yahoo.com'];
-    const BLOCKED_DOMAINS = ['test', 'teste', 'fake', 'example', 'email'];
+    const BLOCKED_DOMAINS = [
+        // genéricos / placeholders
+        'test',
+        'teste',
+        'fake',
+        'example',
+        'email',
+        'mail',
+        'domain',
+        'sample',
+        'demo',
+        'abc',
+        'asdf',
+
+        // dev / qa
+        'localhost',
+        'local',
+        'dev',
+        'qa',
+        'staging',
+
+        // lixo comum
+        'spam',
+        'trash',
+        'tempmail',
+        'temp-mail',
+        '10minutemail',
+        'guerrillamail',
+        'mailinator',
+        'yopmail',
+        'getnada',
+        'disposable',
+
+        // óbvios
+        'noemail',
+        'nomail',
+        'invalid',
+        'null',
+        'undefined',
+        'hack'
+    ];
+
 
     function validateRealEmail(email) {
-        const regex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9-]{2,}\.[a-zA-Z]{2,}$/;
+        const regex = /^[a-zA-Z0-9._%+-]{2,}@[a-zA-Z0-9-]{2,}\.[a-zA-Z]{2,}$/;
         if (!regex.test(email)) return false;
 
-        const domain = email.split('@')[1].toLowerCase();
+        const [local, domain] = email.toLowerCase().split('@');
+
+        // local-part muito suspeito
+        if (local.length < 3) return false;
+        if (/^(test|teste|admin|user|demo|abc)/.test(local)) return false;
+
+        // domínio bloqueado
         if (BLOCKED_DOMAINS.some(d => domain.startsWith(d))) return false;
 
         return true;
     }
+
+    function levenshtein(a, b) {
+        const matrix = Array.from({ length: a.length + 1 }, () =>
+            Array(b.length + 1).fill(0)
+        );
+
+        for (let i = 0; i <= a.length; i++) matrix[i][0] = i;
+        for (let j = 0; j <= b.length; j++) matrix[0][j] = j;
+
+        for (let i = 1; i <= a.length; i++) {
+            for (let j = 1; j <= b.length; j++) {
+                const cost = a[i - 1] === b[j - 1] ? 0 : 1;
+                matrix[i][j] = Math.min(
+                    matrix[i - 1][j] + 1,
+                    matrix[i][j - 1] + 1,
+                    matrix[i - 1][j - 1] + cost
+                );
+            }
+        }
+        return matrix[a.length][b.length];
+    }
+
+
 
 
     function suggestEmailDomain(email) {
@@ -111,9 +181,34 @@ document.addEventListener("DOMContentLoaded", function () {
             if (!value || !fields[id](value)) {
                 borderError(id);
                 valid = false;
+
+                // Sugestão de e-mail apenas para o campo de e-mail
+                if (id === 'companyEmail') {
+                    const suggestion = suggestEmailDomain(value);
+                    if (suggestion) {
+                        Swal.fire({
+                            icon: 'info',
+                            title: 'Quis dizer…?',
+                            html: `
+                    O e-mail <strong>${value}</strong> parece incorreto.<br><br>
+                    Quis dizer:<br>
+                    <strong style="color:#228CDF">${suggestion}</strong> ?
+                `,
+                            showCancelButton: true,
+                            confirmButtonText: 'Usar este',
+                            cancelButtonText: 'Manter assim'
+                        }).then(result => {
+                            if (result.isConfirmed) {
+                                input.value = suggestion;
+                                borderSuccess(id);
+                            }
+                        });
+                    }
+                }
             } else {
                 borderSuccess(id);
             }
+
         }
 
         if (!valid) {
@@ -153,7 +248,7 @@ document.addEventListener("DOMContentLoaded", function () {
         try {
             const form = document.getElementById('register-form');
             const formData = new FormData(form);
-            const params = new URLSearchParams(formData); // transforma em x-www-form-urlencoded
+            const params = new URLSearchParams(formData);
 
             const res = await fetch('/api/company', {
                 method: 'POST',
@@ -166,7 +261,7 @@ document.addEventListener("DOMContentLoaded", function () {
             if (data.status === 'success') {
                 launchConfetti();
                 setTimeout(() => {
-                    showSuccess('Sucesso!', 'Empresa criada com sucesso. Verifique o seu e-mail.');
+                    showSuccess('Sucesso!', 'Estás quase lá! Verifique o seu e-mail.');
                     setTimeout(() => {
                         window.location.href = '/login';
                     }, 5000)

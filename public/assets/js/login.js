@@ -37,6 +37,12 @@ async function login() {
 
         const data = await response.json();
 
+        if (response.status === 403) {
+           showError(data.message || 'E-mail não verificado! Verifique a sua caixa de e-mail');
+            return;
+        }
+
+
         if (response.ok && data.success) {
             window.location.href = '/dashboard';
         } else {

@@ -18,7 +18,7 @@ exports.register = async (req, res) => {
 
   const hashedPassword = bcrypt.hashSync(password, 10);
 
-  const user = new User({...req.body, password: hashedPassword});
+  const user = new User({ ...req.body, password: hashedPassword });
   await user.save();
 
   res.status(201).json({ message: 'Usuário registrado com sucesso' });
@@ -28,17 +28,24 @@ exports.register = async (req, res) => {
 exports.login = async (req, res) => {
   const { email, password } = req.body;
 
-  const user = await User.findOne({email}).populate('companyId');
+  const user = await User.findOne({ email }).populate('companyId');
 
-  if(user.status === "blocked"){
-    return res.status(401).json({success: false, message: "Conta bloqueiada. Por favor, contacte o administrador!!!"})
+  if (user.status === "blocked") {
+    return res.status(401).json({ success: false, message: "Conta bloqueiada. Por favor, contacte o administrador!!!" })
   }
 
   if (!user || !bcrypt.compareSync(password, user.password)) {
-    return res.status(401).json({success: false, message: 'E-mail ou password inválidos' });
+    return res.status(401).json({ success: false, message: 'E-mail ou password inválidos' });
   }
 
-  const token = jwt.sign({ id: user._id, name:user.name, email: user.email, company: user.companyId }, SECRET, { expiresIn: '1h' });
+  if (!user.emailVerified) {
+    return res.status(403).json({
+      message: 'Seu e-mail ainda não foi verificado. Verifique sua caixa de entrada.'
+    });
+  }
+
+
+  const token = jwt.sign({ id: user._id, name: user.name, email: user.email, company: user.companyId }, SECRET, { expiresIn: '1h' });
 
   res.cookie('token', token, {
     httpOnly: true,
@@ -46,7 +53,7 @@ exports.login = async (req, res) => {
     maxAge: 3600000
   });
 
-  res.json({ success: true, message: 'Login bem-sucedido'});
+  res.json({ success: true, message: 'Login bem-sucedido' });
 };
 
 exports.logout = (req, res) => {

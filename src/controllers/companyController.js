@@ -6,6 +6,7 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 const mongoose = require('mongoose');
+const crypto = require('crypto');
 const { getFreePlanExpiration } = require("../utils/plans")
 require('dotenv').config();
 
@@ -19,6 +20,13 @@ if (!fs.existsSync(logoDir)) {
 exports.createCompany = async (req, res) => {
     const NODE_ENV = process.env.NODE_ENV || 'development';
 
+    const verificationToken = crypto.randomBytes(32).toString('hex');
+    const hashedToken = crypto
+        .createHash('sha256')
+        .update(verificationToken)
+        .digest('hex');
+
+    const tokenExpires = Date.now() + 1 * 60 * 60 * 24000; // 1h
     if (NODE_ENV === 'production') {
         const session = await mongoose.startSession();
 
@@ -73,8 +81,12 @@ exports.createCompany = async (req, res) => {
                 email: useremail,
                 contact: usercontact,
                 password: hashedPassword,
-                companyId: newCompany[0]._id
+                companyId: newCompany[0]._id,
+                emailVerified: false,
+                emailVerificationToken: hashedToken,
+                emailVerificationExpires: tokenExpires
             }], { session });
+
 
             await Subscription.create([{
                 companyId: newCompany[0]._id,
@@ -88,14 +100,15 @@ exports.createCompany = async (req, res) => {
             await session.commitTransaction();
             session.endSession();
 
-            // Email fora da transação
-            fetch(process.env.MAIL_API_URL, {
+            const verifyUrl = `${process.env.NODE_ENV.toLowerCase() === "development" ? process.env.APP_URL_LOCAL : process.env.APP_URL}/api/users/verify-email/${verificationToken}`;
+
+            fetch(process.env.MAIL_VERIFICATION_API_URL, {
                 method: "POST",
                 headers: { "Content-Type": "application/x-www-form-urlencoded" },
                 body: new URLSearchParams({
                     user_email: useremail,
                     user_name: `${firstName} ${lastName}`,
-                    user_password: userpassword
+                    verify_url: verifyUrl
                 })
             }).catch(console.error);
 
@@ -165,8 +178,12 @@ exports.createCompany = async (req, res) => {
                 email: useremail,
                 contact: usercontact,
                 password: hashedPassword,
-                companyId: newCompany._id
+                companyId: newCompany._id,
+                emailVerified: false,
+                emailVerificationToken: hashedToken,
+                emailVerificationExpires: tokenExpires
             });
+
 
             await Subscription.create([{
                 companyId: newCompany._id,
@@ -176,14 +193,15 @@ exports.createCompany = async (req, res) => {
                 status: 'active'
             }]);
 
-            // Enviar email fora do fluxo principal
-            fetch(process.env.MAIL_API_URL, {
+            const verifyUrl = `${process.env.NODE_ENV.toLowerCase() === "development" ? process.env.APP_URL_LOCAL : process.env.APP_URL}/api/users/verify-email/${verificationToken}`;
+
+            fetch(process.env.MAIL_VERIFICATION_API_URL, {
                 method: "POST",
                 headers: { "Content-Type": "application/x-www-form-urlencoded" },
                 body: new URLSearchParams({
                     user_email: useremail,
                     user_name: `${firstName} ${lastName}`,
-                    user_password: userpassword
+                    verify_url: verifyUrl
                 })
             }).catch(console.error);
 
