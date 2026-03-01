@@ -22,5 +22,19 @@ const loginValidation = (req, res, next) => {
     }
     next();
 }
+const ensureHasActiveModule = (req, res, next) => {
+  const modules = req.user?.company?.modules;
+  console.log("Actual modules: "+modules)
 
-module.exports = { registerValidation, loginValidation };
+  const hasSales = !!modules?.sales;
+  const hasInvoicing = !!modules?.invoicing;
+
+  if (!hasSales && !hasInvoicing) {
+    return res.redirect("/setup-modules");
+  }
+
+  return next();
+};
+
+
+module.exports = { registerValidation, loginValidation, ensureHasActiveModule };

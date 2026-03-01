@@ -25,6 +25,7 @@
 
   <!-- Custom styles for this page -->
   <link href="assets/vendor/datatables/dataTables.bootstrap4.min.css" rel="stylesheet" />
+  <link href="assets/css/custom.css" rel="stylesheet" />
 
   <style>
     body {
@@ -60,127 +61,162 @@
         <!-- Main Content -->
         <div id="content">
           <%- include('partials/topbar') %>
+            <div class="page-content">
+              <!-- Begin Page Content -->
+              <div class="container-fluid">
 
-            <!-- Begin Page Content -->
-            <div class="container-fluid">
-              <div class="card">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                  <h6 class="m-0 font-weight-bold text-primary">
-                    <i class="fa-solid fa-gear"></i> Dados da Empresa
-                  </h6>
-                  <button class="btn btn-primary btn-sm" id="btn-edit-compnay-info" type="button" data-toggle="modal"
-                    data-target="#companyModal">
-                    <i class="fas fa-pen-to-square fa-sm"></i> Editar
-                  </button>
+                <div class="card mb-3 shadow-sm">
+                  <div class="card-header d-flex justify-content-between align-items-center">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                      <i class="fa-solid fa-cubes"></i> Módulo da Conta
+                    </h6>
+
+                    <button class="btn btn-outline-primary btn-sm" id="btn-change-module" type="button"
+                      data-toggle="modal" data-target="#moduleModal">
+                      <i class="fa-solid fa-arrows-rotate"></i> Mudar módulo
+                    </button>
+                  </div>
+
+                  <div class="card-body">
+                    <div class="d-flex align-items-center justify-content-between flex-wrap" style="gap:12px;">
+                      <div>
+                        <div class="text-muted">Módulo ativo</div>
+                        <div class="h6 mb-0" id="active-module-label">—</div>
+                        <small class="text-muted" id="active-module-hint"></small>
+                      </div>
+
+                      <div class="text-right">
+                        <span class="badge badge-success" id="active-module-badge">Ativo</span>
+                      </div>
+                    </div>
+
+                    <hr />
+
+                    <small class="text-muted">
+                      Para já, só é permitido <strong>1 módulo ativo</strong>. Para mudar, escolha o novo módulo e
+                      confirme.
+                    </small>
+                  </div>
                 </div>
-                <div class="card-body">
-                  <div class="row g-3">
-                    <div class="form-group col-md-4">
-                      <label for="">Nome da Empresa</label>
-                      <input type="text" class="form-control form-control-sm" id="companyName" name="companyName"
-                        required readonly />
-                    </div>
-                    <div class="form-group col-md-4">
-                      <label>NUIT</label>
-                      <input type="text" class="form-control form-control-sm" id="companyNUIT" name="companyNUIT"
-                        required readonly />
-                    </div>
-                    <div class="form-group col-md-4">
-                      <label>Contacto</label>
-                      <input type="text" class="form-control form-control-sm" id="companyContact" name="companyContact"
-                        required readonly />
-                    </div>
-                    <div class="form-group col-md-4">
-                      <label>E-mail</label>
-                      <input type="text" class="form-control form-control-sm" id="companyEmail" name="companyEmail"
-                        required readonly />
-                    </div>
-                    <div class="form-group col-md-4">
-                      <label>Endereço</label>
-                      <input type="text" class="form-control form-control-sm" id="companyAddress" name="companyAddress"
-                        required readonly />
-                    </div>
-                    <p class="col-md-12 text-primary"><strong>Dados Bancários</strong></p>
-                    <div class="form-group col-md-4">
+                <div class="card">
+                  <div class="card-header d-flex justify-content-between align-items-center">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                      <i class="fa-solid fa-gear"></i> Dados da Empresa
+                    </h6>
+                    <button class="btn btn-primary btn-sm" id="btn-edit-compnay-info" type="button" data-toggle="modal"
+                      data-target="#companyModal">
+                      <i class="fas fa-pen-to-square fa-sm"></i> Editar
+                    </button>
+                  </div>
+                  <div class="card-body">
+                    <div class="row g-3">
+                      <div class="form-group col-md-4">
+                        <label for="">Nome da Empresa</label>
+                        <input type="text" class="form-control form-control-sm" id="companyName" name="companyName"
+                          required readonly />
+                      </div>
+                      <div class="form-group col-md-4">
+                        <label>NUIT</label>
+                        <input type="text" class="form-control form-control-sm" id="companyNUIT" name="companyNUIT"
+                          required readonly />
+                      </div>
+                      <div class="form-group col-md-4">
+                        <label>Contacto</label>
+                        <input type="text" class="form-control form-control-sm" id="companyContact"
+                          name="companyContact" required readonly />
+                      </div>
+                      <div class="form-group col-md-4">
+                        <label>E-mail</label>
+                        <input type="text" class="form-control form-control-sm" id="companyEmail" name="companyEmail"
+                          required readonly />
+                      </div>
+                      <div class="form-group col-md-4">
+                        <label>Endereço</label>
+                        <input type="text" class="form-control form-control-sm" id="companyAddress"
+                          name="companyAddress" required readonly />
+                      </div>
+                      <p class="col-md-12 text-primary"><strong>Dados Bancários</strong></p>
+                      <div class="form-group col-md-4">
 
-                      <label for="">Banco</label>
-                      <input type="text" class="form-control form-control-sm" id="bank_name" readonly />
+                        <label for="">Banco</label>
+                        <input type="text" class="form-control form-control-sm" id="bank_name" readonly />
 
-                    </div>
-                    <div class="form-group col-md-4">
-                      <label>Nome do proprietário</label>
-                      <input type="text" class="form-control form-control-sm" id="bank_user_name" name="bank_user_name"
-                        required readonly />
-                    </div>
-                    <div class="form-group col-md-4">
-                      <label>Num da Conta</label>
-                      <input type="text" class="form-control form-control-sm" id="bank_num_account"
-                        name="bank_num_account" required readonly />
-                    </div>
-                    <div class="form-group col-md-4">
-                      <label>NIB</label>
-                      <input type="text" class="form-control form-control-sm" id="bank_nib" name="bank_nib" required
-                        readonly />
-                    </div>
-                    <div class="form-group col-md-4">
-                      <label>NUIB</label>
-                      <input type="text" class="form-control form-control-sm" id="bank_nuib" name="bank_nuib" required
-                        readonly />
-                    </div>
-                    <p class="col-md-12 text-primary"><strong>Mostrar Dados Bancários em: </strong></p>
-                    <div class="form-group col-md-12 d-flex" style="align-items: center; gap:15px;">
+                      </div>
+                      <div class="form-group col-md-4">
+                        <label>Nome do proprietário</label>
+                        <input type="text" class="form-control form-control-sm" id="bank_user_name"
+                          name="bank_user_name" required readonly />
+                      </div>
+                      <div class="form-group col-md-4">
+                        <label>Num da Conta</label>
+                        <input type="text" class="form-control form-control-sm" id="bank_num_account"
+                          name="bank_num_account" required readonly />
+                      </div>
+                      <div class="form-group col-md-4">
+                        <label>NIB</label>
+                        <input type="text" class="form-control form-control-sm" id="bank_nib" name="bank_nib" required
+                          readonly />
+                      </div>
+                      <div class="form-group col-md-4">
+                        <label>NUIB</label>
+                        <input type="text" class="form-control form-control-sm" id="bank_nuib" name="bank_nuib" required
+                          readonly />
+                      </div>
+                      <p class="col-md-12 text-primary"><strong>Mostrar Dados Bancários em: </strong></p>
+                      <div class="form-group col-md-12 d-flex" style="align-items: center; gap:15px;">
 
-                      <div class="form-check">
-                        <input class="form-check-input bank-toggle" type="checkbox" data-field="invoices"
-                          id="showInvoices">
-                        <label class="form-check-label" for="showInvoices">
-                          Facturas
-                        </label>
+                        <div class="form-check">
+                          <input class="form-check-input bank-toggle" type="checkbox" data-field="invoices"
+                            id="showInvoices">
+                          <label class="form-check-label" for="showInvoices">
+                            Facturas
+                          </label>
+                        </div>
+
+                        <div class="form-check">
+                          <input class="form-check-input bank-toggle" type="checkbox" data-field="quotations"
+                            id="showQuotations" checked>
+                          <label class="form-check-label" for="showQuotations">
+                            Cotações
+                          </label>
+                        </div>
+
+                        <div class="form-check">
+                          <input class="form-check-input bank-toggle" type="checkbox" data-field="vds" id="showVds">
+                          <label class="form-check-label" for="showVds">
+                            Factura-Recibo (VD)
+                          </label>
+                        </div>
+
                       </div>
 
-                      <div class="form-check">
-                        <input class="form-check-input bank-toggle" type="checkbox" data-field="quotations"
-                          id="showQuotations" checked>
-                        <label class="form-check-label" for="showQuotations">
-                          Cotações
-                        </label>
+                      <div class="form-group col-md-6 d-none">
+                        <label for="">Adicionar Logotipo</label>
+                        <input type="file" name="logo" id="input-logo" accept="image/png" />
                       </div>
-
-                      <div class="form-check">
-                        <input class="form-check-input bank-toggle" type="checkbox" data-field="vds" id="showVds">
-                        <label class="form-check-label" for="showVds">
-                          Factura-Recibo (VD)
-                        </label>
-                      </div>
-
-                    </div>
-
-                    <div class="form-group col-md-6 d-none">
-                      <label for="">Adicionar Logotipo</label>
-                      <input type="file" name="logo" id="input-logo" accept="image/png" />
-                    </div>
-                    <div class="form-group col-md-6">
-                      <div class="card text-center" style="max-width: 300px;">
-                        <div class="card-body" style="justify-content: center;">
-                          <img src="" class="text-center" id="company_logo_preview" alt="" width="190px" />
+                      <div class="form-group col-md-6">
+                        <div class="card text-center" style="max-width: 300px;">
+                          <div class="card-body" style="justify-content: center;">
+                            <img src="" class="text-center" id="company_logo_preview" alt="" width="190px" />
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </div>
-                  <div class="card-footer d-flex justify-content-end" style="gap:10px">
-                    <button type="button" class="btn btn-outline-primary btn-sm" id="btn-add-logo">
-                      <i class="fa-solid fa-image"></i> Adicionar Logotipo
-                    </button>
-                    <button type="button" class="btn btn-primary btn-sm" id="btn-open-modalbankInfo" data-toggle="modal"
-                      data-target="#bank_account_modal">
-                      <i class="fa-solid fa-building-columns"></i>
-                      <span id="btn-open-modalbankInfo-span">Adicionar Dados Bancários</span>
-                    </button>
-                  </div>
+                    <div class="card-footer d-flex justify-content-end" style="gap:10px">
+                      <button type="button" class="btn btn-outline-primary btn-sm" id="btn-add-logo">
+                        <i class="fa-solid fa-image"></i> Adicionar Logotipo
+                      </button>
+                      <button type="button" class="btn btn-primary btn-sm" id="btn-open-modalbankInfo"
+                        data-toggle="modal" data-target="#bank_account_modal">
+                        <i class="fa-solid fa-building-columns"></i>
+                        <span id="btn-open-modalbankInfo-span">Adicionar Dados Bancários</span>
+                      </button>
+                    </div>
 
+                  </div>
                 </div>
+                <!-- /.container-fluid -->
               </div>
-              <!-- /.container-fluid -->
             </div>
             <!-- End of Main Content -->
 
@@ -194,6 +230,53 @@
       <a class="scroll-to-top rounded" href="#page-top">
         <i class="fas fa-angle-up"></i>
       </a>
+
+      <div class="modal fade" id="moduleModal" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+          <div class="modal-content">
+
+            <div class="modal-header">
+              <h6 class="modal-title">
+                <strong><i class="fa-solid fa-cubes mr-2"></i>Mudar módulo</strong>
+              </h6>
+              <button class="close" type="button" data-dismiss="modal"><span>×</span></button>
+            </div>
+
+            <div class="modal-body">
+              <div class="alert alert-light border mb-3">
+                <small class="text-muted">
+                  Módulo atual: <strong id="current-module-text">—</strong>
+                </small>
+              </div>
+
+              <div class="custom-control custom-radio mb-2">
+                <input type="radio" id="modSalesRadio" name="moduleRadio" class="custom-control-input" value="sales" />
+                <label class="custom-control-label" for="modSalesRadio">
+                  <strong>Vendas</strong>
+                  <div><small class="text-muted">Recibos tipo supermercado + caixa + stock ligado.</small></div>
+                </label>
+              </div>
+
+              <div class="custom-control custom-radio">
+                <input type="radio" id="modInvoicingRadio" name="moduleRadio" class="custom-control-input"
+                  value="invoicing" />
+                <label class="custom-control-label" for="modInvoicingRadio">
+                  <strong>Facturação</strong>
+                  <div><small class="text-muted">Facturas, VD, cotações, recibos e relatórios.</small></div>
+                </label>
+              </div>
+            </div>
+
+            <div class="modal-footer">
+              <button class="btn btn-secondary btn-sm" type="button" data-dismiss="modal">Cancelar</button>
+              <button class="btn btn-primary btn-sm" type="button" id="btn-save-module">
+                <i class="fa-solid fa-check mr-1"></i> Confirmar
+              </button>
+            </div>
+
+          </div>
+        </div>
+      </div>
 
       <!-- Confirmation Modal-->
       <div class="modal fade" id="previewModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"

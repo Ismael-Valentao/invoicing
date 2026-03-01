@@ -420,4 +420,79 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   });
 
+  async function loadActiveModuleUI() {
+    const res = await fetch("/api/company/company"); // ou o endpoint que já tens para pegar a empresa
+    const data = await res.json();
+    console.log(data)
+
+    const modules = data?.company?.modules || {};
+    console.log(modules)
+    const active =
+      modules.sales ? "sales" :
+        modules.invoicing ? "invoicing" :
+          null;
+
+    const labelEl = document.getElementById("active-module-label");
+    const hintEl = document.getElementById("active-module-hint");
+    const badgeEl = document.getElementById("active-module-badge");
+    const currentText = document.getElementById("current-module-text");
+
+    if (!active) {
+      labelEl.textContent = "Nenhum";
+      hintEl.textContent = "Selecione um módulo para começar a usar o sistema.";
+      badgeEl.className = "badge badge-warning";
+      badgeEl.textContent = "Sem módulo";
+      currentText.textContent = "Nenhum";
+      return;
+    }
+
+    if (active === "sales") {
+      labelEl.textContent = "Vendas";
+      hintEl.textContent = "Recibos + stock ligado ao caixa.";
+      currentText.textContent = "Vendas";
+    } else {
+      labelEl.textContent = "Facturação";
+      hintEl.textContent = "Facturas, VD, cotações e recibos.";
+      currentText.textContent = "Facturação";
+    }
+
+    badgeEl.className = "badge badge-success";
+    badgeEl.textContent = "Ativo";
+
+    // preseleciona no modal
+    document.getElementById("modSalesRadio").checked = active === "sales";
+    document.getElementById("modInvoicingRadio").checked = active === "invoicing";
+  }
+
+  document.getElementById("btn-save-module")?.addEventListener("click", async () => {
+    const selected = document.querySelector('input[name="moduleRadio"]:checked')?.value;
+
+    if (!selected) {
+      return Swal.fire({ icon: "warning", title: "Selecione um módulo", text: "Escolha Vendas ou Facturação." });
+    }
+
+    // Aqui, no futuro, podes trocar para abrir PayPal antes de salvar.
+    // Por agora: muda diretamente
+    const resp = await fetch("/api/company/modules", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ sales: selected === "sales", invoicing: selected === "invoicing" })
+    });
+
+    const json = await resp.json().catch(() => ({}));
+    if (!resp.ok || json.status !== "success") {
+      return Swal.fire({ icon: "error", title: "Erro", text: json.message || "Não foi possível atualizar." });
+    }
+
+    $("#moduleModal").modal("hide");
+    Swal.fire({ icon: "success", title: "Pronto!", text: "Módulo atualizado com sucesso.", timer: 1200, showConfirmButton: false });
+
+    await loadActiveModuleUI();
+
+    // ✅ opcional: recarregar para sidebar refletir já (se sidebar usa dados do server-side render)
+    // location.reload();
+  });
+
+    loadActiveModuleUI().catch(console.error);
+
 });

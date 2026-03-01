@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+  <title>Invoicing | <%- title %></title>
+  <link rel="icon" type="image/png" href="images/invoicing-logo-simple.png" />
+
+  <link href="assets/vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
+  <link
+    href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i"
+    rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css"
+    crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+  <link href="assets/css/sb-admin-2.min.css" rel="stylesheet">
+  <link href="assets/vendor/datatables/dataTables.bootstrap4.min.css" rel="stylesheet">
+  <link href="assets/css/custom.css" rel="stylesheet" />
+
+  <style>
+    body {
+      font-size: 0.85rem !important;
+    }
+
+    table {
+      font-size: 0.8rem !important;
+    }
+
+    table tr th,
+    table tr td {
+      padding: 0.35rem !important;
+      vertical-align: middle !important;
+    }
+  </style>
+</head>
+
+<body id="page-top">
+  <div id="wrapper">
+    <%- include('partials/sidebar') %>
+
+      <div id="content-wrapper" class="d-flex flex-column">
+        <div id="content">
+          <%- include('partials/topbar') %>
+            <div class="page-content">
+              <div class="container-fluid">
+
+                <div class="d-sm-flex align-items-center justify-content-between mb-3">
+                  <h5 class="mb-0 text-gray-800">Movimentos de Stock</h5>
+                </div>
+
+                <!-- Filtros -->
+                <div class="card shadow mb-3">
+                  <div class="card-body">
+                    <div class="row">
+                      <div class="form-group col-md-5">
+                        <label>Produto</label>
+                        <select class="form-control form-control-sm" id="filterProduct">
+                          <option value="">Todos</option>
+                        </select>
+                      </div>
+
+                      <div class="form-group col-md-3">
+                        <label>Tipo</label>
+                        <select class="form-control form-control-sm" id="filterType">
+                          <option value="">Todos</option>
+                          <option value="IN">Entrada</option>
+                          <option value="OUT">Saída</option>
+                          <option value="ADJUST">Ajuste</option>
+                        </select>
+                      </div>
+
+                      <div class="form-group col-md-2">
+                        <label>De</label>
+                        <input type="date" class="form-control form-control-sm" id="filterStartDate">
+                      </div>
+
+                      <div class="form-group col-md-2">
+                        <label>Até</label>
+                        <input type="date" class="form-control form-control-sm" id="filterEndDate">
+                      </div>
+
+                      <div class="form-group col-md-12 d-flex justify-content-end" style="gap:10px;">
+                        <button class="btn btn-secondary btn-sm" id="btnClearFilters" type="button">
+                          Limpar
+                        </button>
+                        <button class="btn btn-primary btn-sm" id="btnApplyFilters" type="button">
+                          Filtrar
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Tabela -->
+                <div class="card shadow mb-4">
+                  <div class="card-body">
+                    <div class="table-responsive">
+                      <table class="table table-bordered" id="stockMovementsTable" width="100%" cellspacing="0">
+                        <thead>
+                          <tr class="bg-secondary text-white">
+                            <th>Data</th>
+                            <th>Produto</th>
+                            <th class="text-center">SKU</th>
+                            <th class="text-center">Tipo</th>
+                            <th class="text-center">Qtd.</th>
+                            <th>Motivo</th>
+                            <th>Nota</th>
+                          </tr>
+                        </thead>
+                        <tbody></tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+        </div>
+
+        <%- include('partials/copyright') %>
+      </div>
+  </div>
+
+  <a class="scroll-to-top rounded" href="#page-top">
+    <i class="fas fa-angle-up"></i>
+  </a>
+
+  <%- include('partials/footer') %>
+
+    <script src="assets/vendor/datatables/jquery.dataTables.min.js"></script>
+    <script src="assets/vendor/datatables/dataTables.bootstrap4.min.js"></script>
+
+    <script src="assets/js/stock-movements.js"></script>
+</body>
+
+</html>

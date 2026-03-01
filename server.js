@@ -17,6 +17,8 @@ const clientsRoutes = require('./src/routes/clients');
 const productsRoutes = require('./src/routes/products');
 const reciboRoutes = require('./src/routes/receipt');
 const newsletterRoutes = require('./src/routes/newsletter')
+const saleRoutes = require('./src/routes/sale');
+const stockMovementRoutes = require('./src/routes/movements');
 
 const app = express();
 const PORT = 3000;
@@ -41,7 +43,16 @@ app.use('/api/quotations', quotationRoutes)
 app.use('/api/company', companyRoutes);
 app.use('/api/products', productsRoutes);
 app.use('/api/newsletter', newsletterRoutes)
+app.use('/api/sales', saleRoutes);
+app.use('/api/stock-movements', stockMovementRoutes);
 app.use('/', pagesRoutes);
+app.use((req, res) => {
+  return res.status(404).render("404", {
+    title: "404",
+    user: req.user || null,
+    requestedUrl: req.originalUrl
+  });
+});
 
 
 mongoose.connect(mongodbURI)

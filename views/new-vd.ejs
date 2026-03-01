@@ -6,7 +6,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <title>Criar VD</title>
-    <link rel="icon" type="image/png" href="images/invoicing-logo-simple.png"/>
+    <link rel="icon" type="image/png" href="images/invoicing-logo-simple.png" />
     <link href="assets/vendor/fontawesome-free/css/all.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css"
         integrity="sha512-Evv84Mr4kqVGRNSgIGL/F/aIDqQb7xQ2vcrdIwxfjThSH8CSR7PBEakCr51Ck+w+/U6swU2Im1vVX0SVk9ABhg=="
@@ -22,107 +22,103 @@
             <div id="content-wrapper" class="d-flex flex-column">
                 <div id="content">
                     <%- include('partials/topbar') %>
+                        <div class="page-content">
+                            <div class="container-fluid">
+                                <form id="invoice-form">
+                                    <div class="card shadow">
+                                        <div class="card-body">
+                                            <div class="row g-3">
+                                                <div class="form-group col-md-4">
+                                                    <label for="">Selecionar Cliente</label>
+                                                    <select name="" id="client-select"
+                                                        class="form-control form-control-sm">
+                                                        <option value="">Selecionar Cliente</option>
+                                                    </select>
+                                                </div>
+                                                <div class="form-group col-md-4">
+                                                    <label>Nome da Empresa</label>
+                                                    <input type="text" class="form-control form-control-sm"
+                                                        id="companyName" name="companyName" required>
+                                                </div>
+                                                <div class="form-group col-md-4">
+                                                    <label>Nome do Cliente</label>
+                                                    <input type="text" class="form-control form-control-sm"
+                                                        id="clientName" name="clientName" required>
+                                                </div>
+                                                <div class="form-group col-md-4">
+                                                    <label>NUIT</label>
+                                                    <input type="text" class="form-control form-control-sm"
+                                                        id="clientNUIT" name="clientNUIT">
+                                                </div>
+                                                <div class="form-group col-md-2">
+                                                    <label>VD Nº:</label>
+                                                    <input type="text" class="form-control form-control-sm"
+                                                        name="invoiceNumber" id="invoiceNumber" readonly required>
+                                                </div>
+                                                <div class="form-group col-md-2">
+                                                    <label>Data</label>
+                                                    <input type="date" class="form-control form-control-sm" name="date"
+                                                        required>
+                                                </div>
+                                                <div class="form-group d-flex col-md-4"
+                                                    style="justify-content: space-evenly; align-items: center">
+                                                    <div>
+                                                        <input type="radio" value="16" class="btn-check" name="iva"
+                                                            id="option5" autocomplete="off" checked />
+                                                        <label class="btn" for="option5">IVA 16%</label>
+                                                    </div>
+                                                    <div>
+                                                        <input type="radio" class="btn-check" value="0" name="iva"
+                                                            id="option6" autocomplete="off" />
+                                                        <label class="btn" for="option6">IVA 0%</label>
+                                                    </div>
+                                                </div>
+                                            </div>
 
-            <div class="container-fluid">
-                <form id="invoice-form">
-                    <div class="card shadow">
-                        <div class="card-body">
-                            <div class="row g-3">
-                                <div class="form-group col-md-4">
-                                    <label for="">Selecionar Cliente</label>
-                                    <select name="" id="client-select" class="form-control form-control-sm">
-                                        <option value="">Selecionar Cliente</option>
-                                    </select>
-                                </div>
-                                <div class="form-group col-md-4">
-                                    <label>Nome da Empresa</label>
-                                    <input type="text" class="form-control form-control-sm" id="companyName"
-                                        name="companyName" required>
-                                </div>
-                                <div class="form-group col-md-4">
-                                    <label>Nome do Cliente</label>
-                                    <input type="text" class="form-control form-control-sm" id="clientName"
-                                        name="clientName" required>
-                                </div>
-                                <div class="form-group col-md-4">
-                                    <label>NUIT</label>
-                                    <input type="text" class="form-control form-control-sm" id="clientNUIT"
-                                        name="clientNUIT">
-                                </div>
-                                <div class="form-group col-md-2">
-                                    <label>VD Nº:</label>
-                                    <input type="text" class="form-control form-control-sm"
-                                        name="invoiceNumber" id="invoiceNumber" readonly required>
-                                </div>
-                                <div class="form-group col-md-2">
-                                    <label>Data</label>
-                                    <input type="date" class="form-control form-control-sm" name="date" required>
-                                </div>
-                                <div
-                      class="form-group d-flex col-md-4"
-                      style="justify-content: space-evenly; align-items: center"
-                    >
-                      <div>
-                        <input
-                          type="radio"
-                          value="16"
-                          class="btn-check"
-                          name="iva"
-                          id="option5"
-                          autocomplete="off"
-                          checked
-                        />
-                        <label class="btn" for="option5">IVA 16%</label>
-                      </div>
-                      <div>
-                        <input
-                          type="radio"
-                          class="btn-check"
-                          value="0"
-                          name="iva"
-                          id="option6"
-                          autocomplete="off"
-                        />
-                        <label class="btn" for="option6">IVA 0%</label>
-                      </div>
-                    </div>
+                                            <h5 class="text-gray-800 mt-4" style="font-size: 1rem;"><strong>Itens do
+                                                    VD</strong></h5>
+                                            <table class="table table-bordered" id="itemsTable">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Descrição</th>
+                                                        <th>Quantidade</th>
+                                                        <th>Preço Unitário</th>
+                                                        <th></th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <tr>
+                                                        <td class="d-flex"><input type="text"
+                                                                name="items[0][description]"
+                                                                class="form-control form-control-sm description"
+                                                                required>
+                                                            <button type="button"
+                                                                class="btn btn-primary btn-sm ml-3 d-flex align-items-center btn-open-products-list">
+                                                                <i class="fa-solid fa-table-list mr-2"></i>
+                                                                Selecionar</button>
+                                                        </td>
+                                                        <td><input value="1" min="1" type="number"
+                                                                name="items[0][quantity]"
+                                                                class="form-control form-control-sm quantity" required>
+                                                        </td>
+                                                        <td><input type="text" min="0" name="items[0][unitPrice]"
+                                                                class="form-control form-control-sm unitPrice"
+                                                                placeholder="0" required></td>
+                                                        <td><button type="button"
+                                                                class="btn btn-danger btn-sm remove-row"><i
+                                                                    class="fas fa-trash"></i></button></td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                            <button type="button" class="btn btn-sm btn-secondary" id="addRow">Adicionar
+                                                Item</button>
+                                            <button type="submit" id="btn-create-invoice"
+                                                class="btn btn-primary btn-sm float-right">Gerar VD</button>
+                                        </div>
+                                    </div>
+                                </form>
                             </div>
-
-                            <h5 class="text-gray-800 mt-4" style="font-size: 1rem;"><strong>Itens do VD</strong></h5>
-                            <table class="table table-bordered" id="itemsTable">
-                                <thead>
-                                    <tr>
-                                        <th>Descrição</th>
-                                        <th>Quantidade</th>
-                                        <th>Preço Unitário</th>
-                                        <th></th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr>
-                                        <td class="d-flex"><input type="text" name="items[0][description]"
-                                            class="form-control form-control-sm description" required> 
-                                            <button type="button" class="btn btn-primary btn-sm ml-3 d-flex align-items-center btn-open-products-list">
-                                                <i class="fa-solid fa-table-list mr-2"></i>
-                                                Selecionar</button></td>
-                                        <td><input value="1" min="1" type="number" name="items[0][quantity]"
-                                                class="form-control form-control-sm quantity" required></td>
-                                        <td><input type="text" min="0" name="items[0][unitPrice]"
-                                                class="form-control form-control-sm unitPrice" placeholder="0" required></td>
-                                        <td><button type="button" 
-                                                class="btn btn-danger btn-sm remove-row"><i
-                                                    class="fas fa-trash"></i></button></td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                            <button type="button" class="btn btn-sm btn-secondary" id="addRow">Adicionar
-                                Item</button>
-                            <button type="submit" id="btn-create-invoice"
-                                class="btn btn-primary btn-sm float-right">Gerar VD</button>
                         </div>
-                    </div>
-                </form>
-            </div>
                 </div>
                 <%- include('partials/copyright') %>
             </div>
@@ -134,7 +130,7 @@
             <div class="modal-content">
                 <div class="modal-header">
                     <h6 class="modal-title" id="exampleModalLabel"><strong>
-                        <i class="fa-solid fa-table-list mr-2"></i>
+                            <i class="fa-solid fa-table-list mr-2"></i>
                             Lista de Produtos & Serviços</strong></h6>
                     <button class="close" type="button" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">×</span>

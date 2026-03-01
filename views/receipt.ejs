@@ -25,6 +25,7 @@
 
     <!-- Custom styles for this page -->
     <link href="assets/vendor/datatables/dataTables.bootstrap4.min.css" rel="stylesheet">
+    <link href="assets/css/custom.css" rel="stylesheet" />
 
     <style>
         body {
@@ -59,41 +60,42 @@
                 <div id="content">
 
                     <%- include('partials/topbar') %>
+                        <div class="page-content">
+                            <!-- Begin Page Content -->
+                            <div class="container-fluid">
+                                <!-- DataTales Example -->
+                                <div class="card shadow mb-4">
+                                    <div
+                                        class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                                        <h6 class="m-0 font-weight-bold text-primary">Tabela de Recibos</h6>
 
-                        <!-- Begin Page Content -->
-                        <div class="container-fluid">
-                            <!-- DataTales Example -->
-                            <div class="card shadow mb-4">
-                                <div
-                                    class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-                                    <h6 class="m-0 font-weight-bold text-primary">Tabela de Recibos</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="table-responsive">
+                                            <table class="table table-bordered" id="dataTable" width="100%"
+                                                cellspacing="0">
+                                                <thead>
+                                                    <tr class="bg-secondary text-white">
+                                                        <th class="text-center">Nº</th>
+                                                        <th class="text-center">Nome do Cliente</th>
+                                                        <th class="text-center">Valor Total</th>
+                                                        <th class="text-center">Data de Emissão</th>
+                                                        <th class="text-center">Acções</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
 
-                                </div>
-                                <div class="card-body">
-                                    <div class="table-responsive">
-                                        <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
-                                            <thead>
-                                                <tr class="bg-secondary text-white">
-                                                    <th class="text-center">Nº</th>
-                                                    <th class="text-center">Nome do Cliente</th>
-                                                    <th class="text-center">Valor Total</th>
-                                                    <th class="text-center">Data de Emissão</th>
-                                                    <th class="text-center">Acções</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-
-                                            </tbody>
-                                            <tfoot>
-                                            </tfoot>
-                                        </table>
+                                                </tbody>
+                                                <tfoot>
+                                                </tfoot>
+                                            </table>
+                                        </div>
                                     </div>
                                 </div>
+
                             </div>
-
+                            <!-- /.container-fluid -->
                         </div>
-                        <!-- /.container-fluid -->
-
                 </div>
                 <!-- End of Main Content -->
 

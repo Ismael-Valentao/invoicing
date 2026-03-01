@@ -68,3 +68,74 @@ table tr td:last-child {
     display: block !important;
   }
 }
+
+/* ========= App layout: sidebar fixo + topbar fixo + scroll só no conteúdo ========= */
+
+/* não deixa o body rolar */
+html, body {
+  height: 100%;
+}
+
+body {
+  overflow: hidden; /* <- importante */
+}
+
+/* wrapper ocupa a tela toda */
+#wrapper {
+  height: 100vh;
+}
+
+/* sidebar fixo */
+#accordionSidebar.sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100vh;
+  overflow: hidden; /* não rola o sidebar (podes mudar para auto se quiseres) */
+  z-index: 1030;
+}
+
+/* se o sidebar estiver "toggled", mantém coerência */
+body.sidebar-toggled #accordionSidebar.sidebar {
+  width: 6.5rem; /* padrão do SB Admin quando minimiza */
+}
+
+/* o content-wrapper precisa começar depois do sidebar */
+#content-wrapper {
+  height: 100vh;
+  overflow: hidden; /* <- importante */
+  margin-left: 14rem; /* largura do sidebar padrão SB Admin */
+}
+
+/* quando o sidebar está minimizado */
+body.sidebar-toggled #content-wrapper {
+  margin-left: 6.5rem;
+}
+
+/* topbar fixo só dentro da área do conteúdo */
+#content .topbar {
+  position: sticky; /* fica fixo no topo do "content" */
+  top: 0;
+  z-index: 1020;
+}
+
+/* cria uma área que rola (somente o conteúdo) */
+#content {
+  height: 100vh;
+  overflow: hidden; /* o scroll vai ficar no .page-content */
+  display: flex;
+  flex-direction: column;
+}
+
+/* o que realmente rola */
+.page-content {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-bottom: 1rem;
+}
+
+/* opcional: deixa o card/linha menos “grudado” no topbar */
+.page-content .container-fluid {
+  padding-top: 0;
+}

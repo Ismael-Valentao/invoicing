@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+
+  <title>Invoicing | <%- title %></title>
+  <link rel="icon" type="image/png" href="images/invoicing-logo-simple.png" />
+
+  <link href="assets/vendor/fontawesome-free/css/all.min.css" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css?family=Nunito:200,300,400,600,700,800,900" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css"
+    integrity="sha512-Evv84Mr4kqVGRNSgIGL/F/aIDqQb7xQ2vcrdIwxfjThSH8CSR7PBEakCr51Ck+w+/U6swU2Im1vVX0SVk9ABhg=="
+    crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+  <link href="assets/css/sb-admin-2.min.css" rel="stylesheet" />
+  <link href="assets/vendor/datatables/dataTables.bootstrap4.min.css" rel="stylesheet" />
+   <link href="assets/css/custom.css" rel="stylesheet" />
+
+  <style>
+    body { font-size: 0.85rem !important; }
+    table { font-size: 0.82rem !important; }
+    table tr th, table tr td { padding: 0.45rem !important; }
+    .badge { font-size: 0.75rem; }
+    .kpi-card { border-left: .25rem solid #4e73df; }
+    .kpi-card .kpi-value { font-size: 1.25rem; font-weight: 800; }
+    .filters .form-control { height: calc(1.5em + .5rem + 2px); padding: .25rem .5rem; }
+    .btn-sm { padding: .25rem .6rem; border-radius: .45rem; }
+    .table td { vertical-align: middle !important; }
+  </style>
+</head>
+
+<body id="page-top">
+  <div id="wrapper">
+    <%- include('partials/sidebar') %>
+
+    <div id="content-wrapper" class="d-flex flex-column">
+      <div id="content">
+        <%- include('partials/topbar') %>
+        <div class="page-content">
+        <div class="container-fluid">
+
+          <!-- Header -->
+          <div class="d-sm-flex align-items-center justify-content-between mb-3">
+            <h1 class="h5 mb-0 text-gray-800">
+              Lista de Vendas
+            </h1>
+
+            <div class="d-flex" style="gap:10px;">
+              <a href="/new-sale" class="btn btn-primary btn-sm">
+                <i class="fa-solid fa-plus mr-1"></i> Nova Venda
+              </a>
+              <button id="btn-export-sales" class="btn btn-secondary btn-sm">
+                <i class="fa fa-file-excel mr-1"></i> Exportar
+              </button>
+            </div>
+          </div>
+
+          <!-- KPI cards -->
+          <div class="row">
+            <div class="col-xl-3 col-md-6 mb-3">
+              <div class="card shadow kpi-card">
+                <div class="card-body py-3">
+                  <div class="text-xs font-weight-bold text-primary text-uppercase">Vendas Hoje</div>
+                  <div class="kpi-value" id="kpi-today">—</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="col-xl-3 col-md-6 mb-3">
+              <div class="card shadow kpi-card" style="border-left-color:#1cc88a;">
+                <div class="card-body py-3">
+                  <div class="text-xs font-weight-bold text-success text-uppercase">Vendas (7 dias)</div>
+                  <div class="kpi-value" id="kpi-week">—</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="col-xl-3 col-md-6 mb-3">
+              <div class="card shadow kpi-card" style="border-left-color:#f6c23e;">
+                <div class="card-body py-3">
+                  <div class="text-xs font-weight-bold text-warning text-uppercase">Total Confirmadas</div>
+                  <div class="kpi-value" id="kpi-total">—</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="col-xl-3 col-md-6 mb-3">
+              <div class="card shadow kpi-card" style="border-left-color:#e74a3b;">
+                <div class="card-body py-3">
+                  <div class="text-xs font-weight-bold text-danger text-uppercase">Canceladas</div>
+                  <div class="kpi-value" id="kpi-cancelled">—</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Filters -->
+          <div class="card shadow mb-4">
+            <div class="card-body py-3 filters">
+              <div class="row align-items-end" style="row-gap:10px;">
+                <div class="col-md-3">
+                  <label class="mb-1">Data início</label>
+                  <input type="date" id="filterStart" class="form-control form-control-sm" />
+                </div>
+                <div class="col-md-3">
+                  <label class="mb-1">Data fim</label>
+                  <input type="date" id="filterEnd" class="form-control form-control-sm" />
+                </div>
+                <div class="col-md-3">
+                  <label class="mb-1">Status</label>
+                  <select id="filterStatus" class="form-control form-control-sm">
+                    <option value="">Todos</option>
+                    <option value="confirmed">Confirmadas</option>
+                    <option value="cancelled">Canceladas</option>
+                  </select>
+                </div>
+                <div class="col-md-3">
+                  <label class="mb-1">Pagamento</label>
+                  <select id="filterPayment" class="form-control form-control-sm">
+                    <option value="">Todos</option>
+                    <option value="Cash">Cash</option>
+                    <option value="M-Pesa">M-Pesa</option>
+                    <option value="Card">Cartão</option>
+                    <option value="Transfer">Transferência</option>
+                  </select>
+                </div>
+
+                <div class="col-12 d-flex justify-content-end" style="gap:10px;">
+                  <button id="btn-clear-filters" class="btn btn-light btn-sm border">
+                    <i class="fa-solid fa-eraser mr-1"></i> Limpar
+                  </button>
+                  <button id="btn-apply-filters" class="btn btn-primary btn-sm">
+                    <i class="fa-solid fa-filter mr-1"></i> Filtrar
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Table -->
+          <div class="card shadow mb-4">
+            <div class="card-header py-3 d-flex align-items-center justify-content-between">
+              <h6 class="m-0 font-weight-bold text-primary">Tabela de Vendas</h6>
+              <small class="text-muted" id="sales-count">—</small>
+            </div>
+
+            <div class="card-body">
+              <div class="table-responsive">
+                <table class="table table-bordered" id="salesTable" width="100%" cellspacing="0">
+                  <thead>
+                    <tr class="bg-secondary text-white">
+                      <th class="text-center">Recibo</th>
+                      <th class="text-center">Itens</th>
+                      <th class="text-center">Total</th>
+                      <th class="text-center">Pago</th>
+                      <th class="text-center">Troco</th>
+                      <th class="text-center">Pagamento</th>
+                      <th class="text-center">Data</th>
+                      <th class="text-center">Status</th>
+                      <th class="text-center">Ações</th>
+                    </tr>
+                  </thead>
+                  <tbody></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+        </div>
+        </div>
+      </div>
+
+      <%- include('partials/copyright') %>
+    </div>
+  </div>
+
+  <!-- Scroll to Top -->
+  <a class="scroll-to-top rounded" href="#page-top">
+    <i class="fas fa-angle-up"></i>
+  </a>
+
+  <!-- Cancel Modal -->
+  <div class="modal fade" id="cancelSaleModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h6 class="modal-title"><strong><i class="fa-solid fa-ban mr-1"></i> Cancelar Venda</strong></h6>
+          <button class="close" type="button" data-dismiss="modal"><span aria-hidden="true">×</span></button>
+        </div>
+        <div class="modal-body text-center">
+          <strong class="text-danger" style="font-size: 1rem;">
+            Deseja cancelar esta venda?
+          </strong>
+          <div class="text-muted mt-2" id="cancelSaleInfo">—</div>
+          <input type="hidden" id="cancelSaleId" value="" />
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary btn-sm" type="button" data-dismiss="modal">Fechar</button>
+          <button id="btn-confirm-cancel" class="btn btn-danger btn-sm">Confirmar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <%- include('partials/footer') %>
+
+  <!-- DataTables -->
+  <script src="assets/vendor/datatables/jquery.dataTables.min.js"></script>
+  <script src="assets/vendor/datatables/dataTables.bootstrap4.min.js"></script>
+
+  <!-- Page script -->
+  <script src="assets/js/sales.js"></script>
+</body>
+
+</html>

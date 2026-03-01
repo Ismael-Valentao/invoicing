@@ -2,6 +2,206 @@ const puppeteer = require("puppeteer");
 const path = require("path");
 const { formatedDate } = require("./dateFormatter");
 require("dotenv").config();
+const PDFDocument = require("pdfkit");
+
+function mmToPt(mm) {
+    return (mm * 72) / 25.4;
+}
+
+function formatCurrency(v) {
+    return new Intl.NumberFormat("pt-MZ", {
+        style: "currency",
+        currency: "MZN",
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+    }).format(Number(v || 0)).replace("MTn", "MZN");
+}
+
+// mede exatamente o que vamos desenhar (mesmo fontSize, mesma largura, mesmas quebras)
+function calcHeight(doc, blocks, contentWidth) {
+    let h = 0;
+
+    for (const b of blocks) {
+        if (b.type === "gap") {
+            // gap em linhas
+            doc.font("Courier").fontSize(b.fontSize || 9);
+            h += (b.lines || 0) * doc.currentLineHeight(true);
+            continue;
+        }
+
+        if (b.type === "line") {
+            doc.font("Courier").fontSize(b.fontSize || 9);
+            const lineH = doc.heightOfString(b.text, { width: contentWidth, align: b.align || "left" });
+            h += lineH;
+            continue;
+        }
+
+        if (b.type === "text") {
+            doc.font("Courier").fontSize(b.fontSize || 9);
+            const textH = doc.heightOfString(b.text, { width: contentWidth, align: b.align || "left" });
+            h += textH;
+            continue;
+        }
+
+        if (b.type === "row") {
+            // row é 1 linha (qty x price | total)
+            doc.font("Courier").fontSize(b.fontSize || 9);
+            h += doc.currentLineHeight(true);
+            continue;
+        }
+    }
+
+    return h;
+}
+
+function buildBlocks(companyInfo, sale) {
+    const receiptNo = sale.receiptNumber || String(sale._id);
+    const dateStr = new Date(sale.createdAt || Date.now()).toLocaleString("pt-MZ");
+    const operator = sale.operatorName || "Sistema";
+    const dash = "----------------------------------------";
+
+    const blocks = [];
+
+    // Header
+    blocks.push({ type: "text", text: companyInfo.name || "-", fontSize: 12, align: "center" });
+    blocks.push({ type: "text", text: companyInfo.address || "", fontSize: 9, align: "center" });
+    blocks.push({ type: "text", text: `Tel: ${companyInfo.contact || "-"}`, fontSize: 9, align: "center" });
+    blocks.push({ type: "text", text: `NUIT: ${companyInfo.nuit || "-"}`, fontSize: 9, align: "center" });
+
+    blocks.push({ type: "gap", lines: 0.4, fontSize: 9 });
+    blocks.push({ type: "line", text: dash, fontSize: 9, align: "center" });
+
+    // Sale info
+    blocks.push({ type: "text", text: `Recibo Nº: ${receiptNo}`, fontSize: 9 });
+    blocks.push({ type: "text", text: `Data: ${dateStr}`, fontSize: 9 });
+    blocks.push({ type: "text", text: `Operador: ${operator}`, fontSize: 9 });
+
+    blocks.push({ type: "gap", lines: 0.4, fontSize: 9 });
+    blocks.push({ type: "line", text: dash, fontSize: 9, align: "center" });
+
+    // Items
+    for (const item of sale.items || []) {
+        blocks.push({ type: "text", text: item.description || "Produto", fontSize: 9 });
+        blocks.push({ type: "row", fontSize: 9 }); // 1 linha com valores
+        blocks.push({ type: "gap", lines: 0.2, fontSize: 9 });
+    }
+
+    blocks.push({ type: "line", text: dash, fontSize: 9, align: "center" });
+
+    // Totals (3 linhas)
+    blocks.push({ type: "row", fontSize: 11 }); // TOTAL
+    blocks.push({ type: "row", fontSize: 9 });  // Pago
+    blocks.push({ type: "row", fontSize: 9 });  // Troco
+
+    blocks.push({ type: "gap", lines: 0.4, fontSize: 9 });
+    blocks.push({ type: "line", text: dash, fontSize: 9, align: "center" });
+
+    // Footer
+    blocks.push({ type: "text", text: "Obrigado pela preferência!", fontSize: 9, align: "center" });
+    blocks.push({ type: "text", text: "Volte sempre", fontSize: 9, align: "center" });
+
+    return blocks;
+}
+
+function render(doc, companyInfo, sale, contentWidth) {
+    const receiptNo = sale.receiptNumber || String(sale._id);
+    const dateStr = new Date(sale.createdAt || Date.now()).toLocaleString("pt-MZ");
+    const operator = sale.operatorName || "Sistema";
+    const dash = "----------------------------------------";
+
+    doc.font("Courier");
+
+    doc.fontSize(12).text(companyInfo.name || "-", { align: "center", width: contentWidth });
+    doc.fontSize(9).text(companyInfo.address || "", { align: "center", width: contentWidth });
+    doc.text(`Tel: ${companyInfo.contact || "-"}`, { align: "center", width: contentWidth });
+    doc.text(`NUIT: ${companyInfo.nuit || "-"}`, { align: "center", width: contentWidth });
+
+    doc.moveDown(0.4);
+    doc.text(dash, { align: "center", width: contentWidth });
+
+    doc.text(`Recibo Nº: ${receiptNo}`, { width: contentWidth });
+    doc.text(`Data: ${dateStr}`, { width: contentWidth });
+    doc.text(`Operador: ${operator}`, { width: contentWidth });
+
+    doc.moveDown(0.4);
+    doc.text(dash, { align: "center", width: contentWidth });
+
+    for (const item of sale.items || []) {
+        const name = item.name || "Produto";
+        const qty = Number(item.quantity || 0);
+        const price = Number(item.price || 0);
+
+        doc.fontSize(9).text(name, { width: contentWidth });
+
+        // linha: esquerda + direita
+        doc.text(`${qty} x ${formatCurrency(price)}`, { continued: true, width: contentWidth });
+        doc.text(`${formatCurrency(qty * price)}`, { align: "right" });
+
+        doc.moveDown(0.2);
+    }
+
+    doc.text(dash, { align: "center", width: contentWidth });
+
+    // TOTAL
+    doc.fontSize(11).text("TOTAL", { continued: true, width: contentWidth });
+    doc.text(formatCurrency(sale.total), { align: "right" });
+
+    // Pago
+    doc.fontSize(9).text("Pago", { continued: true, width: contentWidth });
+    doc.text(formatCurrency(sale.paidAmount ?? sale.total), { align: "right" });
+
+    // Troco
+    doc.text("Troco", { continued: true, width: contentWidth });
+    doc.text(formatCurrency((sale.paidAmount ?? sale.total) - sale.total), { align: "right" });
+
+    doc.moveDown(0.4);
+    doc.text(dash, { align: "center", width: contentWidth });
+
+    doc.text("Obrigado pela preferência!", { align: "center", width: contentWidth });
+    doc.text("Volte sempre", { align: "center", width: contentWidth });
+}
+
+async function generateSaleReceiptPDFKit(companyInfo, sale) {
+    const pageWidthPt = mmToPt(80);
+    const margins = {
+        top: mmToPt(5),
+        bottom: mmToPt(5),
+        left: mmToPt(5),
+        right: mmToPt(5),
+    };
+
+    const contentWidth = pageWidthPt - margins.left - margins.right;
+
+    // ✅ doc “fantasma” só pra medir (não gera buffer final)
+    const measureDoc = new PDFDocument({ autoFirstPage: false });
+    measureDoc.addPage({ size: [pageWidthPt, mmToPt(200)], margins }); // tamanho qualquer (só pro font engine)
+
+    const blocks = buildBlocks(companyInfo, sale);
+
+    const contentHeight = calcHeight(measureDoc, blocks, contentWidth);
+
+    // ✅ altura FINAL = margens + conteúdo (sem “teto” gigante)
+    const safetyPt = mmToPt(8); // 8mm de folga (ajusta 5–10mm)
+    const finalHeightPt = margins.top + contentHeight + margins.bottom + safetyPt;
+
+    // ✅ Agora cria o PDF de verdade com a altura exata
+    const doc = new PDFDocument({ autoFirstPage: false });
+    doc.addPage({ size: [pageWidthPt, finalHeightPt], margins });
+
+    const chunks = [];
+    doc.on("data", (c) => chunks.push(c));
+
+    render(doc, companyInfo, sale, contentWidth);
+
+    doc.end();
+
+    return await new Promise((resolve, reject) => {
+        doc.on("end", () => resolve(Buffer.concat(chunks)));
+        doc.on("error", reject);
+    });
+}
+
+
 
 const logoPath = process.env.LOGO_PATH || "https://bitiray.com/public/invoicing-logos/";
 
@@ -220,7 +420,7 @@ async function generateInvoicePDF(companyInfo, invoice) {
          ${companyInfo.showBankDetails.invoices && companyInfo.bankDetails && companyInfo.bankDetails.bank ? `<div>
             <p><strong>Banco:</strong> ${companyInfo.bankDetails.bank} | <strong>Nome da Conta:</strong> ${companyInfo.bankDetails.account_name}</p>
             <p><strong>Nº da Conta:</strong> ${companyInfo.bankDetails.account_number} | <strong>NIB:</strong> ${companyInfo.bankDetails.nib || '-'}</p>
-        </div>` :``}
+        </div>` : ``}
             </div>
         </div>
     </div>
@@ -449,7 +649,7 @@ async function generateQuotationPDF(companyInfo, quotation) {
          ${companyInfo.showBankDetails.quotations && companyInfo.bankDetails && companyInfo.bankDetails.bank ? `<div>
             <p><strong>Banco:</strong> ${companyInfo.bankDetails.bank} | <strong>Nome da Conta:</strong> ${companyInfo.bankDetails.account_name}</p>
             <p><strong>Nº da Conta:</strong> ${companyInfo.bankDetails.account_number} | <strong>NIB:</strong> ${companyInfo.bankDetails.nib || '-'}</p>
-        </div>` :``}
+        </div>` : ``}
             </div>
         </div>
     </div>
@@ -886,9 +1086,137 @@ async function generateReciboPDF(companyInfo, invoice) {
     return pdfBuffer;
 }
 
+async function generateSaleReceiptPDF(companyInfo, sale) {
+    const browserArgs =
+        process.env.NODE_ENV.toLowerCase() === "production"
+            ? ["--no-sandbox", "--disable-setuid-sandbox", "--no-zygote", "--single-process"]
+            : ["--no-sandbox", "--disable-setuid-sandbox"];
+
+    const browser = await puppeteer.launch({ headless: "new", args: browserArgs });
+    const page = await browser.newPage();
+
+    // (Opcional) deixa o viewport consistente
+    await page.setViewport({ width: 320, height: 800, deviceScaleFactor: 2 }); // ~80mm em px (aprox)
+
+    const html = `
+  <html>
+  <head>
+    <meta charset="utf-8" />
+    <style>
+      @page { margin: 0; } /* importante */
+      body {
+        font-family: monospace;
+        font-size: 12px;
+        width: 80mm;
+        margin: 0;
+        padding: 8px;
+        box-sizing: border-box;
+      }
+      .center { text-align: center; }
+      .bold { font-weight: bold; }
+      .big { font-size: 14px; }
+      .line { border-top: 1px dashed #000; margin: 6px 0; }
+      .item { margin-bottom: 6px; }
+      .item-name { font-weight: bold; }
+      .row { display: flex; justify-content: space-between; gap: 10px; }
+      .row span:last-child { text-align: right; white-space: nowrap; }
+      .footer { margin-top: 8px; font-size: 11px; }
+    </style>
+  </head>
+  <body>
+
+    <div class="center bold big">${companyInfo.name}</div>
+
+    <div class="center">
+      ${companyInfo.address}<br/>
+      Tel: ${companyInfo.contact}<br/>
+      NUIT: ${companyInfo.nuit}
+    </div>
+
+    <div class="line"></div>
+
+    <div>
+      <div>Recibo Nº: ${sale.receiptNumber || sale._id}</div>
+      <div>Data: ${formatedDate(sale.createdAt || new Date())}</div>
+      <div>Operador: ${sale.operatorName || "Sistema"}</div>
+    </div>
+
+    <div class="line"></div>
+
+    ${sale.items.map(item => `
+      <div class="item">
+        <div class="item-name">${item.name || "Produto"}</div>
+        <div class="row">
+          <span>${item.quantity} x ${formatCurrency(item.price)}</span>
+          <span>${formatCurrency(item.quantity * item.price)}</span>
+        </div>
+      </div>
+    `).join("")}
+
+    <div class="line"></div>
+
+    <div>
+      <div class="row bold big">
+        <span>TOTAL</span>
+        <span>${formatCurrency(sale.total)}</span>
+      </div>
+      <div class="row">
+        <span>Pago</span>
+        <span>${formatCurrency(sale.paidAmount ?? sale.total)}</span>
+      </div>
+      <div class="row">
+        <span>Troco</span>
+        <span>${formatCurrency((sale.paidAmount ?? sale.total) - sale.total)}</span>
+      </div>
+    </div>
+
+    <div class="line"></div>
+
+    <div class="center footer">
+      Obrigado pela preferência!<br/>
+      Volte sempre
+    </div>
+
+  </body>
+  </html>
+  `;
+
+    await page.setContent(html, { waitUntil: "networkidle0" });
+
+    // ✅ mede a altura real do conteúdo (inclui padding)
+    const contentHeight = await page.evaluate(() => {
+        const body = document.body;
+        const html = document.documentElement;
+        return Math.max(
+            body.scrollHeight,
+            body.offsetHeight,
+            html.clientHeight,
+            html.scrollHeight,
+            html.offsetHeight
+        );
+    });
+
+    // ✅ adiciona folga extra para evitar corte no fim (impressoras variam)
+    const extra = 40; // px
+    const heightPx = contentHeight + extra;
+
+    const pdfBuffer = await page.pdf({
+        width: "80mm",
+        height: `${heightPx}px`, // 🔥 altura dinâmica
+        printBackground: true,
+        margin: { top: "0mm", bottom: "0mm", left: "0mm", right: "0mm" },
+        preferCSSPageSize: false
+    });
+
+    await browser.close();
+    return pdfBuffer;
+}
+
 module.exports = {
     generateQuotationPDF,
     generateInvoicePDF,
     generateVDPDF,
     generateReciboPDF,
+    generateSaleReceiptPDF,
+    generateSaleReceiptPDFKit
 };

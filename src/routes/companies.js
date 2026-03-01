@@ -4,6 +4,7 @@ require('dotenv').config();
 const { createCompany, getCompanies, getCompanyById, updateCompany, deleteCompany, upload, registCompanyLogo, registCompanyLogoProdVersion, getCompany, updateCompanyBank, updateBankDetailsVisibility, getBankDetailsVisibility } = require('../controllers/companyController');
 const { authMiddleware } = require('../middlewares/authMiddleware');
 const { nextMiddleware } = require('../middlewares/nextMiddleware');
+const { updateModules } = require("../controllers/companyModulesController");
 
 const logoUploadMiddleware = process.env.NODE_ENV.toLowerCase() === 'production' ? nextMiddleware : upload.single("logo");
 const logoHandler = process.env.NODE_ENV.toLowerCase() === 'production' ? registCompanyLogoProdVersion : registCompanyLogo;
@@ -12,6 +13,7 @@ router.post('/', createCompany);
 router.post('/logo', authMiddleware, logoUploadMiddleware, logoHandler);
 router.get('/', authMiddleware, getCompanies);
 router.get('/company', authMiddleware, getCompany);
+router.patch("/modules", authMiddleware, updateModules);
 router.get('/:id', authMiddleware, getCompanyById);
 router.put('/update-bank', authMiddleware, updateCompanyBank);
 router.get(

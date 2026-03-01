@@ -44,7 +44,7 @@ async function login() {
 
 
         if (response.ok && data.success) {
-            window.location.href = '/dashboard';
+            window.location.href = data.redirect || '/dashboard';
         } else {
             showError(data.message || 'Credenciais inválidas');
         }

@@ -1,0 +1,140 @@
+<!-- criar-venda.html -->
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+    <title>Nova Venda</title>
+
+    <link rel="icon" type="image/png" href="images/invoicing-logo-simple.png" />
+    <link href="assets/vendor/fontawesome-free/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css"
+        integrity="sha512-Evv84Mr4kqVGRNSgIGL/F/aIDqQb7xQ2vcrdIwxfjThSH8CSR7PBEakCr51Ck+w+/U6swU2Im1vVX0SVk9ABhg=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link href="https://fonts.googleapis.com/css?family=Nunito:200,300,400,600,700,800,900" rel="stylesheet">
+    <link href="assets/css/sb-admin-2.min.css" rel="stylesheet">
+    <link href="assets/css/custom.css" rel="stylesheet" />
+</head>
+
+<body id="page-top">
+    <div id="wrapper">
+
+        <%- include('partials/sidebar') %>
+
+            <div id="content-wrapper" class="d-flex flex-column">
+                <div id="content">
+
+                    <%- include('partials/topbar') %>
+                        <div class="page-content">
+
+                            <div class="container-fluid">
+
+                                <form id="sale-form">
+                                    <div class="card shadow">
+                                        <div class="card-body">
+                                            <!-- Itens -->
+                                            <h6 class="text-gray-800">
+                                                <strong>Itens da Venda</strong>
+                                            </h6>
+
+                                            <table class="table table-bordered" id="saleItemsTable">
+                                                <thead>
+                                                    <tr>
+                                                        <th style="width:40%">Descrição</th>
+                                                        <th style="width:15%">Qtd</th>
+                                                        <th style="width:20%">Preço</th>
+                                                        <th style="width:20%">Subtotal</th>
+                                                        <th></th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+
+                                                </tbody>
+                                            </table>
+
+                                            <button type="button" class="btn btn-sm btn-secondary mb-3" id="addSaleRow">
+                                                <i class="fas fa-plus"></i> Adicionar Item
+                                            </button>
+
+                                            <hr>
+
+                                            <!-- Totais -->
+                                            <div class="row justify-content-end">
+
+                                                <div class="col-md-4">
+
+                                                    <div class="d-flex justify-content-between">
+                                                        <strong>Total:</strong>
+                                                        <strong id="saleTotal">0.00 MZN</strong>
+                                                    </div>
+                                                    <div class="form-group mt-2">
+                                                        <label>Método de Pagamento</label>
+                                                        <select id="paymentMethod" class="form-control form-control-sm">
+                                                            <option value="cash">Cash</option>
+                                                            <option value="mpesa">M-Pesa</option>
+                                                            <option value="card">Cartão</option>
+                                                            <option value="transfer">Transferência</option>
+                                                        </select>
+                                                    </div>
+
+                                                    <div class="form-group mt-3">
+                                                        <label>Valor Pago</label>
+                                                        <input type="number" class="form-control form-control-sm"
+                                                            id="amountPaid" min="0" required>
+                                                    </div>
+
+                                                    <div class="d-flex justify-content-between">
+                                                        <strong>Troco:</strong>
+                                                        <strong id="changeAmount">0.00 MZN</strong>
+                                                    </div>
+
+                                                    <button type="submit" class="btn btn-success btn-sm btn-block mt-3">
+                                                        <i class="fas fa-check"></i> Finalizar Venda
+                                                    </button>
+
+                                                </div>
+                                            </div>
+
+                                        </div>
+                                    </div>
+                                </form>
+
+                            </div>
+                        </div>
+                </div>
+                <!-- Products Modal-->
+                <div class="modal fade" id="productSelectModal" tabindex="-1" role="dialog"
+                    aria-labelledby="exampleModalLabel" aria-hidden="true">
+                    <div class="modal-dialog modal-lg" role="document">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h6 class="modal-title" id="exampleModalLabel"><strong>
+                                        <i class="fa-solid fa-table-list mr-2"></i>
+                                        Lista de Produtos & Serviços</strong></h6>
+                                <button class="close" type="button" data-dismiss="modal" aria-label="Close">
+                                    <span aria-hidden="true">×</span>
+                                </button>
+                            </div>
+                            <div class="modal-body text-center">
+                                <p class="text-danger">Nenhum produto ou serviço registado!!!</p>
+                            </div>
+                            <div class="modal-footer">
+                                <button class="btn btn-secondary btn-sm" type="button"
+                                    data-dismiss="modal">Fechar</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <%- include('partials/copyright') %>
+            </div>
+    </div>
+
+    <%- include('partials/footer') %>
+
+        <script src="assets/js/new-sale.js"></script>
+
+</body>
+
+</html>

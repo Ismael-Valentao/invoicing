@@ -2,10 +2,10 @@ const mongoose = require('mongoose');
 const vd = require('./vd');
 
 const bankDetailsSchema = new mongoose.Schema({
-    bank: { type: String },           
+    bank: { type: String },
     account_name: { type: String },
     nib: { type: String },
-    nuib: { type: String },          
+    nuib: { type: String },
     account_number: { type: String }
 }, { _id: false });
 
@@ -24,7 +24,17 @@ const companySchema = new mongoose.Schema({
     nuit: { type: String, required: true, default: 'N/A' },
     showBankDetails: showBankDetailsSchema,
     logoUrl: { type: String },
-    bankDetails: bankDetailsSchema
+    bankDetails: bankDetailsSchema,
+    modules: {
+        sales: {
+            type: Boolean,
+            default: false
+        },
+        invoicing: {
+            type: Boolean,
+            default: false
+        }
+    }
 }, {
     timestamps: true,
 });
