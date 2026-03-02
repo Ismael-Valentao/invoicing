@@ -2,106 +2,321 @@
 <html lang="en">
 
 <head>
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
 
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <meta name="description" content="">
-    <meta name="author" content="">
+  <title>Invoicing - Login</title>
+  <link rel="icon" type="image/png" href="images/invoicing-logo-simple.png" />
 
-    <title>Invoicing - Login</title>
-    <link rel="icon" type="image/png" href="images/invoicing-logo-simple.png" />
-    <!-- Custom fonts for this template-->
-    <link href="assets/vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
-    <link
-        href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i"
-        rel="stylesheet">
+  <link href="assets/vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css" />
+  <link href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i"
+    rel="stylesheet" />
+  <link href="assets/css/sb-admin-2.min.css" rel="stylesheet" />
 
-    <!-- Custom styles for this template-->
-    <link href="assets/css/sb-admin-2.min.css" rel="stylesheet">
-    <style>
-        .font-sm {
-            font-size: 0.8rem;
-        }
+  <style>
+    :root{
+      --bg1:#0b4bff;
+      --bg2:#6a5cff;
+      --card:#ffffff;
+      --text:#111827;
+      --muted:#6b7280;
+      --line:#e5e7eb;
+      --shadow: 0 22px 70px rgba(16,24,40,.20);
+      --radius: 18px;
+    }
 
-        input.form-control {
-            border-radius: 10rem !important;
-            padding: 10px !important;
-        }
+    body.bg-gradient-primary{
+      background: radial-gradient(1200px 600px at 15% 10%, rgba(255,255,255,.20), transparent 55%),
+                  radial-gradient(900px 520px at 85% 15%, rgba(255,255,255,.18), transparent 60%),
+                  linear-gradient(135deg, var(--bg1), var(--bg2)) !important;
+      min-height: 100vh;
+    }
 
-        .btn-user {
-            border-radius: 10rem !important;
-            padding: 7px !important;
-        }
-    </style>
+    .auth-wrap{
+      min-height: 100vh;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding: 28px 0;
+    }
+
+    .auth-card{
+      border: 1px solid rgba(255,255,255,.22) !important;
+      border-radius: var(--radius) !important;
+      overflow: hidden;
+      background: rgba(255,255,255,.92);
+      backdrop-filter: blur(8px);
+      box-shadow: var(--shadow);
+    }
+
+    .auth-head{
+      padding: 18px 22px;
+      border-bottom: 1px solid rgba(229,231,235,.8);
+      background: #fff;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap: 12px;
+    }
+
+    .brand{
+      display:flex;
+      align-items:center;
+      gap: 10px;
+    }
+    .brand img{
+      width: 34px;
+      height: 34px;
+      border-radius: 10px;
+      box-shadow: 0 8px 18px rgba(16,24,40,.10);
+    }
+    .brand .t1{ font-weight: 900; color: var(--text); line-height: 1.1; }
+    .brand .t2{ font-size: .85rem; color: var(--muted); margin-top: 1px; }
+
+    .pill{
+      font-size: .78rem;
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid #e5e7eb;
+      color:#374151;
+      background:#fff;
+      display:inline-flex;
+      gap:8px;
+      align-items:center;
+      white-space: nowrap;
+    }
+
+    .auth-body{
+      padding: 22px;
+      background:#fff;
+    }
+
+    .title{
+      font-weight: 900;
+      color: var(--text);
+      margin: 0 0 6px;
+      text-align:center;
+    }
+    .subtitle{
+      color: var(--muted);
+      font-size: .9rem;
+      text-align:center;
+      margin-bottom: 20px;
+    }
+
+    .font-sm{ font-size: .86rem; }
+
+    /* Inputs com ícone */
+    .iwrap{
+      position: relative;
+    }
+    .iwrap .icon{
+      position:absolute;
+      top: 50%;
+      left: 14px;
+      transform: translateY(-50%);
+      color:#9ca3af;
+      pointer-events:none;
+    }
+
+    input.form-control{
+      border-radius: 14px !important;
+      padding: 1.05rem .95rem !important;
+      border: 1px solid #e5e7eb !important;
+      transition: box-shadow .15s ease, border-color .15s ease;
+      background:#fff !important;
+    }
+    .iwrap input.form-control{
+      padding-left: 44px !important;
+    }
+    input.form-control:focus{
+      border-color: rgba(37,99,235,.55) !important;
+      box-shadow: 0 0 0 .18rem rgba(37,99,235,.12) !important;
+    }
+
+    /* Password tools */
+    .pw-wrap{ position: relative; }
+    .pw-wrap #password{ padding-right: 54px !important; }
+
+    .pw-btn{
+      position:absolute;
+      top: 50%;
+      right: 10px;
+      transform: translateY(-50%);
+      width: 40px;
+      height: 40px;
+      border-radius: 12px;
+      border: 1px solid #e5e7eb;
+      background:#fff;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      color:#374151;
+      transition: .15s ease;
+    }
+    .pw-btn:hover{
+      background:#f9fafb;
+      transform: translateY(-51%);
+    }
+
+    .btn-user{
+      border-radius: 14px !important;
+      padding: .70rem 1.1rem !important;
+      font-weight: 800;
+      box-shadow: 0 12px 30px rgba(37,99,235,.22);
+    }
+
+    .divider{
+      display:flex;
+      align-items:center;
+      gap: 10px;
+      color:#9ca3af;
+      font-size:.82rem;
+      margin: 16px 0 10px;
+    }
+    .divider:before, .divider:after{
+      content:"";
+      height:1px;
+      background:#eef0f4;
+      flex: 1;
+    }
+
+    .links a{
+      font-weight: 800;
+      text-decoration: none;
+    }
+    .links a:hover{
+      text-decoration: underline;
+    }
+
+    /* Error box */
+    #errorBox{
+      border-radius: 14px;
+      border: 1px solid rgba(220,53,69,.25);
+    }
+
+    .foot-note{
+      text-align:center;
+      margin-top: 14px;
+      color: rgba(255,255,255,.85);
+      font-size: .9rem;
+    }
+    .foot-note a{
+      color:#fff;
+      font-weight: 900;
+      text-decoration: underline;
+    }
+  </style>
 </head>
 
-<body class="bg-gradient-primary d-flex align-items-center justify-content-center min-vh-100">
-
+<body class="bg-gradient-primary">
+  <div class="auth-wrap">
     <div class="container">
-        <!-- Outer Row -->
-        <div class="row justify-content-center position-relative pt-4">
-            <div class="card o-hidden border-0 shadow-lg my-5 col-md-6 col-lg-4 col-12">
-                <div class="card-body p-0">
-                    <div class="row">
-                        <div class="col-lg-12">
-                            <div class="p-5">
-                                <div class="text-center mb-1">
-                                    <img src="https://bitiray.com/public/assets/images/logos/invoicing-logo.png"
-                                        style="width: 50%;" alt="">
-                                </div>
-                                <p class="mb-3 font-sm text-center">Faça login para continuar</p>
-                                <div id="errorBox" class="alert alert-danger d-none text-center font-sm" role="alert"></div>
-
-                                <form class="user">
-                                    <div class="form-group">
-                                        <input type="email" class="form-control form-control-user" id="email"
-                                            aria-describedby="emailHelp" placeholder="yourname@example.com">
-                                    </div>
-                                    <div class="form-group">
-                                        <input type="password" class="form-control form-control-user" id="password"
-                                            placeholder="****************">
-                                    </div>
-                                    <div class="form-group">
-                                        <div class="custom-control custom-checkbox small">
-                                            <input type="checkbox" class="custom-control-input" id="customCheck">
-                                            <label class="custom-control-label" for="customCheck">Lembrar-se de
-                                                mim</label>
-                                        </div>
-                                    </div>
-                                    <button type="button" class="btn btn-primary btn-user btn-block">
-                                        Login
-                                    </button>
-                                </form>
-                                <hr>
-                                <div class="text-center">
-                                    <a class="small" href="/forgot-password">Esqueci a palavra-passe</a>
-                                </div>
-                                <div class="text-center">
-                                    <a class="small" href="/register">Criar Nova Conta</a>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+      <div class="row justify-content-center">
+        <div class="col-12 col-sm-10 col-md-7 col-lg-5 col-xl-4">
+          <div class="card auth-card border-0">
+            <!-- HEADER -->
+            <div class="auth-head">
+              <div class="brand">
+                <img src="images/invoicing-logo-simple.png" alt="logo">
+                <div>
+                  <div class="t1">Invoicing</div>
+                  <div class="t2">Entrar na tua conta</div>
                 </div>
+              </div>
+
+              <span class="pill">
+                <i class="fas fa-shield-alt"></i>
+                Acesso seguro
+              </span>
             </div>
 
+            <!-- BODY -->
+            <div class="auth-body">
+              <div class="text-center mb-2">
+                <img src="https://bitiray.com/public/assets/images/logos/invoicing-logo.png" style="max-width: 100px;" alt="">
+              </div>
+
+              <div class="subtitle">Faça login para continuar</div>
+
+              <div id="errorBox" class="alert alert-danger d-none text-center font-sm" role="alert"></div>
+
+              <form class="user" autocomplete="on">
+                <div class="form-group">
+                  <div class="iwrap">
+                    <i class="fas fa-envelope icon"></i>
+                    <input type="email" class="form-control form-control-user" id="email"
+                      aria-describedby="emailHelp" placeholder="yourname@example.com" autocomplete="email">
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <div class="pw-wrap">
+                    <div class="iwrap">
+                      <i class="fas fa-lock icon"></i>
+                      <input type="password" class="form-control form-control-user" id="password"
+                        placeholder="••••••••••••" autocomplete="current-password">
+                    </div>
+
+                    <!-- mostrar/ocultar (não interfere com login.js) -->
+                    <button class="pw-btn" type="button" id="toggleLoginPassword" title="Mostrar/Ocultar">
+                      <i class="fas fa-eye"></i>
+                    </button>
+                  </div>
+                </div>
+
+                <div class="d-flex align-items-center justify-content-between mb-3" style="gap:10px;">
+                  <div class="custom-control custom-checkbox small">
+                    <input type="checkbox" class="custom-control-input" id="customCheck">
+                    <label class="custom-control-label" for="customCheck">Lembrar-se de mim</label>
+                  </div>
+
+                  <a class="small font-weight-bold" href="/forgot-password">Esqueci a palavra-passe</a>
+                </div>
+
+                <button type="button" class="btn btn-primary btn-user btn-block" id="btnLogin">
+                  Login <i class="fas fa-arrow-right ml-2"></i>
+                </button>
+
+                <div class="divider">ou</div>
+
+                <div class="text-center links">
+                  <a class="small" href="/register">Criar nova conta</a>
+                </div>
+              </form>
+            </div>
+          </div>
+
+          <div class="foot-note">
+            Invoicing © <%= new Date().getFullYear() %> · <a href="/">Voltar ao site</a>
+          </div>
         </div>
-
+      </div>
     </div>
+  </div>
 
-    </div>
+  <!-- Bootstrap core JavaScript-->
+  <script src="assets/vendor/jquery/jquery.min.js"></script>
+  <script src="assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+  <script src="assets/vendor/jquery-easing/jquery.easing.min.js"></script>
+  <script src="assets/js/sb-admin-2.min.js"></script>
+  <script src="assets/js/login.js"></script>
 
-    <!-- Bootstrap core JavaScript-->
-    <script src="assets/vendor/jquery/jquery.min.js"></script>
-    <script src="assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+  <!-- Só UI: mostrar/ocultar password -->
+  <script>
+    (function () {
+      const btn = document.getElementById("toggleLoginPassword");
+      const input = document.getElementById("password");
+      if (!btn || !input) return;
 
-    <!-- Core plugin JavaScript-->
-    <script src="assets/vendor/jquery-easing/jquery.easing.min.js"></script>
-
-    <!-- Custom scripts for all pages-->
-    <script src="assets/js/sb-admin-2.min.js"></script>
-    <script src="assets/js/login.js"></script>
+      btn.addEventListener("click", () => {
+        const isHidden = input.type === "password";
+        input.type = isHidden ? "text" : "password";
+        btn.innerHTML = isHidden ? '<i class="fas fa-eye-slash"></i>' : '<i class="fas fa-eye"></i>';
+      });
+    })();
+  </script>
 </body>
 
 </html>

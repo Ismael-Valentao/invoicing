@@ -93,17 +93,55 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
     function validateRealEmail(email) {
-        const regex = /^[a-zA-Z0-9._%+-]{2,}@[a-zA-Z0-9-]{2,}\.[a-zA-Z]{2,}$/;
-        if (!regex.test(email)) return false;
+        const value = (email || "").trim().toLowerCase();
 
-        const [local, domain] = email.toLowerCase().split('@');
+        // Regras básicas: tem 1 @ e domínio com pelo menos 1 ponto
+        const at = value.indexOf("@");
+        if (at <= 0 || at !== value.lastIndexOf("@")) return false;
 
-        // local-part muito suspeito
-        if (local.length < 3) return false;
-        if (/^(test|teste|admin|user|demo|abc)/.test(local)) return false;
+        const local = value.slice(0, at);
+        const domain = value.slice(at + 1);
 
-        // domínio bloqueado
-        if (BLOCKED_DOMAINS.some(d => domain.startsWith(d))) return false;
+        // Local e domínio mínimos
+        if (local.length < 2) return false;
+        if (domain.length < 4) return false; // ex: a.co
+
+        // Domínio precisa ter ponto e TLD >= 2
+        if (!domain.includes(".")) return false;
+        const tld = domain.split(".").pop();
+        if (!tld || tld.length < 2) return false;
+
+        // Caracteres permitidos (simples e prático)
+        // local: letras, números e estes símbolos comuns
+        if (!/^[a-z0-9._%+-]+$/.test(local)) return false;
+
+        // domain: letras, números, hífen e ponto
+        if (!/^[a-z0-9.-]+$/.test(domain)) return false;
+
+        // Não permitir partes vazias tipo "a@.com" ou "a@b..com"
+        if (domain.startsWith(".") || domain.endsWith(".") || domain.includes("..")) return false;
+
+        // bloquear domínios lixo (somente por "contains" ou match de domínio inteiro)
+        const blocked = [
+            "localhost",
+            "local",
+            "test",
+            "teste",
+            "example",
+            "mailinator.com",
+            "yopmail.com",
+            "guerrillamail.com",
+            "tempmail",
+            "10minutemail",
+            "getnada.com",
+        ];
+
+        // Se quiseres, bloqueia apenas se for domínio exato ou terminar com ".blocked"
+        if (blocked.some(b => domain === b || domain.endsWith("." + b) || domain.includes(b))) return false;
+
+        // (Opcional) não bloquear "info@" porque é comum em empresas.
+        // Se quiseres bloquear apenas "test@" etc:
+        if (/^(test|teste|demo|abc)\b/.test(local)) return false;
 
         return true;
     }

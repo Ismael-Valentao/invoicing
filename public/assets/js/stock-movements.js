@@ -65,6 +65,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     const movements = data.movements || [];
+    console.log(movements)
 
     table.clear();
 
@@ -77,7 +78,6 @@ document.addEventListener("DOMContentLoaded", function () {
         `<span class="d-block text-center">${typeLabel(m.type)}</span>`,
         `<span class="d-block text-center">${m.quantity}</span>`,
         m.reason || "-",
-        m.note || m.reference || "-",
       ]);
     });
 

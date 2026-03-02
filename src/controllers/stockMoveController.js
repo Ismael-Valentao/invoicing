@@ -36,7 +36,7 @@ exports.getStockMovements = async (req, res) => {
             .populate("productId", "description sku unit")
             .populate({
                 path: "reference.id",
-                select: "receiptNumber _id total",
+                select: "_id receiptNumber total",
             })
             .sort({ createdAt: -1 })
             .lean();

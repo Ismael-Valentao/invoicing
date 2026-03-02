@@ -1,354 +1,490 @@
 <!DOCTYPE html>
 <html lang="pt">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Invoicing | Escolher Módulos</title>
-    <link rel="icon" type="image/png" href="images/invoicing-logo-simple.png"/>
 
-    <link href="assets/vendor/fontawesome-free/css/all.min.css" rel="stylesheet" />
-    <link href="assets/css/sb-admin-2.min.css" rel="stylesheet" />
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Invoicing | Escolher Módulos</title>
+  <link rel="icon" type="image/png" href="images/invoicing-logo-simple.png" />
 
-    <style>
-      body { background:#f6f7fb; }
-      .setup-wrap { min-height: 100vh; display:flex; align-items:center; padding: 28px 0; }
+  <link href="assets/vendor/fontawesome-free/css/all.min.css" rel="stylesheet" />
+  <link href="assets/css/sb-admin-2.min.css" rel="stylesheet" />
 
-      .setup-shell {
-        border: 1px solid #edf0f5;
-        border-radius: 14px;
-        background: #fff;
-        box-shadow: 0 18px 60px rgba(16,24,40,.08);
-        overflow: hidden;
-      }
+  <style>
+    body {
+      background: #f6f7fb;
+    }
 
-      .setup-head {
-        padding: 18px 22px;
-        border-bottom: 1px solid #edf0f5;
-        display:flex; align-items:center; justify-content:space-between;
-      }
+    .setup-wrap {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      padding: 28px 0;
+    }
 
-      .brand {
-        display:flex; align-items:center; gap:10px;
-      }
-      .brand img { width: 28px; height: 28px; }
-      .brand .t1 { font-weight: 800; color:#111827; line-height:1.1; }
-      .brand .t2 { font-size: .85rem; color:#6b7280; }
+    .setup-shell {
+      border: 1px solid #edf0f5;
+      border-radius: 14px;
+      background: #fff;
+      box-shadow: 0 18px 60px rgba(16, 24, 40, .08);
+      overflow: hidden;
+    }
 
-      .pill {
-        font-size: .78rem;
-        padding: 6px 10px;
-        border-radius: 999px;
-        border: 1px solid #e5e7eb;
-        color:#374151;
-        background:#fff;
-        display:inline-flex; gap:8px; align-items:center;
-      }
+    .setup-head {
+      padding: 18px 22px;
+      border-bottom: 1px solid #edf0f5;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
 
-      .setup-body { padding: 18px 22px; }
-      .setup-title { font-weight: 900; color:#111827; }
-      .setup-sub { color:#6b7280; font-size:.95rem; }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
 
+    .brand img {
+      width: 28px;
+      height: 28px;
+    }
+
+    .brand .t1 {
+      font-weight: 800;
+      color: #111827;
+      line-height: 1.1;
+    }
+
+    .brand .t2 {
+      font-size: .85rem;
+      color: #6b7280;
+    }
+
+    .pill {
+      font-size: .78rem;
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid #e5e7eb;
+      color: #374151;
+      background: #fff;
+      display: inline-flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .setup-body {
+      padding: 18px 22px;
+    }
+
+    .setup-title {
+      font-weight: 900;
+      color: #111827;
+    }
+
+    .setup-sub {
+      color: #6b7280;
+      font-size: .95rem;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1.5fr .9fr;
+      gap: 18px;
+      margin-top: 18px;
+    }
+
+    @media (max-width: 992px) {
       .grid {
-        display:grid;
-        grid-template-columns: 1.5fr .9fr;
-        gap: 18px;
-        margin-top: 18px;
+        grid-template-columns: 1fr;
       }
+    }
 
-      @media (max-width: 992px) { .grid { grid-template-columns: 1fr; } }
+    .cards {
+      display: grid;
+      gap: 14px;
+    }
 
-      .cards { display:grid; gap: 14px; }
+    .module-card {
+      border: 1px solid #e5e7eb;
+      border-radius: 14px;
+      padding: 16px;
+      background: #fff;
+      cursor: pointer;
+      transition: .15s ease;
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 14px;
+    }
 
-      .module-card {
-        border: 1px solid #e5e7eb;
-        border-radius: 14px;
-        padding: 16px;
-        background:#fff;
-        cursor:pointer;
-        transition: .15s ease;
-        display:flex; align-items:flex-start; justify-content:space-between;
-        gap: 14px;
-      }
+    .module-card:hover {
+      box-shadow: 0 12px 30px rgba(16, 24, 40, .08);
+      transform: translateY(-1px);
+    }
 
-      .module-card:hover { box-shadow: 0 12px 30px rgba(16,24,40,.08); transform: translateY(-1px); }
+    .module-card.active {
+      border-color: #2563eb;
+      box-shadow: 0 16px 42px rgba(37, 99, 235, .18);
+    }
 
-      .module-card.active { border-color: #2563eb; box-shadow: 0 16px 42px rgba(37,99,235,.18); }
+    .m-left {
+      display: flex;
+      gap: 12px;
+    }
 
-      .m-left { display:flex; gap: 12px; }
-      .m-icon {
-        width: 44px; height: 44px;
-        border-radius: 12px;
-        display:flex; align-items:center; justify-content:center;
-        background:#f3f4f6;
-        color:#111827;
-        flex: 0 0 auto;
-        font-size: 18px;
-      }
-      .module-card.active .m-icon { background: rgba(37,99,235,.10); color:#2563eb; }
+    .m-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #f3f4f6;
+      color: #111827;
+      flex: 0 0 auto;
+      font-size: 18px;
+    }
 
-      .m-title { font-weight: 900; color:#111827; }
-      .m-desc { color:#6b7280; font-size:.9rem; margin-top: 2px; }
+    .module-card.active .m-icon {
+      background: rgba(37, 99, 235, .10);
+      color: #2563eb;
+    }
 
-      .m-feats { margin: 10px 0 0; padding-left: 16px; color:#4b5563; font-size:.86rem; }
-      .m-feats li { margin-bottom: 6px; }
+    .m-title {
+      font-weight: 900;
+      color: #111827;
+    }
 
-      .toggle {
-        width: 48px; height: 28px;
-        border-radius: 999px;
-        background: #e5e7eb;
-        position: relative;
-        flex: 0 0 auto;
-        margin-top: 2px;
-      }
-      .toggle::after {
-        content:"";
-        width: 22px; height: 22px;
-        background:#fff;
-        border-radius: 999px;
-        position:absolute;
-        top: 3px; left: 3px;
-        box-shadow: 0 6px 16px rgba(0,0,0,.12);
-        transition: .15s ease;
-      }
-      .module-card.active .toggle { background: #2563eb; }
-      .module-card.active .toggle::after { left: 23px; }
+    .m-desc {
+      color: #6b7280;
+      font-size: .9rem;
+      margin-top: 2px;
+    }
 
-      .side {
-        border: 1px solid #edf0f5;
-        border-radius: 14px;
-        padding: 16px;
-        background: #fafbff;
-        position: sticky;
-        top: 18px;
-        height: fit-content;
-      }
+    .m-feats {
+      margin: 10px 0 0;
+      padding-left: 16px;
+      color: #4b5563;
+      font-size: .86rem;
+    }
 
-      .side h6 { font-weight: 900; color:#111827; margin: 0 0 10px; }
-      .side .hint { color:#6b7280; font-size:.88rem; }
+    .m-feats li {
+      margin-bottom: 6px;
+    }
 
-      .selected-list { margin-top: 12px; display:flex; flex-direction:column; gap: 10px; }
-      .selected-item {
-        display:flex; align-items:center; justify-content:space-between;
-        padding: 10px 12px;
-        background:#fff;
-        border: 1px solid #e5e7eb;
-        border-radius: 12px;
-      }
-      .selected-item .name { font-weight: 800; color:#111827; }
-      .selected-item .tag { font-size:.78rem; color:#6b7280; }
+    .toggle {
+      width: 48px;
+      height: 28px;
+      border-radius: 999px;
+      background: #e5e7eb;
+      position: relative;
+      flex: 0 0 auto;
+      margin-top: 2px;
+    }
 
-      .side-actions { margin-top: 14px; display:flex; gap: 10px; }
-      .side-actions .btn { flex: 1; }
+    .toggle::after {
+      content: "";
+      width: 22px;
+      height: 22px;
+      background: #fff;
+      border-radius: 999px;
+      position: absolute;
+      top: 3px;
+      left: 3px;
+      box-shadow: 0 6px 16px rgba(0, 0, 0, .12);
+      transition: .15s ease;
+    }
 
-      .note {
-        margin-top: 12px;
-        padding: 10px 12px;
-        border-radius: 12px;
-        border: 1px solid #e5e7eb;
-        background: #fff;
-        color:#6b7280;
-        font-size: .86rem;
-      }
+    .module-card.active .toggle {
+      background: #2563eb;
+    }
 
-      .footer-mini { padding: 12px 22px; border-top: 1px solid #edf0f5; color:#9ca3af; font-size:.82rem; text-align:center; }
-    </style>
-  </head>
+    .module-card.active .toggle::after {
+      left: 23px;
+    }
 
-  <body>
-    <div class="setup-wrap">
-      <div class="container">
-        <div class="setup-shell">
-          <div class="setup-head">
-            <div class="brand">
-              <img src="images/invoicing-logo-simple.png" alt="logo">
-              <div>
-                <div class="t1">Configurar módulos</div>
-                <div class="t2">Escolha o que a tua empresa vai usar</div>
-              </div>
+    .side {
+      border: 1px solid #edf0f5;
+      border-radius: 14px;
+      padding: 16px;
+      background: #fafbff;
+      position: sticky;
+      top: 18px;
+      height: fit-content;
+    }
+
+    .side h6 {
+      font-weight: 900;
+      color: #111827;
+      margin: 0 0 10px;
+    }
+
+    .side .hint {
+      color: #6b7280;
+      font-size: .88rem;
+    }
+
+    .selected-list {
+      margin-top: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .selected-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 12px;
+      background: #fff;
+      border: 1px solid #e5e7eb;
+      border-radius: 12px;
+    }
+
+    .selected-item .name {
+      font-weight: 800;
+      color: #111827;
+    }
+
+    .selected-item .tag {
+      font-size: .78rem;
+      color: #6b7280;
+    }
+
+    .side-actions {
+      margin-top: 14px;
+      display: flex;
+      gap: 10px;
+    }
+
+    .side-actions .btn {
+      flex: 1;
+    }
+
+    .note {
+      margin-top: 12px;
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 1px solid #e5e7eb;
+      background: #fff;
+      color: #6b7280;
+      font-size: .86rem;
+    }
+
+    .footer-mini {
+      padding: 12px 22px;
+      border-top: 1px solid #edf0f5;
+      color: #9ca3af;
+      font-size: .82rem;
+      text-align: center;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="setup-wrap">
+    <div class="container">
+      <div class="setup-shell">
+        <div class="setup-head">
+          <div class="brand">
+            <img src="images/invoicing-logo-simple.png" alt="logo">
+            <div>
+              <div class="t1">Configurar módulos</div>
+              <div class="t2">Escolha o que a tua empresa vai usar</div>
             </div>
-
-            <span class="pill">
-              <i class="fa-solid fa-shield-halved"></i>
-              Conta por empresa (SaaS)
-            </span>
           </div>
 
-          <div class="setup-body">
-            <div class="d-flex align-items-start justify-content-between flex-wrap" style="gap:10px;">
-              <div>
-                <h4 class="setup-title mb-1">Começar a usar o sistema</h4>
-                <div class="setup-sub">
-                  Ative pelo menos 1 módulo para desbloquear o dashboard e o menu.
-                </div>
+          <span class="pill">
+            <i class="fa-solid fa-shield-halved"></i>
+            Conta por empresa (SaaS)
+          </span>
+        </div>
+
+        <div class="setup-body">
+          <div class="d-flex align-items-start justify-content-between flex-wrap" style="gap:10px;">
+            <div>
+              <h4 class="setup-title mb-1">Começar a usar o sistema</h4>
+              <div class="setup-sub">
+                Ative pelo menos 1 módulo para desbloquear o dashboard e o menu.
               </div>
             </div>
+          </div>
 
-            <div class="grid">
-              <!-- LEFT: MODULE CARDS -->
-              <div class="cards">
-                <div class="module-card" id="cardSales" role="button" tabindex="0">
-                  <div class="m-left">
-                    <div class="m-icon"><i class="fa-solid fa-cash-register"></i></div>
-                    <div>
-                      <div class="m-title">Vendas</div>
-                      <div class="m-desc">Caixa, recibos e pagamentos com stock integrado</div>
-                      <ul class="m-feats">
-                        <li>Recibo tipo supermercado (rápido, compacto)</li>
-                        <li>Venda sem cliente</li>
-                        <li>Baixa automática no stock + movimentos</li>
-                      </ul>
-                    </div>
+          <div class="grid">
+            <!-- LEFT: MODULE CARDS -->
+            <div class="cards">
+              <div class="module-card" id="cardSales" role="button" tabindex="0">
+                <div class="m-left">
+                  <div class="m-icon"><i class="fa-solid fa-cash-register"></i></div>
+                  <div>
+                    <div class="m-title">Vendas</div>
+                    <div class="m-desc">Caixa, recibos e pagamentos com stock integrado</div>
+                    <ul class="m-feats">
+                      <li>Recibo tipo supermercado (rápido, compacto)</li>
+                      <li>Venda sem cliente</li>
+                      <li>Baixa automática no stock + movimentos</li>
+                    </ul>
                   </div>
-                  <div class="toggle" aria-hidden="true"></div>
                 </div>
-
-                <div class="module-card" id="cardInvoicing" role="button" tabindex="0">
-                  <div class="m-left">
-                    <div class="m-icon"><i class="fa-solid fa-file-invoice-dollar"></i></div>
-                    <div>
-                      <div class="m-title">Facturação</div>
-                      <div class="m-desc">Facturas, VD, cotações e recibos A4 profissionais</div>
-                      <ul class="m-feats">
-                        <li>Documentos A4 prontos para imprimir</li>
-                        <li>Gestão de clientes</li>
-                        <li>Relatórios e histórico</li>
-                      </ul>
-                    </div>
-                  </div>
-                  <div class="toggle" aria-hidden="true"></div>
-                </div>
+                <div class="toggle" aria-hidden="true"></div>
               </div>
 
-              <!-- RIGHT: SUMMARY -->
-              <div class="side">
-                <h6>Resumo</h6>
-                <div class="hint" id="summaryHint">Nenhum módulo selecionado.</div>
-
-                <div class="selected-list" id="selectedList"></div>
-
-                <div class="note">
-                  <strong>Nota:</strong> depois podes ativar mais módulos e gerir subscrições.
+              <div class="module-card" id="cardInvoicing" role="button" tabindex="0">
+                <div class="m-left">
+                  <div class="m-icon"><i class="fa-solid fa-file-invoice-dollar"></i></div>
+                  <div>
+                    <div class="m-title">Facturação</div>
+                    <div class="m-desc">Facturas, VD, cotações e recibos A4 profissionais</div>
+                    <ul class="m-feats">
+                      <li>Documentos A4 prontos para imprimir</li>
+                      <li>Gestão de clientes</li>
+                      <li>Relatórios e histórico</li>
+                    </ul>
+                  </div>
                 </div>
+                <div class="toggle" aria-hidden="true"></div>
+              </div>
+            </div>
 
-                <div class="side-actions">
-                  <button class="btn btn-outline-secondary" id="btnReset" type="button">
-                    Limpar
-                  </button>
-                  <button class="btn btn-primary" id="btnSave" type="button" disabled>
-                    Guardar
-                  </button>
-                </div>
+            <!-- RIGHT: SUMMARY -->
+            <div class="side">
+              <h6>Resumo</h6>
+              <div class="hint" id="summaryHint">Nenhum módulo selecionado.</div>
+
+              <div class="selected-list" id="selectedList"></div>
+
+              <div class="note">
+                <strong>Nota:</strong> depois podes ativar mais módulos e gerir subscrições.
+              </div>
+
+              <div class="side-actions">
+                <button class="btn btn-outline-secondary" id="btnReset" type="button">
+                  Limpar
+                </button>
+                <button class="btn btn-primary" id="btnSave" type="button" disabled>
+                  Guardar
+                </button>
               </div>
             </div>
           </div>
+        </div>
 
-          <div class="footer-mini">
-            Invoicing © <%= new Date().getFullYear() %>
-          </div>
+        <div class="footer-mini">
+          Invoicing © <%= new Date().getFullYear() %>
         </div>
       </div>
     </div>
+  </div>
 
-    <script src="assets/vendor/jquery/jquery.min.js"></script>
-    <script src="assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="assets/vendor/jquery/jquery.min.js"></script>
+  <script src="assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-    <script>
-      let sales = false;
-      let invoicing = false;
+  <script>
+    let sales = false;
+    let invoicing = false;
 
-      const $ = (id) => document.getElementById(id);
+    const $ = (id) => document.getElementById(id);
 
-      function renderSummary() {
-        const list = $("selectedList");
-        list.innerHTML = "";
+    function renderSummary() {
+      const list = $("selectedList");
+      list.innerHTML = "";
 
-        const selected = [];
-        if (sales) selected.push({ key:"sales", label:"Vendas", icon:"fa-cash-register" });
-        if (invoicing) selected.push({ key:"invoicing", label:"Facturação", icon:"fa-file-invoice-dollar" });
+      const selected = [];
+      if (sales) selected.push({ key: "sales", label: "Vendas", icon: "fa-cash-register" });
+      if (invoicing) selected.push({ key: "invoicing", label: "Facturação", icon: "fa-file-invoice-dollar" });
 
-        $("cardSales").classList.toggle("active", sales);
-        $("cardInvoicing").classList.toggle("active", invoicing);
+      $("cardSales").classList.toggle("active", sales);
+      $("cardInvoicing").classList.toggle("active", invoicing);
 
-        if (selected.length === 0) {
-          $("summaryHint").textContent = "Nenhum módulo selecionado.";
-          $("btnSave").disabled = true;
-          return;
-        }
+      if (selected.length === 0) {
+        $("summaryHint").textContent = "Nenhum módulo selecionado.";
+        $("btnSave").disabled = true;
+        return;
+      }
 
-        $("summaryHint").textContent = "Você vai ativar:";
-        $("btnSave").disabled = false;
+      $("summaryHint").textContent = "Você vai ativar:";
+      $("btnSave").disabled = false;
 
-        selected.forEach((s) => {
-          const el = document.createElement("div");
-          el.className = "selected-item";
-          el.innerHTML = `
+      selected.forEach((s) => {
+        const el = document.createElement("div");
+        el.className = "selected-item";
+        el.innerHTML = `
             <div>
               <div class="name"><i class="fa-solid ${s.icon} mr-2"></i>${s.label}</div>
               <div class="tag">Ativo na tua conta</div>
             </div>
             <i class="fa-solid fa-check text-success"></i>
           `;
-          list.appendChild(el);
-        });
+        list.appendChild(el);
+      });
+    }
+
+    function toggle(which) {
+      if (which === "sales") {
+        sales = true;
+        invoicing = false;
       }
 
-      function toggle(which) {
-        if (which === "sales") sales = !sales;
-        if (which === "invoicing") invoicing = !invoicing;
-        renderSummary();
+      if (which === "invoicing") {
+        invoicing = true;
+        sales = false;
       }
-
-      // click + teclado (acessibilidade)
-      $("cardSales").addEventListener("click", () => toggle("sales"));
-      $("cardInvoicing").addEventListener("click", () => toggle("invoicing"));
-
-      $("cardSales").addEventListener("keydown", (e) => {
-        if (e.key === "Enter" || e.key === " ") { e.preventDefault(); toggle("sales"); }
-      });
-      $("cardInvoicing").addEventListener("keydown", (e) => {
-        if (e.key === "Enter" || e.key === " ") { e.preventDefault(); toggle("invoicing"); }
-      });
-
-      $("btnReset").addEventListener("click", () => {
-        sales = false; invoicing = false;
-        renderSummary();
-      });
-
-      $("btnSave").addEventListener("click", async () => {
-        if (!sales && !invoicing) return;
-
-        $("btnSave").disabled = true;
-
-        try {
-          const resp = await fetch("/api/company/modules", {
-            method: "PATCH",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ sales, invoicing })
-          });
-
-          const data = await resp.json().catch(() => ({}));
-          if (!resp.ok || data.status !== "success") {
-            $("btnSave").disabled = false;
-            return Swal.fire({ icon:"error", title:"Erro", text: data.message || "Não foi possível guardar." });
-          }
-
-          Swal.fire({
-            icon:"success",
-            title:"Pronto!",
-            text:"Configuração concluída.",
-            timer: 1100,
-            showConfirmButton: false
-          });
-
-          setTimeout(() => window.location.href = "/login", 1100);
-        } catch (e) {
-          $("btnSave").disabled = false;
-          Swal.fire({ icon:"error", title:"Erro", text:"Falha de conexão. Tente novamente." });
-        }
-      });
 
       renderSummary();
-    </script>
-  </body>
+    }
+
+    // click + teclado (acessibilidade)
+    $("cardSales").addEventListener("click", () => toggle("sales"));
+    $("cardInvoicing").addEventListener("click", () => toggle("invoicing"));
+
+    $("cardSales").addEventListener("keydown", (e) => {
+      if (e.key === "Enter" || e.key === " ") { e.preventDefault(); toggle("sales"); }
+    });
+    $("cardInvoicing").addEventListener("keydown", (e) => {
+      if (e.key === "Enter" || e.key === " ") { e.preventDefault(); toggle("invoicing"); }
+    });
+
+    $("btnReset").addEventListener("click", () => {
+      sales = false; invoicing = false;
+      renderSummary();
+    });
+
+    $("btnSave").addEventListener("click", async () => {
+      if (!sales && !invoicing) return;
+
+      $("btnSave").disabled = true;
+
+      try {
+        const resp = await fetch("/api/company/modules", {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ sales, invoicing })
+        });
+
+        const data = await resp.json().catch(() => ({}));
+        if (!resp.ok || data.status !== "success") {
+          $("btnSave").disabled = false;
+          return Swal.fire({ icon: "error", title: "Erro", text: data.message || "Não foi possível guardar." });
+        }
+
+        Swal.fire({
+          icon: "success",
+          title: "Pronto!",
+          text: "Configuração concluída.",
+          timer: 1100,
+          showConfirmButton: false
+        });
+
+        setTimeout(() => window.location.href = "/login", 1100);
+      } catch (e) {
+        $("btnSave").disabled = false;
+        Swal.fire({ icon: "error", title: "Erro", text: "Falha de conexão. Tente novamente." });
+      }
+    });
+
+    renderSummary();
+  </script>
+</body>
+
 </html>

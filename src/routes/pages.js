@@ -118,12 +118,15 @@ router.get('/register', (req, res) => {
 });
 
 
-/*router.get('/forgot-password', (req, res) => {
+router.get('/forgot-password', (req, res) => {
     res.render('forgot-password', { title: 'Esqueci minha senha' });
 });
-router.get('/reset-password', (req, res) => {
-    res.render('reset-password', { title: 'Redefinir senha' });
+
+router.get('/reset-password/:token', (req, res) => {
+    const {token} = req.params
+    res.render('reset-password', { title: 'Redefinir senha', token });
 });
+ /*
 router.get('/profile', authMiddleware2, (req, res) => {
     res.render('profile', { title: 'Perfil', name: req.user.name, companyName:req.user.company.name });
 });*/

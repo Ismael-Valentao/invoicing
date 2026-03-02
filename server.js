@@ -19,6 +19,7 @@ const reciboRoutes = require('./src/routes/receipt');
 const newsletterRoutes = require('./src/routes/newsletter')
 const saleRoutes = require('./src/routes/sale');
 const stockMovementRoutes = require('./src/routes/movements');
+const passwordRoutes = require("./src/routes/passwordRoutes");
 
 const app = express();
 const PORT = 3000;
@@ -45,6 +46,7 @@ app.use('/api/products', productsRoutes);
 app.use('/api/newsletter', newsletterRoutes)
 app.use('/api/sales', saleRoutes);
 app.use('/api/stock-movements', stockMovementRoutes);
+app.use("/api/users/passwords/", passwordRoutes);
 app.use('/', pagesRoutes);
 app.use((req, res) => {
   return res.status(404).render("404", {
