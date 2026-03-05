@@ -139,3 +139,17 @@ body.sidebar-toggled #content-wrapper {
 .page-content .container-fluid {
   padding-top: 0;
 }
+
+/* MOBILE: quando sidebar está colapsada, remove o espaço reservado */
+@media (max-width: 768px) {
+  body.sidebar-toggled #wrapper #content-wrapper {
+    margin-left: 0 !important;
+  }
+
+  /* garante que sidebar não “empurra” nem deixa resto visível */
+  body.sidebar-toggled #wrapper #accordionSidebar,
+  body.sidebar-toggled #wrapper .sidebar {
+    width: 0 !important;
+    overflow: hidden !important;
+  }
+}
