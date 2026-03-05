@@ -194,3 +194,30 @@
               </div>
 </ul>
 <!-- End of Sidebar -->
+ <script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const isMobile = () => window.innerWidth < 768;
+
+    // para todos os links que abrem collapse
+    document.querySelectorAll('#accordionSidebar a[data-toggle="collapse"]').forEach((a) => {
+      a.addEventListener("click", function (e) {
+        // evita o "#" dar jump e atrapalhar no mobile
+        e.preventDefault();
+
+        const targetSel = this.getAttribute("data-target");
+        const target = document.querySelector(targetSel);
+        if (!target) return;
+
+        // Se estiver em mobile, garante que sidebar não está "toggled" a bloquear interações
+        if (isMobile()) {
+          document.body.classList.remove("sidebar-toggled");
+          const sidebar = document.querySelector(".sidebar");
+          if (sidebar) sidebar.classList.remove("toggled");
+        }
+
+        // usa o próprio bootstrap collapse
+        $(target).collapse("toggle");
+      }, { passive: false });
+    });
+  });
+</script>
