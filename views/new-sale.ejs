@@ -15,6 +15,396 @@
     <link href="https://fonts.googleapis.com/css?family=Nunito:200,300,400,600,700,800,900" rel="stylesheet">
     <link href="assets/css/sb-admin-2.min.css" rel="stylesheet">
     <link href="assets/css/custom.css" rel="stylesheet" />
+    <style>
+        /* =========================
+   NEW SALE - Mobile Responsive
+   ========================= */
+
+        /* deixa o card menos apertado no mobile */
+        @media (max-width: 768px) {
+            .page-content .container-fluid {
+                padding-left: .75rem;
+                padding-right: .75rem;
+            }
+
+            /* tabela vira "cards" */
+            table.sale-items-table thead {
+                display: none;
+                /* escondemos cabeçalho no mobile */
+            }
+
+            table.sale-items-table,
+            table.sale-items-table tbody,
+            table.sale-items-table tr,
+            table.sale-items-table td {
+                display: block;
+                width: 100%;
+            }
+
+            table.sale-items-table tr {
+                background: #fff;
+                border: 1px solid rgba(0, 0, 0, .08);
+                border-radius: 14px;
+                box-shadow: 0 2px 12px rgba(0, 0, 0, .04);
+                padding: 12px;
+                margin-bottom: 10px;
+            }
+
+            table.sale-items-table td {
+                border: none !important;
+                padding: 0 !important;
+                margin: 0 !important;
+            }
+
+            /* 1ª célula (descrição + botão selecionar) vira topo do card */
+            table.sale-items-table td:first-child {
+                display: flex;
+                gap: 8px;
+                align-items: stretch;
+                margin-bottom: 10px;
+            }
+
+            /* input descrição ocupa tudo */
+            table.sale-items-table td:first-child .description {
+                flex: 1;
+                min-width: 0;
+                height: 44px;
+                border-radius: 12px;
+            }
+
+            /* botão selecionar compacto e "alto" */
+            table.sale-items-table td:first-child .btn-open-products-list {
+                white-space: nowrap;
+                border-radius: 12px;
+                padding: 0 12px;
+                height: 44px;
+                flex: 0 0 auto;
+            }
+
+            /* no mobile, esconde o texto "Selecionar" (fica só ícone) */
+            table.sale-items-table td:first-child .btn-open-products-list span {
+                display: none;
+            }
+
+            /* grid para qtd, preço, subtotal, remover */
+            table.sale-items-table td:nth-child(2),
+            table.sale-items-table td:nth-child(3),
+            table.sale-items-table td:nth-child(4),
+            table.sale-items-table td:nth-child(5) {
+                margin-top: 10px;
+            }
+
+            /* label antes do input usando pseudo-elementos */
+            table.sale-items-table td:nth-child(2)::before {
+                content: "Qtd";
+                display: block;
+                font-size: .78rem;
+                color: #718096;
+                margin-bottom: 4px;
+                font-weight: 700;
+            }
+
+            table.sale-items-table td:nth-child(3)::before {
+                content: "Preço";
+                display: block;
+                font-size: .78rem;
+                color: #718096;
+                margin-bottom: 4px;
+                font-weight: 700;
+            }
+
+            table.sale-items-table td:nth-child(4)::before {
+                content: "Subtotal";
+                display: block;
+                font-size: .78rem;
+                color: #718096;
+                margin-bottom: 4px;
+                font-weight: 700;
+            }
+
+            /* inputs maiores */
+            table.sale-items-table .quantity,
+            table.sale-items-table .unitPrice,
+            table.sale-items-table .subtotal {
+                height: 44px;
+                border-radius: 12px;
+            }
+
+            /* remover vira botão largo */
+            table.sale-items-table td:nth-child(5) .remove-row {
+                width: 100%;
+                border-radius: 12px;
+                height: 44px;
+                font-weight: 800;
+            }
+
+            /* botão adicionar item full width */
+            #addSaleRow {
+                width: 100%;
+                border-radius: 12px;
+                padding: 10px 12px;
+                font-weight: 800;
+            }
+
+            /* Totais: faz a coluna ocupar 100% */
+            #sale-form .row.justify-content-end .col-md-4 {
+                flex: 0 0 100%;
+                max-width: 100%;
+            }
+
+            /* botão finalizar maior */
+            #sale-form button[type="submit"] {
+                border-radius: 12px;
+                padding: 12px 14px;
+                font-weight: 900;
+            }
+        }
+
+        @media (max-width: 768px) {
+
+            /* --- TABELA -> CARDS --- */
+            table.sale-items-table thead {
+                display: none;
+            }
+
+            table.sale-items-table,
+            table.sale-items-table tbody,
+            table.sale-items-table tr,
+            table.sale-items-table td {
+                display: block;
+                width: 100%;
+            }
+
+            table.sale-items-table tr {
+                background: #fff;
+                border: 1px solid rgba(0, 0, 0, .08);
+                border-radius: 14px;
+                box-shadow: 0 2px 12px rgba(0, 0, 0, .04);
+                padding: 12px;
+                margin-bottom: 10px;
+            }
+
+            table.sale-items-table td {
+                border: none !important;
+                padding: 0 !important;
+                margin: 0 !important;
+            }
+
+            /* --- Descrição + Selecionar --- */
+            table.sale-items-table td:first-child {
+                display: flex;
+                gap: 8px;
+                align-items: stretch;
+                margin-bottom: 10px;
+            }
+
+            table.sale-items-table td:first-child .description {
+                flex: 1;
+                min-width: 0;
+                height: 44px;
+                border-radius: 12px;
+            }
+
+            table.sale-items-table td:first-child .btn-open-products-list {
+                height: 44px;
+                border-radius: 12px;
+                padding: 0 12px;
+                white-space: nowrap;
+            }
+
+            table.sale-items-table td:first-child .btn-open-products-list span {
+                display: none;
+                /* só ícone no mobile */
+            }
+
+            /* =================================================
+     QTD + PREÇO NA MESMA LINHA
+     ================================================= */
+            /* Criamos um "grid" virtual: Qtd e Preço 2 colunas */
+            table.sale-items-table td:nth-child(2),
+            table.sale-items-table td:nth-child(3) {
+                width: 48%;
+                display: inline-block;
+                vertical-align: top;
+                margin-top: 10px;
+            }
+
+            table.sale-items-table td:nth-child(2) {
+                margin-right: 4%;
+            }
+
+            table.sale-items-table td:nth-child(2)::before {
+                content: "Qtd";
+                display: block;
+                font-size: .78rem;
+                color: #718096;
+                margin-bottom: 4px;
+                font-weight: 800;
+            }
+
+            table.sale-items-table td:nth-child(3)::before {
+                content: "Preço";
+                display: block;
+                font-size: .78rem;
+                color: #718096;
+                margin-bottom: 4px;
+                font-weight: 800;
+            }
+
+            table.sale-items-table .quantity,
+            table.sale-items-table .unitPrice {
+                height: 44px;
+                border-radius: 12px;
+            }
+
+            /* Subtotal ocupa linha inteira */
+            table.sale-items-table td:nth-child(4) {
+                margin-top: 10px;
+            }
+
+            table.sale-items-table td:nth-child(4)::before {
+                content: "Subtotal";
+                display: block;
+                font-size: .78rem;
+                color: #718096;
+                margin-bottom: 4px;
+                font-weight: 800;
+            }
+
+            table.sale-items-table .subtotal {
+                height: 44px;
+                border-radius: 12px;
+            }
+
+            /* Remover: ocupa linha inteira e com margem 10px em cima */
+            table.sale-items-table td:nth-child(5) {
+                margin-top: 10px;
+                /* <-- aqui o espaçamento que pediste */
+            }
+
+            table.sale-items-table td:nth-child(5) .remove-row {
+                width: 100%;
+                height: 44px;
+                border-radius: 12px;
+                font-weight: 900;
+            }
+
+            /* botão adicionar item full width */
+            #addSaleRow {
+                width: 100%;
+                border-radius: 12px;
+                padding: 10px 12px;
+                font-weight: 900;
+            }
+
+            /* Totais 100% */
+            #sale-form .row.justify-content-end .col-md-4 {
+                flex: 0 0 100%;
+                max-width: 100%;
+            }
+
+            #sale-form button[type="submit"] {
+                border-radius: 12px;
+                padding: 12px 14px;
+                font-weight: 900;
+            }
+
+            .remove-row {
+                margin-top: 10px;
+            }
+
+            .product-description {
+                width: calc(100% - 50px)
+            }
+
+        }
+
+        /* MOBILE */
+        @media (max-width: 768px) {
+
+            /* célula da descrição vira um flex */
+            #saleItemsTable td:first-child {
+                display: flex !important;
+                align-items: center;
+                gap: 8px;
+                margin-bottom: 10px;
+            }
+
+            /* input ocupa todo espaço disponível */
+            #saleItemsTable td:first-child .description {
+                flex: 1;
+                min-width: 0;
+            }
+
+            /* botão fica ao lado do input */
+            .btn-open-products-list {
+                width: 40px;
+                min-width: 40px;
+                height: 36px;
+                display: flex;
+                align-items: center;
+                text-align: center;
+                justify-content: center;
+                padding: 0;
+            }
+
+            /* esconde o texto "Selecionar" no mobile */
+            .btn-open-products-list span {
+                display: none;
+            }
+
+            /* remove margem lateral que vinha do ml-3 */
+            .btn-open-products-list.ml-3 {
+                margin-left: 0 !important;
+            }
+
+        }
+
+        /* =========================
+   MODAL FULLSCREEN (mobile)
+   ========================= */
+        @media (max-width: 768px) {
+            #productSelectModal .modal-dialog {
+                margin: 0;
+                max-width: 100%;
+                height: 100%;
+            }
+
+            #productSelectModal .modal-content {
+                height: 100vh;
+                border: 0;
+                border-radius: 0;
+            }
+
+            #productSelectModal .modal-header {
+                position: sticky;
+                top: 0;
+                z-index: 10;
+                background: #fff;
+                border-bottom: 1px solid rgba(0, 0, 0, .08);
+            }
+
+            #productSelectModal .modal-body {
+                overflow-y: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+
+            #productSelectModal .modal-footer {
+                position: sticky;
+                bottom: 0;
+                z-index: 10;
+                background: #fff;
+                border-top: 1px solid rgba(0, 0, 0, .08);
+            }
+
+            /* deixa o select grande e confortável */
+            #productSelectModal select.form-control {
+                height: 48px;
+                border-radius: 12px;
+                font-weight: 700;
+            }
+        }
+    </style>
 </head>
 
 <body id="page-top">
@@ -38,66 +428,71 @@
                                                 <strong>Itens da Venda</strong>
                                             </h6>
 
-                                            <table class="table table-bordered" id="saleItemsTable">
-                                                <thead>
-                                                    <tr>
-                                                        <th style="width:40%">Descrição</th>
-                                                        <th style="width:15%">Qtd</th>
-                                                        <th style="width:20%">Preço</th>
-                                                        <th style="width:20%">Subtotal</th>
-                                                        <th></th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
+                                            <div class="table-responsive sale-table-wrap">
+                                                <table class="table table-bordered sale-items-table"
+                                                    id="saleItemsTable">
+                                                    <thead>
+                                                        <tr>
+                                                            <th style="width:40%">Descrição</th>
+                                                            <th style="width:15%">Qtd</th>
+                                                            <th style="width:20%">Preço</th>
+                                                            <th style="width:20%">Subtotal</th>
+                                                            <th></th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
 
-                                                </tbody>
-                                            </table>
+                                                    </tbody>
+                                                </table>
 
-                                            <button type="button" class="btn btn-sm btn-secondary mb-3" id="addSaleRow">
-                                                <i class="fas fa-plus"></i> Adicionar Item
-                                            </button>
+                                                <button type="button" class="btn btn-sm btn-secondary mb-3"
+                                                    id="addSaleRow">
+                                                    <i class="fas fa-plus"></i> Adicionar Item
+                                                </button>
 
-                                            <hr>
+                                                <hr>
 
-                                            <!-- Totais -->
-                                            <div class="row justify-content-end">
+                                                <!-- Totais -->
+                                                <div class="row justify-content-end">
 
-                                                <div class="col-md-4">
+                                                    <div class="col-md-4">
 
-                                                    <div class="d-flex justify-content-between">
-                                                        <strong>Total:</strong>
-                                                        <strong id="saleTotal">0.00 MZN</strong>
+                                                        <div class="d-flex justify-content-between">
+                                                            <strong>Total:</strong>
+                                                            <strong id="saleTotal">0.00 MZN</strong>
+                                                        </div>
+                                                        <div class="form-group mt-2">
+                                                            <label>Método de Pagamento</label>
+                                                            <select id="paymentMethod"
+                                                                class="form-control form-control-sm">
+                                                                <option value="cash">Cash</option>
+                                                                <option value="mpesa">M-Pesa</option>
+                                                                <option value="card">Cartão</option>
+                                                                <option value="transfer">Transferência</option>
+                                                            </select>
+                                                        </div>
+
+                                                        <div class="form-group mt-3">
+                                                            <label>Valor Pago</label>
+                                                            <input type="number" class="form-control form-control-sm"
+                                                                id="amountPaid" min="0" required>
+                                                        </div>
+
+                                                        <div class="d-flex justify-content-between">
+                                                            <strong>Troco:</strong>
+                                                            <strong id="changeAmount">0.00 MZN</strong>
+                                                        </div>
+
+                                                        <button type="submit"
+                                                            class="btn btn-success btn-sm btn-block mt-3">
+                                                            <i class="fas fa-check"></i> Finalizar Venda
+                                                        </button>
+
                                                     </div>
-                                                    <div class="form-group mt-2">
-                                                        <label>Método de Pagamento</label>
-                                                        <select id="paymentMethod" class="form-control form-control-sm">
-                                                            <option value="cash">Cash</option>
-                                                            <option value="mpesa">M-Pesa</option>
-                                                            <option value="card">Cartão</option>
-                                                            <option value="transfer">Transferência</option>
-                                                        </select>
-                                                    </div>
-
-                                                    <div class="form-group mt-3">
-                                                        <label>Valor Pago</label>
-                                                        <input type="number" class="form-control form-control-sm"
-                                                            id="amountPaid" min="0" required>
-                                                    </div>
-
-                                                    <div class="d-flex justify-content-between">
-                                                        <strong>Troco:</strong>
-                                                        <strong id="changeAmount">0.00 MZN</strong>
-                                                    </div>
-
-                                                    <button type="submit" class="btn btn-success btn-sm btn-block mt-3">
-                                                        <i class="fas fa-check"></i> Finalizar Venda
-                                                    </button>
-
                                                 </div>
-                                            </div>
 
+                                            </div>
                                         </div>
-                                    </div>
                                 </form>
 
                             </div>
@@ -106,7 +501,7 @@
                 <!-- Products Modal-->
                 <div class="modal fade" id="productSelectModal" tabindex="-1" role="dialog"
                     aria-labelledby="exampleModalLabel" aria-hidden="true">
-                    <div class="modal-dialog modal-lg" role="document">
+                    <div class="modal-dialog" role="document">
                         <div class="modal-content">
                             <div class="modal-header">
                                 <h6 class="modal-title" id="exampleModalLabel"><strong>

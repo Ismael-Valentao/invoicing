@@ -340,11 +340,11 @@ document.addEventListener("DOMContentLoaded", function () {
     function buildRowHTML() {
         // description AGORA é editável para autocomplete
         return `
-      <td class="d-flex">
-        <input type="text" class="form-control form-control-sm description" placeholder="Digite para pesquisar..." required />
+      <td class="d-flex product-row">
+        <input type="text" class="form-control form-control-sm description product-description" placeholder="Digite para pesquisar..." required />
         <input type="hidden" class="productId" />
         <button type="button" class="btn btn-primary btn-sm ml-3 d-flex align-items-center btn-open-products-list">
-          <i class="fa-solid fa-table-list mr-2"></i>
+          <i class="fa-solid fa-list"></i>
           <span>Selecionar</span>
         </button>
       </td>
@@ -364,12 +364,6 @@ document.addEventListener("DOMContentLoaded", function () {
       </td>
     `;
     }
-
-    addRowBtn?.addEventListener("click", function () {
-        const row = document.createElement("tr");
-        row.innerHTML = buildRowHTML();
-        tableBody.appendChild(row);
-    });
 
     tableBody.addEventListener("click", function (e) {
         if (e.target.closest(".remove-row")) {
@@ -463,4 +457,14 @@ document.addEventListener("DOMContentLoaded", function () {
         const firstRow = tableBody.querySelector("tr");
         if (firstRow) updateRowSubtotal(firstRow);
     }, 0);
+
+    addRowBtn?.addEventListener("click", function () {
+        const row = document.createElement("tr");
+        row.innerHTML = buildRowHTML();
+        tableBody.appendChild(row);
+
+        // foco automático (melhor UX no mobile)
+        const desc = row.querySelector(".description");
+        if (desc) desc.focus();
+    });
 });

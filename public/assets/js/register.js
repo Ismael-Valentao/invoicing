@@ -314,18 +314,19 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
 
-
     document.getElementById('btn-next').addEventListener('click', () => {
         if (!validateCompanyStep()) return;
 
-        document.getElementById('info-description').innerText =
-            'Informações do Usuário';
+        document.getElementById('info-description').innerText = 'Informações do Usuário';
 
-        document.getElementById('companyInfo').style.display = 'none';
+        document.getElementById('companyInfo').classList.add('d-none');
         document.getElementById('userInfo').classList.remove('d-none');
 
         document.getElementById('next-footer').classList.add('d-none');
         document.getElementById('save-footer').classList.remove('d-none');
+
+        // mobile UX: sobe
+        window.scrollTo({ top: 0, behavior: 'smooth' });
     });
 
     // Gera senha forte
@@ -415,14 +416,13 @@ document.addEventListener("DOMContentLoaded", function () {
 })
 
 document.getElementById('btn-prev').addEventListener('click', () => {
-    // Mostra empresa, esconde usuário
     document.getElementById('companyInfo').classList.remove('d-none');
     document.getElementById('userInfo').classList.add('d-none');
 
-    // Atualiza título / descrição
     document.getElementById('info-description').innerText = 'Informações da Empresa';
 
-    // Alterna os botões
     document.getElementById('save-footer').classList.add('d-none');
     document.getElementById('next-footer').classList.remove('d-none');
+
+    window.scrollTo({ top: 0, behavior: 'smooth' });
 });

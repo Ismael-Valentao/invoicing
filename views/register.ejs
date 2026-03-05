@@ -361,6 +361,158 @@
                 width: fit-content;
             }
         }
+
+        /* =========================
+   REGISTER - Mobile friendly
+   ========================= */
+        @media (max-width: 576px) {
+
+            /* reduz padding geral */
+            .auth-wrap {
+                padding: 18px 0;
+            }
+
+            /* card ocupa melhor a tela */
+            .auth-body {
+                padding: 16px;
+            }
+
+            /* HEADER vira coluna */
+            .auth-head {
+                flex-direction: column;
+                align-items: flex-start;
+                padding: 14px 14px;
+            }
+
+            /* brand ocupa tudo */
+            .brand {
+                min-width: auto;
+                width: 100%;
+            }
+
+            .brand .t1 {
+                font-size: 1.05rem;
+            }
+
+            .brand .t2 {
+                font-size: .85rem;
+            }
+
+            /* Steps: vira linha compacta e barra em baixo */
+            .steps {
+                width: 100%;
+                justify-content: flex-start;
+                gap: 8px;
+            }
+
+            /* pills menores */
+            .step-pill {
+                padding: 6px 10px;
+                font-size: .80rem;
+            }
+
+            .step-dot {
+                width: 22px;
+                height: 22px;
+                font-size: .85rem;
+            }
+
+            /* barra ocupa 100% e vai para linha inteira */
+            .progress-mini {
+                width: 100%;
+                height: 10px;
+                order: 3;
+            }
+
+            /* título e subtítulo */
+            .title {
+                font-size: 1.05rem;
+            }
+
+            .subtitle {
+                font-size: .92rem;
+            }
+
+            /* inputs no iPhone não dão zoom (>=16px) */
+            input.form-control,
+            select.form-control,
+            textarea.form-control {
+                font-size: 16px !important;
+            }
+
+            /* labels e grupos */
+            label {
+                font-size: .88rem;
+                margin-left: .15rem;
+            }
+
+            .form-group {
+                margin-bottom: .9rem;
+            }
+
+            /* Nota obrigatórios */
+            .required-note {
+                text-align: left;
+                font-size: .85rem;
+                padding: 10px 12px;
+            }
+
+            /* Password: toolbar já tens, mas deixamos ela bem alinhada no mobile */
+            .pw-tools {
+                margin-top: 10px;
+                width: 100%;
+                justify-content: space-between;
+            }
+
+            .pw-btn {
+                flex: 1;
+                height: 44px;
+                border-radius: 12px;
+            }
+
+            /* FOOTER vira coluna com botões full */
+            .auth-footer {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 10px;
+                padding: 12px 14px;
+            }
+
+            .footer-left {
+                justify-content: center;
+                text-align: center;
+                width: 100%;
+            }
+
+            /* botões 100% */
+            #next-footer,
+            #save-footer {
+                width: 100%;
+            }
+
+            #btn-next,
+            #btn-save,
+            #btn-prev {
+                width: 100%;
+                margin: 0 !important;
+                padding: 12px 14px !important;
+                font-size: 1rem;
+            }
+
+            /* quando estiveres no step 2 (btn-prev + btn-save), coloca em coluna com gap */
+            #save-footer {
+                display: flex;
+                flex-direction: column;
+                gap: 10px;
+            }
+        }
+
+        /* Tablet pequeno (opcional): melhora um pouco também */
+        @media (max-width: 768px) {
+            .auth-card {
+                border-radius: 16px !important;
+            }
+        }
     </style>
 </head>
 

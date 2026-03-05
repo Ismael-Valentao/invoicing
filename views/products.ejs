@@ -52,6 +52,145 @@
             justify-content: center;
             gap: 0.5rem;
         }
+
+        /* =========================
+   PRODUCTS - Mobile Cards
+   ========================= */
+        #productsMobileList .p-card {
+            border: 1px solid rgba(0, 0, 0, .08);
+            border-radius: 14px;
+            padding: 12px;
+            background: #fff;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, .04);
+            margin-bottom: 10px;
+        }
+
+        #productsMobileList .p-top {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+            margin-bottom: 8px;
+        }
+
+        #productsMobileList .p-name {
+            font-weight: 900;
+            font-size: .95rem;
+            color: #2d3748;
+            line-height: 1.2;
+        }
+
+        #productsMobileList .p-sku {
+            font-size: .78rem;
+            color: #718096;
+            white-space: nowrap;
+        }
+
+        #productsMobileList .p-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+
+        #productsMobileList .p-pill {
+            font-size: .78rem;
+            padding: 4px 10px;
+            border-radius: 999px;
+            background: #f1f5f9;
+            color: #334155;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        #productsMobileList .p-pill strong {
+            font-weight: 900;
+        }
+
+        #productsMobileList .p-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        #productsMobileList .p-actions .btn {
+            flex: 1;
+            border-radius: 12px;
+            padding: 10px 12px;
+            font-weight: 900;
+        }
+
+        @media (max-width:768px) {
+            #btnProductsMobileLoadMore {
+                border-radius: 12px;
+                padding: 10px 12px;
+                font-weight: 900;
+            }
+
+            /* header botão "Adicionar Produto" mais confortável */
+            #btn-create-product {
+                border-radius: 12px;
+                padding: 10px 12px;
+                font-weight: 900;
+            }
+        }
+
+        /* =========================
+   MODALS FULLSCREEN (mobile)
+   ========================= */
+        @media (max-width: 768px) {
+
+            #productModal .modal-dialog,
+            #updateProductModal .modal-dialog,
+            #stockModal .modal-dialog {
+                margin: 0;
+                max-width: 100%;
+                height: 100%;
+            }
+
+            #productModal .modal-content,
+            #updateProductModal .modal-content,
+            #stockModal .modal-content {
+                height: 100vh;
+                border: 0;
+                border-radius: 0;
+            }
+
+            #productModal .modal-header,
+            #updateProductModal .modal-header,
+            #stockModal .modal-header {
+                position: sticky;
+                top: 0;
+                z-index: 10;
+                background: #fff;
+                border-bottom: 1px solid rgba(0, 0, 0, .08);
+            }
+
+            #productModal .modal-body,
+            #updateProductModal .modal-body,
+            #stockModal .modal-body {
+                overflow-y: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+
+            #productModal .modal-footer,
+            #updateProductModal .modal-footer,
+            #stockModal .modal-footer {
+                position: sticky;
+                bottom: 0;
+                z-index: 10;
+                background: #fff;
+                border-top: 1px solid rgba(0, 0, 0, .08);
+            }
+
+            /* inputs maiores */
+            #productModal .form-control,
+            #updateProductModal .form-control,
+            #stockModal .form-control {
+                height: 48px;
+                border-radius: 12px;
+                font-weight: 700;
+            }
+        }
     </style>
 </head>
 
@@ -68,49 +207,54 @@
                 <div id="content">
 
                     <%- include('partials/topbar') %>
-                    <div class="page-content">
+                        <div class="page-content">
 
-                        <!-- Begin Page Content -->
-                        <div class="container-fluid">
+                            <!-- Begin Page Content -->
+                            <div class="container-fluid">
 
-                            <!-- Page Heading -->
-                            <div class="d-sm-flex align-items-center justify-content-between mb-4">
-                                <h5 class="mb-0 text-gray-800">Produtos</h5>
-                                <button class="btn btn-primary btn-sm" id="btn-create-product" type="button"
-                                    data-toggle="modal" data-target="#productModal">
-                                    <i class="fas fa-plus fa-sm text-white-50"></i> Adicionar Produto
-                                </button>
+                                <!-- Page Heading -->
+                                <div class="d-sm-flex align-items-center justify-content-between mb-4">
+                                    <h5 class="mb-0 text-gray-800">Produtos</h5>
+                                    <button class="btn btn-primary btn-sm" id="btn-create-product" type="button"
+                                        data-toggle="modal" data-target="#productModal">
+                                        <i class="fas fa-plus fa-sm text-white-50"></i> Adicionar Produto
+                                    </button>
 
-                            </div>
+                                </div>
 
-                            <!-- DataTales Example -->
-                            <div class="card shadow mb-4">
-                                <div class="card-body">
-                                    <div class="table-responsive">
-                                        <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
-                                            <thead>
-                                                <tr class="bg-secondary text-white">
-                                                    <th>Produto</th>
-                                                    <th class="text-center">SKU</th>
-                                                    <th class="text-center">Unid.</th>
-                                                    <th class="text-center">Preço</th>
-                                                    <th class="text-center">Stock</th>
-                                                    <th class="text-center">Mín.</th>
-                                                    <th class="text-center">Estado</th>
-                                                    <th class="text-center">Ações</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
+                                <!-- DataTales Example -->
+                                <div class="card shadow mb-4">
+                                    <div class="card-body">
+                                        <!-- MOBILE: cards -->
+                                        <div id="productsMobileList" class="d-md-none"></div>
 
-                                            </tbody>
-                                            <tfoot>
-                                            </tfoot>
-                                        </table>
+                                        <!-- DESKTOP: tabela -->
+                                        <div class="table-responsive d-none d-md-block">
+                                            <table class="table table-bordered" id="dataTable" width="100%"
+                                                cellspacing="0">
+                                                <thead>
+                                                    <tr class="bg-secondary text-white">
+                                                        <th>Produto</th>
+                                                        <th class="text-center">SKU</th>
+                                                        <th class="text-center">Unid.</th>
+                                                        <th class="text-center">Preço</th>
+                                                        <th class="text-center">Stock</th>
+                                                        <th class="text-center">Mín.</th>
+                                                        <th class="text-center">Estado</th>
+                                                        <th class="text-center">Ações</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+
+                                                </tbody>
+                                                <tfoot>
+                                                </tfoot>
+                                            </table>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
 
-                        </div>
+                            </div>
                         </div>
                         <!-- /.container-fluid -->
 
