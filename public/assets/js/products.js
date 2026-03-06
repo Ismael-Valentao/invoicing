@@ -101,13 +101,12 @@ document.addEventListener("DOMContentLoaded", function () {
         <div class="text-muted mb-2" style="font-size:.85rem;">
           A mostrar <strong>${showing}</strong> de <strong>${total}</strong>
         </div>
-        ${
-          hasMore
-            ? `<button class="btn btn-outline-primary btn-sm w-100" id="btnProductsMobileLoadMore">
+        ${hasMore
+        ? `<button class="btn btn-outline-primary btn-sm w-100" id="btnProductsMobileLoadMore">
                  <i class="fa-solid fa-plus"></i> Carregar mais
                </button>`
-            : `<div class="text-muted" style="font-size:.85rem;">Fim da lista</div>`
-        }
+        : `<div class="text-muted" style="font-size:.85rem;">Fim da lista</div>`
+      }
       </div>
     `;
 
@@ -180,7 +179,11 @@ document.addEventListener("DOMContentLoaded", function () {
     const stockMin = document.getElementById("add-product-min")?.value || 0;
 
     if (!description || !unitPrice) {
-      return Swal.fire({ icon: "warning", title: "Campos obrigatórios", text: "Preencha nome e preço." });
+      return Swal.fire({
+        icon: "warning",
+        title: "Campos obrigatórios",
+        text: "Preencha nome e preço."
+      });
     }
 
     const payload = { description, unitPrice, sku, unit, stockQuantity, stockMin };
@@ -193,11 +196,23 @@ document.addEventListener("DOMContentLoaded", function () {
 
     const json = await resp.json().catch(() => ({}));
     if (!resp.ok) {
-      return Swal.fire({ icon: "error", title: "Erro", text: json.message || "Erro ao criar produto" });
+      return Swal.fire({
+        icon: "error",
+        title: "Erro",
+        text: json.message || "Erro ao criar produto"
+      });
     }
 
-    $("#productModal").modal("hide");
-    Swal.fire({ icon: "success", title: "Sucesso", text: "Produto adicionado", timer: 1200, showConfirmButton: false });
+    resetAddProductForm();
+
+    Swal.fire({
+      icon: "success",
+      title: "Sucesso",
+      text: "Produto adicionado",
+      timer: 1200,
+      showConfirmButton: false
+    });
+
     await loadProducts();
   });
 
@@ -356,6 +371,51 @@ document.addEventListener("DOMContentLoaded", function () {
     renderMobile(lastProducts);
   });
 
+  function resetAddProductForm() {
+    const form = document.getElementById("add-product-form");
+    if (form) form.reset();
+
+    document.getElementById("add-product-name").value = "";
+    document.getElementById("add-product-sku").value = "";
+    document.getElementById("add-product-unit").value = "un";
+    document.getElementById("add-product-price").value = "";
+    document.getElementById("add-product-stock").value = 0;
+    document.getElementById("add-product-min").value = 0;
+  }
+
+  $("#productModal").on("hidden.bs.modal", function () {
+    resetAddProductForm();
+  });
+
+  function updateStockReasonOptions() {
+    const typeEl = document.getElementById("stock-type");
+    const reasonEl = document.getElementById("stock-reason");
+
+    if (!typeEl || !reasonEl) return;
+
+    const type = typeEl.value;
+
+    if (type === "IN") {
+      reasonEl.innerHTML = `
+      <option value="">Selecione o motivo</option>
+      <option value="purchase" selected>Compra</option>
+      <option value="adjustment">Ajuste</option>
+    `;
+    } else if (type === "OUT") {
+      reasonEl.innerHTML = `
+      <option value="">Selecione o motivo</option>
+      <option value="sale" selected>Venda</option>
+      <option value="adjustment">Ajuste</option>
+    `;
+    } else {
+      reasonEl.innerHTML = `
+      <option value="" selected>Selecione o motivo</option>
+    `;
+    }
+  }
+
+  document.getElementById("stock-type")?.addEventListener("change", updateStockReasonOptions);
+  updateStockReasonOptions()
   // init
   loadProducts().catch(console.error);
 });

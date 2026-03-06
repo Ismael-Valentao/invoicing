@@ -345,7 +345,6 @@ document.addEventListener("DOMContentLoaded", function () {
         <input type="hidden" class="productId" />
         <button type="button" class="btn btn-primary btn-sm ml-3 d-flex align-items-center btn-open-products-list">
           <i class="fa-solid fa-list"></i>
-          <span>Selecionar</span>
         </button>
       </td>
       <td>
