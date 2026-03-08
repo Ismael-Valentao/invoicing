@@ -15,144 +15,138 @@
 
   <body id="page-top">
     <div id="wrapper">
-      <%- include ('partials/sidebar') %>
+      <%- include('partials/sidebar') %>
 
       <div id="content-wrapper" class="d-flex flex-column">
         <div id="content">
-          <%- include ('partials/topbar') %>
+          <%- include('partials/topbar') %>
 
-          <!-- IMPORTANT: para rolar só o conteúdo -->
-          
-            <div class="container-fluid">
+          <div class="container-fluid">
+            <div class="d-sm-flex align-items-center justify-content-between mb-4">
+              <h5 class="mb-0 text-gray-800"><strong>Dashboard de Vendas</strong></h5>
 
-              <div class="d-sm-flex align-items-center justify-content-between mb-4">
-                <h5 class="mb-0 text-gray-800"><strong>Dashboard de Vendas</strong></h5>
-
-                <div class="d-flex" style="gap:8px;">
-                  <select id="range" class="form-control form-control-sm">
-                    <option value="7" selected>Últimos 7 dias</option>
-                    <option value="14">Últimos 14 dias</option>
-                    <option value="30">Últimos 30 dias</option>
-                  </select>
-                  <button id="btn-refresh" class="btn btn-primary btn-sm">
-                    <i class="fa-solid fa-rotate"></i>
-                  </button>
-                </div>
+              <div class="d-flex" style="gap:8px;">
+                <select id="range" class="form-control form-control-sm">
+                  <option value="7" selected>Últimos 7 dias</option>
+                  <option value="14">Últimos 14 dias</option>
+                  <option value="30">Últimos 30 dias</option>
+                </select>
+                <button id="btn-refresh" class="btn btn-primary btn-sm">
+                  <i class="fa-solid fa-rotate"></i>
+                </button>
               </div>
+            </div>
 
-              <div class="row">
-                <div class="col-xl-3 col-md-6 mb-4">
-                  <div class="card border-left-primary shadow h-100 py-2">
-                    <div class="card-body">
-                      <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                          <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
-                            Total vendido
-                          </div>
-                          <div class="h6 mb-0 font-weight-bold text-gray-800" id="total-sold"></div>
+            <div class="row">
+              <div class="col-xl-3 col-md-6 mb-4">
+                <div class="card border-left-primary shadow h-100 py-2">
+                  <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                      <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                          Total vendido
                         </div>
-                        <div class="col-auto">
-                          <i class="fas fa-dollar-sign fa-2x text-gray-300"></i>
-                        </div>
+                        <div class="h6 mb-0 font-weight-bold text-gray-800" id="total-sold"></div>
                       </div>
-                    </div>
-                  </div>
-                </div>
-
-                <div class="col-xl-3 col-md-6 mb-4">
-                  <div class="card border-left-success shadow h-100 py-2">
-                    <div class="card-body">
-                      <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                          <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
-                            Nº de vendas
-                          </div>
-                          <div class="h6 mb-0 font-weight-bold text-gray-800" id="total-sales"></div>
-                        </div>
-                        <div class="col-auto">
-                          <i class="fas fa-cart-shopping fa-2x text-gray-300"></i>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <div class="col-xl-3 col-md-6 mb-4">
-                  <div class="card border-left-info shadow h-100 py-2">
-                    <div class="card-body">
-                      <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                          <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
-                            Última venda
-                          </div>
-                          <div class="h6 mb-0 font-weight-bold text-gray-800" id="last-sale"></div>
-                        </div>
-                        <div class="col-auto">
-                          <i class="fas fa-receipt fa-2x text-gray-300"></i>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <div class="col-xl-3 col-md-6 mb-4">
-                  <div class="card border-left-warning shadow h-100 py-2">
-                    <div class="card-body">
-                      <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                          <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
-                            Vendas canceladas
-                          </div>
-                          <div class="h6 mb-0 font-weight-bold text-gray-800" id="cancelled-sales"></div>
-                        </div>
-                        <div class="col-auto">
-                          <i class="fas fa-ban fa-2x text-gray-300"></i>
-                        </div>
+                      <div class="col-auto">
+                        <i class="fas fa-dollar-sign fa-2x text-gray-300"></i>
                       </div>
                     </div>
                   </div>
                 </div>
               </div>
 
-              <div class="row">
-                <div class="col-xl-8 col-lg-7">
-                  <div class="card shadow mb-4">
-                    <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-                      <h6 class="m-0 font-weight-bold text-primary">
-                        Vendas por dia
-                      </h6>
-                    </div>
-                    <div class="card-body">
-                      <div class="chart-area">
-                        <canvas id="salesAreaChart"></canvas>
+              <div class="col-xl-3 col-md-6 mb-4">
+                <div class="card border-left-success shadow h-100 py-2">
+                  <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                      <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                          Nº de vendas
+                        </div>
+                        <div class="h6 mb-0 font-weight-bold text-gray-800" id="total-sales"></div>
                       </div>
-                    </div>
-                  </div>
-                </div>
-
-                <div class="col-xl-4 col-lg-5">
-                  <div class="card shadow mb-4">
-                    <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-                      <h6 class="m-0 font-weight-bold text-primary">
-                        Métodos de pagamento
-                      </h6>
-                    </div>
-                    <div class="card-body">
-                      <div class="chart-pie pt-4 pb-2">
-                        <canvas id="paymentsPieChart"></canvas>
+                      <div class="col-auto">
+                        <i class="fas fa-cart-shopping fa-2x text-gray-300"></i>
                       </div>
-                      <div class="mt-4 text-center small" id="paymentLegend"></div>
                     </div>
                   </div>
                 </div>
               </div>
 
+              <div class="col-xl-3 col-md-6 mb-4">
+                <div class="card border-left-info shadow h-100 py-2">
+                  <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                      <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                          Última venda
+                        </div>
+                        <div class="h6 mb-0 font-weight-bold text-gray-800" id="last-sale"></div>
+                      </div>
+                      <div class="col-auto">
+                        <i class="fas fa-receipt fa-2x text-gray-300"></i>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="col-xl-3 col-md-6 mb-4">
+                <div class="card border-left-warning shadow h-100 py-2">
+                  <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                      <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                          Vendas canceladas
+                        </div>
+                        <div class="h6 mb-0 font-weight-bold text-gray-800" id="cancelled-sales"></div>
+                      </div>
+                      <div class="col-auto">
+                        <i class="fas fa-ban fa-2x text-gray-300"></i>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="col-xl-8 col-lg-7">
+                <div class="card shadow mb-4">
+                  <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                      Vendas por dia
+                    </h6>
+                  </div>
+                  <div class="card-body">
+                    <div class="chart-area">
+                      <canvas id="salesAreaChart"></canvas>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="col-xl-4 col-lg-5">
+                <div class="card shadow mb-4">
+                  <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                      Métodos de pagamento
+                    </h6>
+                  </div>
+                  <div class="card-body">
+                    <div class="chart-pie pt-4 pb-2">
+                      <canvas id="paymentsPieChart"></canvas>
+                    </div>
+                    <div class="mt-4 text-center small" id="paymentLegend"></div>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
-
         </div>
 
-        <%- include ('partials/copyright') %>
+        <%- include('partials/copyright') %>
       </div>
     </div>
 
@@ -160,7 +154,7 @@
       <i class="fas fa-angle-up"></i>
     </a>
 
-    <%- include ('partials/footer') %>
+    <%- include('partials/footer') %>
 
     <script src="assets/vendor/chart.js/Chart.min.js"></script>
     <script src="assets/js/sales-dashboard.js"></script>

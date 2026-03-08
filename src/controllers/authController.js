@@ -30,7 +30,7 @@ exports.login = async (req, res) => {
 
   const user = await User.findOne({ email }).populate('companyId');
 
-  if (user.status === "blocked") {
+  if (user?.status === "blocked") {
     return res.status(401).json({ success: false, message: "Conta bloqueiada. Por favor, contacte o administrador!!!" })
   }
 

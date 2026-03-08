@@ -299,10 +299,10 @@ document.addEventListener("DOMContentLoaded", function () {
             if (data.status === 'success') {
                 launchConfetti();
                 setTimeout(() => {
-                    showSuccess('Sucesso!', 'Estás quase lá! Verifique o seu e-mail.');
+                    showSuccess('Sucesso!', 'Verifique o seu e-mail.');
                     setTimeout(() => {
                         window.location.href = '/login';
-                    }, 5000)
+                    }, 10000)
                 }, 3000);
             } else {
                 showError('Erro', data.message);

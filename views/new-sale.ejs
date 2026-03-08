@@ -404,6 +404,59 @@
                 font-weight: 700;
             }
         }
+
+        .sale-card {
+            overflow-x: hidden;
+        }
+
+        .sale-card,
+        .sale-card .card-body,
+        .sale-table-wrap {
+            overflow-x: hidden;
+            max-width: 100%;
+        }
+
+        .sale-items-table {
+            width: 100% !important;
+            table-layout: fixed;
+        }
+
+        .sale-items-table input,
+        .sale-items-table select,
+        .sale-items-table button {
+            max-width: 100%;
+        }
+
+        @media (max-width: 768px) {
+            .sale-table-wrap {
+                overflow-x: visible !important;
+            }
+
+            .sale-items-table {
+                display: block;
+                width: 100% !important;
+                margin-bottom: 0;
+            }
+
+            .sale-items-table tr {
+                overflow: hidden;
+            }
+
+            .sale-items-table td,
+            .sale-items-table td * {
+                max-width: 100%;
+                box-sizing: border-box;
+            }
+
+            .sale-items-table .quantity,
+            .sale-items-table .unitPrice,
+            .sale-items-table .subtotal,
+            .sale-items-table .description,
+            .sale-items-table .product-description {
+                width: 100% !important;
+                max-width: 100% !important;
+            }
+        }
     </style>
 </head>
 
@@ -416,86 +469,82 @@
                 <div id="content">
 
                     <%- include('partials/topbar') %>
-                        
 
-                            <div class="container-fluid">
 
-                                <form id="sale-form">
-                                    <div class="card shadow">
-                                        <div class="card-body">
-                                            <!-- Itens -->
-                                            <h6 class="text-gray-800">
-                                                <strong>Itens da Venda</strong>
-                                            </h6>
+                        <div class="container-fluid">
 
-                                            <div class="table-responsive sale-table-wrap">
-                                                <table class="table table-bordered sale-items-table"
-                                                    id="saleItemsTable">
-                                                    <thead>
-                                                        <tr>
-                                                            <th style="width:40%">Descrição</th>
-                                                            <th style="width:15%">Qtd</th>
-                                                            <th style="width:20%">Preço</th>
-                                                            <th style="width:20%">Subtotal</th>
-                                                            <th></th>
-                                                        </tr>
-                                                    </thead>
-                                                    <tbody>
+                            <form id="sale-form">
+                                <div class="card shadow sale-card">
+                                    <div class="card-body">
+                                        <!-- Itens -->
+                                        <h6 class="text-gray-800">
+                                            <strong>Itens da Venda</strong>
+                                        </h6>
 
-                                                    </tbody>
-                                                </table>
+                                        <div class="table-responsive sale-table-wrap">
+                                            <table class="table table-bordered sale-items-table" id="saleItemsTable">
+                                                <thead>
+                                                    <tr>
+                                                        <th style="width:40%">Descrição</th>
+                                                        <th style="width:15%">Qtd</th>
+                                                        <th style="width:20%">Preço</th>
+                                                        <th style="width:20%">Subtotal</th>
+                                                        <th></th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
 
-                                                <button type="button" class="btn btn-sm btn-secondary mb-3"
-                                                    id="addSaleRow">
-                                                    <i class="fas fa-plus"></i> Adicionar Item
-                                                </button>
+                                                </tbody>
+                                            </table>
 
-                                                <hr>
+                                            <button type="button" class="btn btn-sm btn-secondary mb-3" id="addSaleRow">
+                                                <i class="fas fa-plus"></i> Adicionar Item
+                                            </button>
 
-                                                <!-- Totais -->
-                                                <div class="row justify-content-end">
+                                            <hr>
 
-                                                    <div class="col-md-4">
+                                            <!-- Totais -->
+                                            <div class="row justify-content-end">
 
-                                                        <div class="d-flex justify-content-between">
-                                                            <strong>Total:</strong>
-                                                            <strong id="saleTotal">0.00 MZN</strong>
-                                                        </div>
-                                                        <div class="form-group mt-2">
-                                                            <label>Método de Pagamento</label>
-                                                            <select id="paymentMethod"
-                                                                class="form-control form-control-sm">
-                                                                <option value="cash">Cash</option>
-                                                                <option value="mpesa">M-Pesa</option>
-                                                                <option value="card">Cartão</option>
-                                                                <option value="transfer">Transferência</option>
-                                                            </select>
-                                                        </div>
+                                                <div class="col-md-4">
 
-                                                        <div class="form-group mt-3">
-                                                            <label>Valor Pago</label>
-                                                            <input type="number" class="form-control form-control-sm"
-                                                                id="amountPaid" min="0" required>
-                                                        </div>
-
-                                                        <div class="d-flex justify-content-between">
-                                                            <strong>Troco:</strong>
-                                                            <strong id="changeAmount">0.00 MZN</strong>
-                                                        </div>
-
-                                                        <button type="submit"
-                                                            class="btn btn-success btn-sm btn-block mt-3">
-                                                            <i class="fas fa-check"></i> Finalizar Venda
-                                                        </button>
-
+                                                    <div class="d-flex justify-content-between">
+                                                        <strong>Total:</strong>
+                                                        <strong id="saleTotal">0.00 MZN</strong>
                                                     </div>
+                                                    <div class="form-group mt-2">
+                                                        <label>Método de Pagamento</label>
+                                                        <select id="paymentMethod" class="form-control form-control-sm">
+                                                            <option value="cash">Cash</option>
+                                                            <option value="mpesa">M-Pesa</option>
+                                                            <option value="card">Cartão</option>
+                                                            <option value="transfer">Transferência</option>
+                                                        </select>
+                                                    </div>
+
+                                                    <div class="form-group mt-3">
+                                                        <label>Valor Pago</label>
+                                                        <input type="number" class="form-control form-control-sm"
+                                                            id="amountPaid" min="0" required>
+                                                    </div>
+
+                                                    <div class="d-flex justify-content-between">
+                                                        <strong>Troco:</strong>
+                                                        <strong id="changeAmount">0.00 MZN</strong>
+                                                    </div>
+
+                                                    <button type="submit" class="btn btn-success btn-sm btn-block mt-3">
+                                                        <i class="fas fa-check"></i> Finalizar Venda
+                                                    </button>
+
                                                 </div>
-
                                             </div>
-                                        </div>
-                                </form>
 
-                            </div>
+                                        </div>
+                                    </div>
+                                    </div>
+                            </form>
+
                         </div>
                 </div>
                 <!-- Products Modal-->

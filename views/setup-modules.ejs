@@ -6,6 +6,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Invoicing | Escolher Módulos</title>
   <link rel="icon" type="image/png" href="images/invoicing-logo-simple.png" />
+  <link
+        href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i"
+        rel="stylesheet" />
 
   <link href="assets/vendor/fontawesome-free/css/all.min.css" rel="stylesheet" />
   <link href="assets/css/sb-admin-2.min.css" rel="stylesheet" />
@@ -315,14 +318,16 @@
             <div class="cards">
               <div class="module-card" id="cardSales" role="button" tabindex="0">
                 <div class="m-left">
-                  <div class="m-icon"><i class="fa-solid fa-cash-register"></i></div>
+                  <div class="m-icon"><i class="fa fa-shopping-cart"></i></div>
                   <div>
-                    <div class="m-title">Vendas</div>
-                    <div class="m-desc">Caixa, recibos e pagamentos com stock integrado</div>
+                    <div class="m-title">Vendas e Stock</div>
+                    <div class="m-desc">Ideial para quem deseja fazer controle das vendas e stock</div>
                     <ul class="m-feats">
+                      <li>Gestão de Stock</li>
+                      <li>Gestão de vendas</li>
+                      <li>Baixa automática no stock + movimentos</li>
                       <li>Recibo tipo supermercado (rápido, compacto)</li>
                       <li>Venda sem cliente</li>
-                      <li>Baixa automática no stock + movimentos</li>
                     </ul>
                   </div>
                 </div>
@@ -331,7 +336,7 @@
 
               <div class="module-card" id="cardInvoicing" role="button" tabindex="0">
                 <div class="m-left">
-                  <div class="m-icon"><i class="fa-solid fa-file-invoice-dollar"></i></div>
+                  <div class="m-icon"><i class="fa fa-file"></i></div>
                   <div>
                     <div class="m-title">Facturação</div>
                     <div class="m-desc">Facturas, VD, cotações e recibos A4 profissionais</div>
@@ -354,7 +359,7 @@
               <div class="selected-list" id="selectedList"></div>
 
               <div class="note">
-                <strong>Nota:</strong> depois podes ativar mais módulos e gerir subscrições.
+                <strong>Nota:</strong> depois podes activar mais módulos e gerir subscrições.
               </div>
 
               <div class="side-actions">
@@ -391,8 +396,8 @@
       list.innerHTML = "";
 
       const selected = [];
-      if (sales) selected.push({ key: "sales", label: "Vendas", icon: "fa-cash-register" });
-      if (invoicing) selected.push({ key: "invoicing", label: "Facturação", icon: "fa-file-invoice-dollar" });
+      if (sales) selected.push({ key: "sales", label: "Vendas", icon: "fa-shopping-cart" });
+      if (invoicing) selected.push({ key: "invoicing", label: "Facturação", icon: "fa-file" });
 
       $("cardSales").classList.toggle("active", sales);
       $("cardInvoicing").classList.toggle("active", invoicing);
@@ -411,10 +416,10 @@
         el.className = "selected-item";
         el.innerHTML = `
             <div>
-              <div class="name"><i class="fa-solid ${s.icon} mr-2"></i>${s.label}</div>
-              <div class="tag">Ativo na tua conta</div>
+              <div class="name"><i class="fa ${s.icon} mr-2"></i>${s.label}</div>
+              <div class="tag">Activo na tua conta</div>
             </div>
-            <i class="fa-solid fa-check text-success"></i>
+            <i class="fa fa-check text-success"></i>
           `;
         list.appendChild(el);
       });
@@ -484,6 +489,7 @@
     });
 
     renderSummary();
+    toggle("sales")
   </script>
 </body>
 
