@@ -30,7 +30,7 @@ exports.createInvoice = async (req, res) => {
     dueDate: req.body.date,
     companyId,
     userId,
-    clientId:req.body.clientId
+    clientId:req.body.clientId || null
   });
 
   const existingInvoice = await Invoice.findOne({
