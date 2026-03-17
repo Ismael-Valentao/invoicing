@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 require('dotenv').config();
-const { createCompany, getCompanies, getCompanyById, updateCompany, deleteCompany, upload, registCompanyLogo, registCompanyLogoProdVersion, getCompany, updateCompanyBank, updateBankDetailsVisibility, getBankDetailsVisibility } = require('../controllers/companyController');
+const { createCompany, getCompanies, getCompanyById, updateCompany, deleteCompany, upload, registCompanyLogo, registCompanyLogoProdVersion, getCompany, updateCompanyBank, addCompanyBank,updateBankDetailsVisibility, getBankDetailsVisibility, deleteCompanyBank, setPrimaryCompanyBank } = require('../controllers/companyController');
 const { authMiddleware } = require('../middlewares/authMiddleware');
 const { nextMiddleware } = require('../middlewares/nextMiddleware');
 const { updateModules } = require("../controllers/companyModulesController");
@@ -21,7 +21,10 @@ router.get(
     authMiddleware,
     getBankDetailsVisibility
 );
-
+router.post('/banks', authMiddleware, addCompanyBank);
+router.patch('/banks/:bankId', authMiddleware, updateCompanyBank);
+router.delete('/banks/:bankId', authMiddleware, deleteCompanyBank);
+router.patch('/banks/:bankId/primary', authMiddleware, setPrimaryCompanyBank);
 router.put('/update-bank-visibility', authMiddleware, updateBankDetailsVisibility);
 router.put('/', authMiddleware, updateCompany);
 router.delete('/:id', authMiddleware, deleteCompany);

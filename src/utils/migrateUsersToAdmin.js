@@ -3,10 +3,7 @@ require('dotenv').config();
 
 const User = require('../models/user'); // ajusta o caminho se necessário
 
-const MONGO_URI =
-  process.env.NODE_ENV?.toLowerCase() === 'development'
-    ? process.env.MONGODB_LOCAL_URI
-    : process.env.MONGODB_URI;
+const MONGO_URI = process.env.MONGODB_URI_DEV;
 
 async function migrateUsersToAdmin() {
   try {

@@ -71,7 +71,8 @@ exports.createCompany = async (req, res) => {
                 contact,
                 email,
                 nuit,
-                showBankDetails: {}
+                showBankDetails: {},
+                bankDetails: []
             }], { session });
 
             const hashedPassword = bcrypt.hashSync(userpassword, 10);
@@ -181,7 +182,9 @@ exports.createCompany = async (req, res) => {
                 address,
                 contact,
                 email,
-                nuit
+                nuit,
+                showBankDetails: {},
+                bankDetails: []
             });
 
             const hashedPassword = bcrypt.hashSync(userpassword, 10);
@@ -245,6 +248,7 @@ exports.getCompany = async (req, res) => {
                 message: 'Company not found'
             });
         }
+
         res.status(200).json({
             status: 'success',
             company: companyData
@@ -255,8 +259,7 @@ exports.getCompany = async (req, res) => {
             error
         });
     }
-
-}
+};
 
 exports.getCompanies = async (req, res) => {
     try {
@@ -523,6 +526,216 @@ exports.getBankDetailsVisibility = async (req, res) => {
         console.log(error)
         res.status(500).json({
             message: 'Erro ao buscar visibilidade',
+            error
+        });
+    }
+};
+
+exports.addCompanyBank = async (req, res) => {
+    try {
+        const companyId = req.user.company._id;
+        const { bankDetails } = req.body;
+
+        if (!bankDetails || !bankDetails.bank || !bankDetails.account_name || !bankDetails.account_number || !bankDetails.nib) {
+            return res.status(400).json({
+                status: 'error',
+                message: 'Preencha os campos obrigatórios dos dados bancários.'
+            });
+        }
+
+        const theCompany = await company.findById(companyId);
+
+        if (!theCompany) {
+            return res.status(404).json({
+                status: 'error',
+                message: 'Empresa não encontrada'
+            });
+        }
+
+        const hasPrimary = theCompany.bankDetails.some(item => item.isPrimary);
+
+        const newBank = {
+            label: bankDetails.label?.trim() || '',
+            bank: bankDetails.bank.trim(),
+            account_name: bankDetails.account_name.trim(),
+            account_number: bankDetails.account_number.trim(),
+            nib: bankDetails.nib.trim(),
+            nuib: bankDetails.nuib?.trim() || '',
+            isPrimary: bankDetails.isPrimary === true || !hasPrimary
+        };
+
+        if (newBank.isPrimary) {
+            theCompany.bankDetails.forEach(item => {
+                item.isPrimary = false;
+            });
+        }
+
+        theCompany.bankDetails.push(newBank);
+        await theCompany.save();
+
+        return res.status(201).json({
+            status: 'success',
+            message: 'Dados bancários adicionados com sucesso',
+            bankDetails: theCompany.bankDetails
+        });
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({
+            status: 'error',
+            message: 'Erro ao adicionar dados bancários',
+            error
+        });
+    }
+};
+
+exports.updateCompanyBank = async (req, res) => {
+    try {
+        const companyId = req.user.company._id;
+        const { bankId } = req.params;
+        const { bankDetails } = req.body;
+
+        const theCompany = await company.findById(companyId);
+
+        if (!theCompany) {
+            return res.status(404).json({
+                status: 'error',
+                message: 'Empresa não encontrada'
+            });
+        }
+
+        const bankItem = theCompany.bankDetails.id(bankId);
+
+        if (!bankItem) {
+            return res.status(404).json({
+                status: 'error',
+                message: 'Conta bancária não encontrada'
+            });
+        }
+
+        if (!bankDetails || !bankDetails.bank || !bankDetails.account_name || !bankDetails.account_number || !bankDetails.nib) {
+            return res.status(400).json({
+                status: 'error',
+                message: 'Preencha os campos obrigatórios dos dados bancários.'
+            });
+        }
+
+        bankItem.label = bankDetails.label?.trim() || '';
+        bankItem.bank = bankDetails.bank.trim();
+        bankItem.account_name = bankDetails.account_name.trim();
+        bankItem.account_number = bankDetails.account_number.trim();
+        bankItem.nib = bankDetails.nib.trim();
+        bankItem.nuib = bankDetails.nuib?.trim() || '';
+
+        if (bankDetails.isPrimary === true) {
+            theCompany.bankDetails.forEach(item => {
+                item.isPrimary = String(item._id) === String(bankId);
+            });
+        }
+
+        await theCompany.save();
+
+        return res.status(200).json({
+            status: 'success',
+            message: 'Dados bancários actualizados com sucesso',
+            bankDetails: theCompany.bankDetails
+        });
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({
+            status: 'error',
+            message: 'Erro ao actualizar dados bancários',
+            error
+        });
+    }
+};
+
+exports.deleteCompanyBank = async (req, res) => {
+    try {
+        const companyId = req.user.company._id;
+        const { bankId } = req.params;
+
+        const theCompany = await company.findById(companyId);
+
+        if (!theCompany) {
+            return res.status(404).json({
+                status: 'error',
+                message: 'Empresa não encontrada'
+            });
+        }
+
+        const bankItem = theCompany.bankDetails.id(bankId);
+
+        if (!bankItem) {
+            return res.status(404).json({
+                status: 'error',
+                message: 'Conta bancária não encontrada'
+            });
+        }
+
+        const wasPrimary = bankItem.isPrimary;
+
+        bankItem.deleteOne();
+        await theCompany.save();
+
+        if (wasPrimary && theCompany.bankDetails.length > 0) {
+            theCompany.bankDetails[0].isPrimary = true;
+            await theCompany.save();
+        }
+
+        return res.status(200).json({
+            status: 'success',
+            message: 'Conta bancária removida com sucesso',
+            bankDetails: theCompany.bankDetails
+        });
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({
+            status: 'error',
+            message: 'Erro ao remover conta bancária',
+            error
+        });
+    }
+};
+
+exports.setPrimaryCompanyBank = async (req, res) => {
+    try {
+        const companyId = req.user.company._id;
+        const { bankId } = req.params;
+
+        const theCompany = await company.findById(companyId);
+
+        if (!theCompany) {
+            return res.status(404).json({
+                status: 'error',
+                message: 'Empresa não encontrada'
+            });
+        }
+
+        const bankItem = theCompany.bankDetails.id(bankId);
+
+        if (!bankItem) {
+            return res.status(404).json({
+                status: 'error',
+                message: 'Conta bancária não encontrada'
+            });
+        }
+
+        theCompany.bankDetails.forEach(item => {
+            item.isPrimary = String(item._id) === String(bankId);
+        });
+
+        await theCompany.save();
+
+        return res.status(200).json({
+            status: 'success',
+            message: 'Conta principal definida com sucesso',
+            bankDetails: theCompany.bankDetails
+        });
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({
+            status: 'error',
+            message: 'Erro ao definir conta principal',
             error
         });
     }

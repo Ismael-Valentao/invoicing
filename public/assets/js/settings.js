@@ -1,498 +1,870 @@
 document.addEventListener("DOMContentLoaded", function () {
-  const btnEditCompanyInfo = document.getElementById("btn-edit-compnay-info");
+  let companyCache = null;
+  let logoPreviewObjectUrl = null;
+  let bankVisibilitySaveTimer = null;
 
-  document.getElementById("btn-open-modalbankInfo").addEventListener("click", function (e) {
-    // Pegando os valores existentes
-    const bankName = document.getElementById("bank_name").value;
-    if (!bankName || bankName.trim() === '') return
-    const accountName = document.getElementById("bank_user_name").value;
-    const accountNumber = document.getElementById("bank_num_account").value;
-    const nib = document.getElementById("bank_nib").value;
-    const nuib = document.getElementById("bank_nuib").value;
+  const els = {
+    companyName: document.getElementById("companyName"),
+    companyNUIT: document.getElementById("companyNUIT"),
+    companyContact: document.getElementById("companyContact"),
+    companyEmail: document.getElementById("companyEmail"),
+    companyAddress: document.getElementById("companyAddress"),
 
-    // Referências do modal
-    const bankSelect = document.getElementById("companyBankModal");
-    const bankOtherInput = document.getElementById("companyBankOtherModal");
-    const modalAccountName = document.getElementById("modal_bank_user_name");
-    const modalAccountNumber = document.getElementById("modal_bank_num_account");
-    const modalNIB = document.getElementById("modal_bank_nib");
-    const modalNUIB = document.getElementById("modal_bank_nuib");
+    companyNameView: document.getElementById("companyNameView"),
+    companyNUITView: document.getElementById("companyNUITView"),
+    companyContactView: document.getElementById("companyContactView"),
+    companyEmailView: document.getElementById("companyEmailView"),
+    companyAddressView: document.getElementById("companyAddressView"),
 
-    // Resetando o campo "Outro"
-    bankOtherInput.classList.add("d-none");
-    bankOtherInput.value = "";
+    btnEditCompanyInfo: document.getElementById("btn-edit-company-info"),
+    companyForm: document.getElementById("companyForm"),
+    companyNameModal: document.getElementById("companyNameModal"),
+    companyNUITModal: document.getElementById("companyNUITModal"),
+    companyContactModal: document.getElementById("companyContactModal"),
+    companyEmailModal: document.getElementById("companyEmailModal"),
+    companyAddressModal: document.getElementById("companyAddressModal"),
+    btnUpdateCompany: document.getElementById("btn-update-company"),
 
-    // Verificando se o banco existe na lista
+    bankEmptyState: document.getElementById("bank-empty-state"),
+    bankListSection: document.getElementById("bank-list-section"),
+    bankAccountsList: document.getElementById("bankAccountsList"),
+    btnOpenBankModal: document.getElementById("btn-open-modalbankInfo"),
+
+    bankForm: document.getElementById("bank_account_form"),
+    editingBankId: document.getElementById("editingBankId"),
+    bankModalTitle: document.getElementById("bank-modal-title"),
+    bankLabelModal: document.getElementById("bankLabelModal"),
+    companyBankModal: document.getElementById("companyBankModal"),
+    companyBankOtherWrap: document.getElementById("companyBankOtherWrap"),
+    companyBankOtherModal: document.getElementById("companyBankOtherModal"),
+    modalBankUserName: document.getElementById("modal_bank_user_name"),
+    modalBankNumAccount: document.getElementById("modal_bank_num_account"),
+    modalBankNib: document.getElementById("modal_bank_nib"),
+    modalBankNuib: document.getElementById("modal_bank_nuib"),
+    bankIsPrimaryModal: document.getElementById("bankIsPrimaryModal"),
+    btnSaveBankAccount: document.getElementById("btn-save-bankaccount"),
+
+    showInvoices: document.getElementById("showInvoices"),
+    showQuotations: document.getElementById("showQuotations"),
+    showVds: document.getElementById("showVds"),
+
+    inputLogo: document.getElementById("input-logo"),
+    btnAddLogo: document.getElementById("btn-add-logo"),
+    companyLogoPreview: document.getElementById("company_logo_preview"),
+    logoPreview: document.getElementById("logo_preview"),
+    btnSaveLogo: document.getElementById("btn-save-logo"),
+
+    activeModuleLabel: document.getElementById("active-module-label"),
+    activeModuleHint: document.getElementById("active-module-hint"),
+    activeModuleBadge: document.getElementById("active-module-badge"),
+    currentModuleText: document.getElementById("current-module-text"),
+    modSalesRadio: document.getElementById("modSalesRadio"),
+    modInvoicingRadio: document.getElementById("modInvoicingRadio"),
+    btnSaveModule: document.getElementById("btn-save-module"),
+    moduleSalesOption: document.getElementById("module-option-sales"),
+    moduleInvoicingOption: document.getElementById("module-option-invoicing"),
+  };
+
+  function setButtonLoading(button, isLoading, loadingText = "Salvando...") {
+    if (!button) return;
+    if (isLoading) {
+      button.dataset.originalText = button.innerHTML;
+      button.disabled = true;
+      button.innerHTML = `<span class="spinner-border spinner-border-sm mr-1"></span>${loadingText}`;
+    } else {
+      button.disabled = false;
+      if (button.dataset.originalText) {
+        button.innerHTML = button.dataset.originalText;
+      }
+    }
+  }
+
+  function setText(el, value) {
+    if (!el) return;
+    el.textContent = value && String(value).trim() ? value : "—";
+  }
+
+  function setInputValue(el, value) {
+    if (!el) return;
+    el.value = value ?? "";
+  }
+
+  function showToast(icon, title) {
+    Swal.fire({
+      toast: true,
+      position: "top-end",
+      icon,
+      title,
+      showConfirmButton: false,
+      timer: 1800,
+      timerProgressBar: true
+    });
+  }
+
+  function validateEmail(email) {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  }
+
+  function clearValidation(form) {
+    if (!form) return;
+    form.querySelectorAll(".is-invalid").forEach((el) => el.classList.remove("is-invalid"));
+  }
+
+  function invalidateField(field) {
+    if (field) field.classList.add("is-invalid");
+  }
+
+  function getSelectedBankName() {
+    const bank = els.companyBankModal.value;
+    if (bank === "Outro") {
+      return els.companyBankOtherModal.value.trim();
+    }
+    return bank;
+  }
+
+  function handleOtherBankVisibility() {
+    const isOther = els.companyBankModal.value === "Outro";
+    els.companyBankOtherWrap.classList.toggle("d-none", !isOther);
+    if (!isOther) {
+      els.companyBankOtherModal.value = "";
+      els.companyBankOtherModal.classList.remove("is-invalid");
+    }
+  }
+
+  function fillCompanySection(company) {
+    setInputValue(els.companyName, company.name);
+    setInputValue(els.companyNUIT, company.nuit);
+    setInputValue(els.companyContact, company.contact);
+    setInputValue(els.companyEmail, company.email);
+    setInputValue(els.companyAddress, company.address);
+
+    setText(els.companyNameView, company.name);
+    setText(els.companyNUITView, company.nuit);
+    setText(els.companyContactView, company.contact);
+    setText(els.companyEmailView, company.email);
+    setText(els.companyAddressView, company.address);
+  }
+
+  function renderBankCards(bankDetails = []) {
+    const banks = Array.isArray(bankDetails) ? bankDetails : [];
+
+    els.bankEmptyState.classList.toggle("d-none", banks.length > 0);
+    els.bankListSection.classList.toggle("d-none", banks.length === 0);
+
+    if (!banks.length) {
+      els.bankAccountsList.innerHTML = "";
+      return;
+    }
+
+    els.bankAccountsList.innerHTML = banks.map((bank) => `
+      <div class="col-md-6 mb-3">
+        <div class="bank-card">
+          <div class="bank-card-header">
+            <div>
+              <div class="bank-card-title">${bank.label?.trim() || bank.bank || "Conta bancária"}</div>
+              <div class="bank-card-subtitle">${bank.bank || "—"}</div>
+            </div>
+            ${bank.isPrimary ? `<span class="bank-badge-primary">Principal</span>` : ""}
+          </div>
+
+          <div class="bank-meta">
+            <div class="bank-meta-item">
+              <div class="bank-meta-label">Proprietário</div>
+              <div class="bank-meta-value">${bank.account_name || "—"}</div>
+            </div>
+
+            <div class="bank-meta-item">
+              <div class="bank-meta-label">Conta</div>
+              <div class="bank-meta-value">${bank.account_number || "—"}</div>
+            </div>
+
+            <div class="bank-meta-item">
+              <div class="bank-meta-label">NIB</div>
+              <div class="bank-meta-value">${bank.nib || "—"}</div>
+            </div>
+
+            <div class="bank-meta-item">
+              <div class="bank-meta-label">NUIB</div>
+              <div class="bank-meta-value">${bank.nuib || "—"}</div>
+            </div>
+          </div>
+
+          <div class="bank-actions">
+            <button type="button" class="btn btn-outline-primary btn-sm btn-edit-bank" data-id="${bank._id}">
+              <i class="fa-solid fa-pen-to-square"></i> Editar
+            </button>
+
+            ${!bank.isPrimary ? `
+              <button type="button" class="btn btn-outline-success btn-sm btn-set-primary-bank" data-id="${bank._id}">
+                <i class="fa-solid fa-star"></i> Tornar principal
+              </button>
+            ` : ""}
+
+            <button type="button" class="btn btn-outline-danger btn-sm btn-delete-bank" data-id="${bank._id}">
+              <i class="fa-solid fa-trash"></i> Remover
+            </button>
+          </div>
+        </div>
+      </div>
+    `).join("");
+  }
+
+  function fillBankVisibility(showBankDetails = {}) {
+    els.showInvoices.checked = !!showBankDetails.invoices;
+    els.showQuotations.checked = !!showBankDetails.quotations;
+    els.showVds.checked = !!showBankDetails.vds;
+  }
+
+  function fillModuleSection(modules = {}) {
+    const active = modules.sales ? "sales" : modules.invoicing ? "invoicing" : null;
+
+    if (!active) {
+      els.activeModuleLabel.textContent = "Nenhum";
+      els.activeModuleHint.textContent = "Selecione um módulo para começar a usar o sistema.";
+      els.activeModuleBadge.className = "badge badge-warning";
+      els.activeModuleBadge.textContent = "Sem módulo";
+      els.currentModuleText.textContent = "Nenhum";
+      els.modSalesRadio.checked = false;
+      els.modInvoicingRadio.checked = false;
+      updateModuleOptionStyles();
+      return;
+    }
+
+    if (active === "sales") {
+      els.activeModuleLabel.textContent = "Vendas";
+      els.activeModuleHint.textContent = "Recibos + stock ligado ao caixa.";
+      els.currentModuleText.textContent = "Vendas";
+      els.modSalesRadio.checked = true;
+      els.modInvoicingRadio.checked = false;
+    } else {
+      els.activeModuleLabel.textContent = "Facturação";
+      els.activeModuleHint.textContent = "Facturas, VD, cotações e recibos.";
+      els.currentModuleText.textContent = "Facturação";
+      els.modSalesRadio.checked = false;
+      els.modInvoicingRadio.checked = true;
+    }
+
+    els.activeModuleBadge.className = "badge badge-success";
+    els.activeModuleBadge.textContent = "Ativo";
+    updateModuleOptionStyles();
+  }
+
+  function fillLogoSection(company) {
+    const hasLogo = !!company.logoUrl;
+    els.companyLogoPreview.src = hasLogo
+      ? `https://bitiray.com/public/invoicing-logos/${company.logoUrl}`
+      : "images/invoicing-logo-simple.png";
+  }
+
+  function updateModuleOptionStyles() {
+    els.moduleSalesOption.classList.toggle("active", els.modSalesRadio.checked);
+    els.moduleInvoicingOption.classList.toggle("active", els.modInvoicingRadio.checked);
+  }
+
+  function populateCompanyModal() {
+    els.companyNameModal.value = els.companyName.value || "";
+    els.companyNUITModal.value = els.companyNUIT.value || "";
+    els.companyContactModal.value = els.companyContact.value || "";
+    els.companyEmailModal.value = els.companyEmail.value || "";
+    els.companyAddressModal.value = els.companyAddress.value || "";
+    clearValidation(els.companyForm);
+  }
+
+  function resetBankModal() {
+    clearValidation(els.bankForm);
+    els.editingBankId.value = "";
+    els.bankModalTitle.innerHTML = `<i class="fa-solid fa-pen-to-square"></i> Adicionar Conta Bancária`;
+    els.bankLabelModal.value = "";
+    els.companyBankModal.value = "BIM";
+    els.companyBankOtherModal.value = "";
+    els.modalBankUserName.value = "";
+    els.modalBankNumAccount.value = "";
+    els.modalBankNib.value = "";
+    els.modalBankNuib.value = "";
+    els.bankIsPrimaryModal.checked = !Array.isArray(companyCache?.bankDetails) || companyCache.bankDetails.length === 0;
+    handleOtherBankVisibility();
+  }
+
+  function populateBankModalForEdit(bankId) {
+    const bank = (companyCache?.bankDetails || []).find(item => String(item._id) === String(bankId));
+    if (!bank) return;
+
+    clearValidation(els.bankForm);
+    els.editingBankId.value = bank._id;
+    els.bankModalTitle.innerHTML = `<i class="fa-solid fa-pen-to-square"></i> Editar Conta Bancária`;
+    els.bankLabelModal.value = bank.label || "";
+
     let found = false;
-    for (let i = 0; i < bankSelect.options.length; i++) {
-      if (bankSelect.options[i].value === bankName) {
-        bankSelect.selectedIndex = i;
+    for (let i = 0; i < els.companyBankModal.options.length; i++) {
+      if (els.companyBankModal.options[i].value === bank.bank) {
+        els.companyBankModal.selectedIndex = i;
         found = true;
         break;
       }
     }
 
     if (!found) {
-      // Caso o banco não exista na lista, selecionar "Outro"
-      for (let i = 0; i < bankSelect.options.length; i++) {
-        if (bankSelect.options[i].value === "Outro") {
-          bankSelect.selectedIndex = i;
-          bankOtherInput.classList.remove("d-none");
-          bankOtherInput.value = bankName;
-          break;
-        }
-      }
+      els.companyBankModal.value = "Outro";
+      els.companyBankOtherModal.value = bank.bank || "";
+    } else {
+      els.companyBankOtherModal.value = "";
     }
 
-    // Preencher os demais campos
-    modalAccountName.value = accountName;
-    modalAccountNumber.value = accountNumber;
-    modalNIB.value = nib;
-    modalNUIB.value = nuib;
-  });
+    handleOtherBankVisibility();
 
+    els.modalBankUserName.value = bank.account_name || "";
+    els.modalBankNumAccount.value = bank.account_number || "";
+    els.modalBankNib.value = bank.nib || "";
+    els.modalBankNuib.value = bank.nuib || "";
+    els.bankIsPrimaryModal.checked = !!bank.isPrimary;
 
-  btnEditCompanyInfo.addEventListener("click", function () {
-    // Fetch current company data from the input fields
-    const companyName = document.getElementById("companyName").value;
-    const companyNUIT = document.getElementById("companyNUIT").value;
-    const companyContact = document.getElementById("companyContact").value;
-    const companyEmail = document.getElementById("companyEmail").value;
-    const companyAddress = document.getElementById("companyAddress").value;
+    $("#bank_account_modal").modal("show");
+  }
 
-    // Populate the modal input fields with the current data
-    document.getElementById("companyNameModal").value = companyName;
-    document.getElementById("companyNUITModal").value = companyNUIT;
-    document.getElementById("companyContactModal").value = companyContact;
-    document.getElementById("companyEmailModal").value = companyEmail;
-    document.getElementById("companyAddressModal").value = companyAddress;
-  });
-
-  document.getElementById("btn-update-company").addEventListener("click", function (e) {
-    e.preventDefault();
-    const data = {
-      companyName: document.getElementById("companyNameModal").value,
-      companyNUIT: document.getElementById("companyNUITModal").value,
-      companyContact: document.getElementById("companyContactModal").value,
-      companyEmail: document.getElementById("companyEmailModal").value,
-      companyAddress: document.getElementById("companyAddressModal").value
-    }
-
-    let isFormValid = validateForm(document.getElementById('companyForm'))
-
-    if (isFormValid) {
-      fetch('/api/company', {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(data)
-      }).then(response => response.json())
-        .then(data => {
-          if (data.status === 'success') {
-            console.log(data.company)
-            document.getElementById("companyName").value = document.getElementById("companyNameModal").value;
-            document.getElementById("companyNUIT").value = document.getElementById("companyNUITModal").value;
-            document.getElementById("companyContact").value = document.getElementById("companyContactModal").value;
-            document.getElementById("companyEmail").value = document.getElementById("companyEmailModal").value;
-            document.getElementById("companyAddress").value = document.getElementById("companyAddressModal").value;
-
-            // Close the modal
-            $('#companyModal').modal('hide');
-
-            Swal.fire({
-              icon: 'success',
-              text: 'Dados da empresa actualizados com sucesso!',
-              showConfirmButton: false,
-              timer: 1500
-            });
-          } else {
-            console.log('Some error here')
-            Swal.fire({
-              icon: 'error',
-              text: 'Erro ao actualizar os dados da empresa. Por favor, tente novamente.',
-              showConfirmButton: true
-            });
-          }
-        })
-        .catch(error => {
-          console.error('Error:', error);
-          Swal.fire({
-            icon: 'error',
-            text: 'Erro ao actualizar os dados da empresa. Por favor, tente novamente.',
-            showConfirmButton: true
-          });
-        });
-
-    }
-    else {
-      Swal.fire({
-        icon: 'error',
-        title: 'Todos os campos devem estar devidamente preenchidos.',
-        showConfirmButton: true
-      });
-    }
-  })
-
-  function validateForm() {
-    const form = document.getElementById("companyForm");
-    const inputs = form.querySelectorAll("input[required]");
+  function validateCompanyForm() {
+    clearValidation(els.companyForm);
     let isValid = true;
 
-    inputs.forEach((input) => {
-      if (input.value.trim() === "") {
-        input.style.border = "1px solid red";
-        isValid = false;
-      } else {
-        input.style.border = "1px solid #ced4da"; // cor padrão do bootstrap
-      }
-    });
+    if (!els.companyNUITModal.value.trim()) {
+      invalidateField(els.companyNUITModal);
+      isValid = false;
+    }
+
+    if (!els.companyContactModal.value.trim()) {
+      invalidateField(els.companyContactModal);
+      isValid = false;
+    }
+
+    const email = els.companyEmailModal.value.trim();
+    if (!email || !validateEmail(email)) {
+      invalidateField(els.companyEmailModal);
+      isValid = false;
+    }
+
+    if (!els.companyAddressModal.value.trim()) {
+      invalidateField(els.companyAddressModal);
+      isValid = false;
+    }
 
     return isValid;
   }
 
-})
-async function getCompanyInfo() {
-  fetch("/api/company/company")
-    .then((response) => response.json())
-    .then((data) => {
-      if (data.status === "success") {
-        const company = data.company;
-        const visibility = company.showBankDetails || {};
-        document.getElementById("companyName").value = company.name;
-        document.getElementById("companyAddress").value = company.address;
-        document.getElementById("companyContact").value = company.contact;
-        document.getElementById("companyEmail").value = company.email;
-        document.getElementById("companyNUIT").value = company.nuit;
-        if (company.logoUrl) {
-          document.getElementById("company_logo_preview").src = 'https://bitiray.com/public/invoicing-logos/' + company.logoUrl;
-        }
+  function validateBankForm() {
+    clearValidation(els.bankForm);
+    let isValid = true;
 
-        document.querySelector('[data-field="invoices"]').checked = !!visibility.invoices;
-        document.querySelector('[data-field="quotations"]').checked = !!visibility.quotations;
-        document.querySelector('[data-field="receipts"]') &&
-          (document.querySelector('[data-field="receipts"]').checked = !!visibility.receipts);
-        document.querySelector('[data-field="vds"]').checked = !!visibility.vds;
-
-        if (!company.bankDetails) {
-          document.getElementById("btn-open-modalbankInfo-span").innerText = 'Adicionar Dados Bancários'
-          return
-        }
-
-        document.getElementById("btn-open-modalbankInfo-span").innerText = 'Actualizar Dados Bancários'
-        document.getElementById("bank_name").value = company.bankDetails.bank;
-        document.getElementById("bank_user_name").value = company.bankDetails.account_name;
-        document.getElementById("bank_num_account").value = company.bankDetails.account_number;
-        document.getElementById("bank_nib").value = company.bankDetails.nib;
-        document.getElementById("bank_nuib").value = company.bankDetails.nuib || "";
-
-      } else {
-        console.error("Error fetching company info:", data.message);
-      }
-    })
-    .catch((error) => console.error("Error:", error));
-}
-
-async function updateLogoUrl(url) {
-  console.log("Updating logo URL to:", url);
-  const response = await fetch("/api/company/logo", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ logo_name: url }),
-  });
-  const data = await response.json();
-  console.log("Response from updating logo URL:", data);
-  return data;
-}
-
-document.addEventListener("DOMContentLoaded", async function () {
-  //Bank Selection Area
-  document.getElementById("companyBankModal").addEventListener("change", function (e) {
-    if (this.value.toLowerCase() === "outro") {
-      this.classList.add("d-none")
-      document.getElementById("companyBankOtherModal").classList.remove("d-none");
+    if (!els.companyBankModal.value) {
+      invalidateField(els.companyBankModal);
+      isValid = false;
     }
-  })
 
-  //Logo Area
-  const input_logo = document.getElementById("input-logo");
-  const logo_preview = document.getElementById("logo_preview");
-
-  document
-    .getElementById("btn-add-logo")
-    .addEventListener("click", function (e) {
-      input_logo.click();
-    });
-
-  input_logo.addEventListener("change", function (e) {
-    if (!this.files[0]) {
-      return;
+    if (els.companyBankModal.value === "Outro" && !els.companyBankOtherModal.value.trim()) {
+      invalidateField(els.companyBankOtherModal);
+      isValid = false;
     }
-    const imageUrl = URL.createObjectURL(input_logo.files[0]);
-    logo_preview.src = imageUrl;
 
-    $("#previewModal").modal("show");
-  });
+    if (!els.modalBankUserName.value.trim()) {
+      invalidateField(els.modalBankUserName);
+      isValid = false;
+    }
 
-  document
-    .getElementById("btn-save")
-    .addEventListener("click", async function (e) {
-      const formData = new FormData();
-      formData.append("logo", input_logo.files[0]);
+    if (!els.modalBankNumAccount.value.trim()) {
+      invalidateField(els.modalBankNumAccount);
+      isValid = false;
+    }
 
-      try {
-        const response = await fetch(
-          "https://bitiray.com/invoicing-company-logo",
-          {
-            method: "POST",
-            body: formData,
-          }
-        );
-        const data = await response.json();
-        if (data.status === "success") {
-          console.log("Logo uploaded successfully:", data);
-          const updateResponse = await updateLogoUrl(data.fileName);
-          if (updateResponse.status === "success") {
-            Swal.fire({
-              icon: "success",
-              title: "Sucesso!",
-              text: "Logo actualizada com sucesso. Faça logout e login para ver as alterações.",
-              showConfirmButton: true,
-              confirmButtonText: "OK",
-            });
-            $("#previewModal").modal("hide");
-          } else {
-            Swal.fire({
-              icon: "error",
-              title: "Erro!",
-              text: updateResponse.message,
-              showConfirmButton: true,
-              confirmButtonText: "OK",
-            });
-          }
-        } else {
-          Swal.fire({
-            icon: "error",
-            title: "Erro!",
-            text: data.message,
-            showConfirmButton: true,
-            confirmButtonText: "OK",
-          });
-        }
-      } catch (error) {
-        Swal.fire({
-          icon: "error",
-          title: "Erro!",
-          text: "Erro ao carregar o logo. Tente novamente.",
-          showConfirmButton: true,
-          confirmButtonText: "OK",
-        });
-      }
-    });
-  getCompanyInfo();
-});
+    if (!els.modalBankNib.value.trim()) {
+      invalidateField(els.modalBankNib);
+      isValid = false;
+    }
 
-document.addEventListener("DOMContentLoaded", function () {
-  const btnUpdateBankAccount = document.getElementById("btn-update-company-bankaccount");
+    return isValid;
+  }
 
-  btnUpdateBankAccount.addEventListener("click", async function () {
+  async function fetchCompany() {
+    const response = await fetch("/api/company/company");
+    const data = await response.json();
+
+    if (!response.ok || data.status !== "success") {
+      throw new Error(data.message || "Erro ao obter dados da empresa");
+    }
+
+    companyCache = data.company;
+    return companyCache;
+  }
+
+  function renderCompany(company) {
+    fillCompanySection(company);
+    renderBankCards(company.bankDetails || []);
+    fillBankVisibility(company.showBankDetails || {});
+    fillModuleSection(company.modules || {});
+    fillLogoSection(company);
+  }
+
+  async function loadCompanyInfo() {
+    const company = await fetchCompany();
+    renderCompany(company);
+  }
+
+  async function updateCompanyInfo() {
+    if (!validateCompanyForm()) {
+      return Swal.fire({
+        icon: "warning",
+        title: "Dados inválidos",
+        text: "Preencha correctamente os campos obrigatórios."
+      });
+    }
+
+    setButtonLoading(els.btnUpdateCompany, true, "A actualizar...");
+
     try {
-      // 1. Obter valores do formulário
-      let bank = document.getElementById("companyBankModal").value;
-      const otherBankInput = document.getElementById("companyBankOtherModal");
-      if (bank === "Outro" && otherBankInput.value.trim() !== "") {
-        bank = otherBankInput.value.trim();
-      }
-
-      const accountName = document.getElementById("modal_bank_user_name").value.trim();
-      const accountNumber = document.getElementById("modal_bank_num_account").value.trim();
-      const nib = document.getElementById("modal_bank_nib").value.trim();
-      const nuib = document.getElementById("modal_bank_nuib").value.trim();
-
-      // Validação simples
-      if (!bank || !accountName || !accountNumber || !nib) {
-        Swal.fire({
-          icon: "error",
-          title: "Erro!",
-          text: "Preencha todos os campos obrigatórios.",
-          showConfirmButton: true,
-          confirmButtonText: "OK",
-        });
-        return;
-      }
-
-      // 2. Construir objeto
-      const bankDetails = {
-        bank,
-        account_name: accountName,
-        account_number: accountNumber,
-        nib,
-        nuib
+      const payload = {
+        companyName: els.companyNameModal.value.trim(),
+        companyNUIT: els.companyNUITModal.value.trim(),
+        companyContact: els.companyContactModal.value.trim(),
+        companyEmail: els.companyEmailModal.value.trim(),
+        companyAddress: els.companyAddressModal.value.trim()
       };
 
-      // 3. Enviar para API (ajusta o endpoint conforme teu backend)
-      const response = await fetch(`/api/company/update-bank`, {
+      const response = await fetch("/api/company", {
         method: "PUT",
-        headers: {
-          "Content-Type": "application/json"
-        },
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+
+      const data = await response.json().catch(() => ({}));
+
+      if (!response.ok || data.status !== "success") {
+        throw new Error(data.message || "Erro ao actualizar os dados da empresa.");
+      }
+
+      if (companyCache) {
+        companyCache.name = payload.companyName;
+        companyCache.nuit = payload.companyNUIT;
+        companyCache.contact = payload.companyContact;
+        companyCache.email = payload.companyEmail;
+        companyCache.address = payload.companyAddress;
+        renderCompany(companyCache);
+      }
+
+      $("#companyModal").modal("hide");
+      Swal.fire({
+        icon: "success",
+        text: "Dados da empresa actualizados com sucesso!",
+        showConfirmButton: false,
+        timer: 1500
+      });
+    } catch (error) {
+      Swal.fire({
+        icon: "error",
+        text: error.message || "Erro ao actualizar os dados da empresa.",
+        showConfirmButton: true
+      });
+    } finally {
+      setButtonLoading(els.btnUpdateCompany, false);
+    }
+  }
+
+  async function saveBankInfo() {
+    if (!validateBankForm()) {
+      return Swal.fire({
+        icon: "warning",
+        title: "Dados inválidos",
+        text: "Preencha correctamente os campos obrigatórios."
+      });
+    }
+
+    setButtonLoading(els.btnSaveBankAccount, true, "A guardar...");
+
+    try {
+      const editingBankId = els.editingBankId.value.trim();
+
+      const bankDetails = {
+        label: els.bankLabelModal.value.trim(),
+        bank: getSelectedBankName(),
+        account_name: els.modalBankUserName.value.trim(),
+        account_number: els.modalBankNumAccount.value.trim(),
+        nib: els.modalBankNib.value.trim(),
+        nuib: els.modalBankNuib.value.trim(),
+        isPrimary: els.bankIsPrimaryModal.checked
+      };
+
+      const isEdit = !!editingBankId;
+      const url = isEdit ? `/api/company/banks/${editingBankId}` : "/api/company/banks";
+      const method = isEdit ? "PATCH" : "POST";
+
+      const response = await fetch(url, {
+        method,
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ bankDetails })
       });
 
-      if (!response.ok) {
-        throw new Error("Erro ao atualizar dados bancários");
+      const data = await response.json().catch(() => ({}));
+
+      if (!response.ok || data.status !== "success") {
+        throw new Error(data.message || "Erro ao guardar dados bancários");
       }
 
-      const data = await response.json();
+      if (companyCache) {
+        companyCache.bankDetails = data.bankDetails || [];
+        renderCompany(companyCache);
+      }
 
-      // 4. Atualizar os inputs da tela
-      document.getElementById("bank_name").value = data.bankDetails.bank;
-      document.getElementById("bank_user_name").value = data.bankDetails.account_name;
-      document.getElementById("bank_num_account").value = data.bankDetails.account_number;
-      document.getElementById("bank_nib").value = data.bankDetails.nib;
-      document.getElementById("bank_nuib").value = data.bankDetails.nuib || "";
-
-      // 5. Fechar modal
       $("#bank_account_modal").modal("hide");
 
       Swal.fire({
         icon: "success",
         title: "Sucesso!",
-        text: "Dados actualizados com sucesso. Faça logout e login para ver as alterações.",
-        showConfirmButton: true,
-        confirmButtonText: "OK",
+        text: isEdit ? "Conta bancária actualizada com sucesso." : "Conta bancária adicionada com sucesso.",
+        showConfirmButton: true
       });
-    } catch (err) {
-      console.error(err);
+    } catch (error) {
       Swal.fire({
         icon: "error",
         title: "Erro!",
-        text: "Erro ao actualizar os dados bancários.",
-        showConfirmButton: true,
-        confirmButtonText: "OK",
+        text: error.message || "Erro ao guardar conta bancária.",
+        showConfirmButton: true
       });
+    } finally {
+      setButtonLoading(els.btnSaveBankAccount, false);
     }
-  });
-
-
-  document.querySelectorAll('.bank-toggle').forEach(checkbox => {
-    checkbox.addEventListener('change', async () => {
-
-      const showBankDetails = {
-        invoices: document.querySelector('[data-field="invoices"]')?.checked || false,
-        quotations: document.querySelector('[data-field="quotations"]')?.checked || false,
-        receipts: document.querySelector('[data-field="receipts"]')?.checked || false,
-        vds: document.querySelector('[data-field="vds"]')?.checked || false,
-      };
-
-      try {
-        const response = await fetch('/api/company/update-bank-visibility', {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${localStorage.getItem('token')}` // se usas JWT
-          },
-          body: JSON.stringify({ showBankDetails })
-        });
-
-        const data = await response.json();
-
-        if (!response.ok) {
-          throw new Error(data.message || 'Erro ao actualizar');
-        }
-
-        Swal.fire({
-          icon: 'success',
-          title: 'Visibilidade actualizada',
-          showConfirmButton: true
-        });
-
-      } catch (err) {
-        console.error('❌ Erro:', err.message);
-        Swal.fire({
-          icon: 'error',
-          title: 'Erro ao actualizar visibilidade dos dados bancários.',
-          showConfirmButton: true
-        });
-      }
-    });
-  });
-
-  async function loadActiveModuleUI() {
-    const res = await fetch("/api/company/company"); // ou o endpoint que já tens para pegar a empresa
-    const data = await res.json();
-    console.log(data)
-
-    const modules = data?.company?.modules || {};
-    console.log(modules)
-    const active =
-      modules.sales ? "sales" :
-        modules.invoicing ? "invoicing" :
-          null;
-
-    const labelEl = document.getElementById("active-module-label");
-    const hintEl = document.getElementById("active-module-hint");
-    const badgeEl = document.getElementById("active-module-badge");
-    const currentText = document.getElementById("current-module-text");
-
-    if (!active) {
-      labelEl.textContent = "Nenhum";
-      hintEl.textContent = "Selecione um módulo para começar a usar o sistema.";
-      badgeEl.className = "badge badge-warning";
-      badgeEl.textContent = "Sem módulo";
-      currentText.textContent = "Nenhum";
-      return;
-    }
-
-    if (active === "sales") {
-      labelEl.textContent = "Vendas";
-      hintEl.textContent = "Recibos + stock ligado ao caixa.";
-      currentText.textContent = "Vendas";
-    } else {
-      labelEl.textContent = "Facturação";
-      hintEl.textContent = "Facturas, VD, cotações e recibos.";
-      currentText.textContent = "Facturação";
-    }
-
-    badgeEl.className = "badge badge-success";
-    badgeEl.textContent = "Ativo";
-
-    // preseleciona no modal
-    document.getElementById("modSalesRadio").checked = active === "sales";
-    document.getElementById("modInvoicingRadio").checked = active === "invoicing";
   }
 
-  document.getElementById("btn-save-module")?.addEventListener("click", async () => {
+  async function deleteBank(bankId) {
+    const result = await Swal.fire({
+      icon: "warning",
+      title: "Remover conta bancária?",
+      text: "Esta ação não poderá ser desfeita.",
+      showCancelButton: true,
+      confirmButtonText: "Sim, remover",
+      cancelButtonText: "Cancelar"
+    });
+
+    if (!result.isConfirmed) return;
+
+    try {
+      const response = await fetch(`/api/company/banks/${bankId}`, {
+        method: "DELETE"
+      });
+
+      const data = await response.json().catch(() => ({}));
+
+      if (!response.ok || data.status !== "success") {
+        throw new Error(data.message || "Erro ao remover conta bancária");
+      }
+
+      if (companyCache) {
+        companyCache.bankDetails = data.bankDetails || [];
+        renderCompany(companyCache);
+      }
+
+      showToast("success", "Conta removida");
+    } catch (error) {
+      Swal.fire({
+        icon: "error",
+        title: "Erro",
+        text: error.message || "Erro ao remover conta bancária."
+      });
+    }
+  }
+
+  async function setPrimaryBank(bankId) {
+    try {
+      const response = await fetch(`/api/company/banks/${bankId}/primary`, {
+        method: "PATCH"
+      });
+
+      const data = await response.json().catch(() => ({}));
+
+      if (!response.ok || data.status !== "success") {
+        throw new Error(data.message || "Erro ao definir conta principal");
+      }
+
+      if (companyCache) {
+        companyCache.bankDetails = data.bankDetails || [];
+        renderCompany(companyCache);
+      }
+
+      showToast("success", "Conta principal actualizada");
+    } catch (error) {
+      Swal.fire({
+        icon: "error",
+        title: "Erro",
+        text: error.message || "Erro ao definir conta principal."
+      });
+    }
+  }
+
+  async function updateBankVisibility() {
+    const showBankDetails = {
+      invoices: els.showInvoices.checked,
+      quotations: els.showQuotations.checked,
+      vds: els.showVds.checked
+    };
+
+    try {
+      const response = await fetch("/api/company/update-bank-visibility", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ showBankDetails })
+      });
+
+      const data = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        throw new Error(data.message || "Erro ao actualizar visibilidade");
+      }
+
+      if (companyCache) {
+        companyCache.showBankDetails = showBankDetails;
+      }
+
+      showToast("success", "Visibilidade actualizada");
+    } catch (error) {
+      Swal.fire({
+        icon: "error",
+        title: "Erro",
+        text: error.message || "Erro ao actualizar visibilidade dos dados bancários."
+      });
+
+      if (companyCache) {
+        fillBankVisibility(companyCache.showBankDetails || {});
+      }
+    }
+  }
+
+  async function updateModule() {
     const selected = document.querySelector('input[name="moduleRadio"]:checked')?.value;
 
     if (!selected) {
-      return Swal.fire({ icon: "warning", title: "Selecione um módulo", text: "Escolha Vendas ou Facturação." });
+      return Swal.fire({
+        icon: "warning",
+        title: "Selecione um módulo",
+        text: "Escolha Vendas ou Facturação."
+      });
     }
 
-    // Aqui, no futuro, podes trocar para abrir PayPal antes de salvar.
-    // Por agora: muda diretamente
-    const resp = await fetch("/api/company/modules", {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ sales: selected === "sales", invoicing: selected === "invoicing" })
+    const current =
+      companyCache?.modules?.sales ? "sales" :
+      companyCache?.modules?.invoicing ? "invoicing" :
+      null;
+
+    if (selected === current) {
+      return Swal.fire({
+        icon: "info",
+        title: "Sem alterações",
+        text: "Este módulo já está ativo."
+      });
+    }
+
+    setButtonLoading(els.btnSaveModule, true, "A guardar...");
+
+    try {
+      const response = await fetch("/api/company/modules", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          sales: selected === "sales",
+          invoicing: selected === "invoicing"
+        })
+      });
+
+      const data = await response.json().catch(() => ({}));
+
+      if (!response.ok || data.status !== "success") {
+        throw new Error(data.message || "Não foi possível actualizar.");
+      }
+
+      if (companyCache) {
+        companyCache.modules = {
+          ...companyCache.modules,
+          sales: selected === "sales",
+          invoicing: selected === "invoicing"
+        };
+        renderCompany(companyCache);
+      }
+
+      $("#moduleModal").modal("hide");
+
+      Swal.fire({
+        icon: "success",
+        title: "Pronto!",
+        text: "Módulo actualizado com sucesso.",
+        timer: 1200,
+        showConfirmButton: false
+      });
+    } catch (error) {
+      Swal.fire({
+        icon: "error",
+        title: "Erro",
+        text: error.message || "Não foi possível actualizar."
+      });
+    } finally {
+      setButtonLoading(els.btnSaveModule, false);
+    }
+  }
+
+  async function updateLogoUrl(url) {
+    const response = await fetch("/api/company/logo", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ logo_name: url })
     });
 
-    const json = await resp.json().catch(() => ({}));
-    if (!resp.ok || json.status !== "success") {
-      return Swal.fire({ icon: "error", title: "Erro", text: json.message || "Não foi possível atualizar." });
+    return response.json();
+  }
+
+  async function uploadLogo() {
+    if (!els.inputLogo.files[0]) return;
+
+    setButtonLoading(els.btnSaveLogo, true, "A carregar...");
+
+    try {
+      const file = els.inputLogo.files[0];
+      const maxSizeMb = 4;
+
+      if (file.size > maxSizeMb * 1024 * 1024) {
+        throw new Error(`O ficheiro excede ${maxSizeMb}MB.`);
+      }
+
+      const allowedTypes = ["image/png", "image/jpeg", "image/webp"];
+      if (!allowedTypes.includes(file.type)) {
+        throw new Error("Formato inválido. Use PNG, JPG ou WEBP.");
+      }
+
+      const formData = new FormData();
+      formData.append("logo", file);
+
+      const response = await fetch("https://bitiray.com/invoicing-company-logo", {
+        method: "POST",
+        body: formData
+      });
+
+      const data = await response.json();
+
+      if (data.status !== "success") {
+        throw new Error(data.message || "Erro ao carregar o logo.");
+      }
+
+      const updateResponse = await updateLogoUrl(data.fileName);
+
+      if (updateResponse.status !== "success") {
+        throw new Error(updateResponse.message || "Erro ao salvar o logo.");
+      }
+
+      if (companyCache) {
+        companyCache.logoUrl = data.fileName;
+        fillLogoSection(companyCache);
+      }
+
+      $("#previewModal").modal("hide");
+
+      Swal.fire({
+        icon: "success",
+        title: "Sucesso!",
+        text: "Logotipo actualizado com sucesso.",
+        showConfirmButton: true
+      });
+    } catch (error) {
+      Swal.fire({
+        icon: "error",
+        title: "Erro!",
+        text: error.message || "Erro ao carregar o logo. Tente novamente.",
+        showConfirmButton: true
+      });
+    } finally {
+      setButtonLoading(els.btnSaveLogo, false);
+    }
+  }
+
+  function handleLogoSelection() {
+    const file = els.inputLogo.files[0];
+    if (!file) return;
+
+    if (logoPreviewObjectUrl) {
+      URL.revokeObjectURL(logoPreviewObjectUrl);
     }
 
-    $("#moduleModal").modal("hide");
-    Swal.fire({ icon: "success", title: "Pronto!", text: "Módulo atualizado com sucesso.", timer: 1200, showConfirmButton: false });
+    logoPreviewObjectUrl = URL.createObjectURL(file);
+    els.logoPreview.src = logoPreviewObjectUrl;
+    $("#previewModal").modal("show");
+  }
 
-    await loadActiveModuleUI();
+  function bindEvents() {
+    els.btnEditCompanyInfo?.addEventListener("click", populateCompanyModal);
 
-    // ✅ opcional: recarregar para sidebar refletir já (se sidebar usa dados do server-side render)
-    // location.reload();
+    els.btnUpdateCompany?.addEventListener("click", function (e) {
+      e.preventDefault();
+      updateCompanyInfo();
+    });
+
+    els.btnOpenBankModal?.addEventListener("click", function () {
+      resetBankModal();
+      $("#bank_account_modal").modal("show");
+    });
+
+    els.companyBankModal?.addEventListener("change", handleOtherBankVisibility);
+    els.btnSaveBankAccount?.addEventListener("click", saveBankInfo);
+
+    document.addEventListener("click", function (e) {
+      const editBtn = e.target.closest(".btn-edit-bank");
+      if (editBtn) {
+        populateBankModalForEdit(editBtn.dataset.id);
+        return;
+      }
+
+      const deleteBtn = e.target.closest(".btn-delete-bank");
+      if (deleteBtn) {
+        deleteBank(deleteBtn.dataset.id);
+        return;
+      }
+
+      const primaryBtn = e.target.closest(".btn-set-primary-bank");
+      if (primaryBtn) {
+        setPrimaryBank(primaryBtn.dataset.id);
+      }
+    });
+
+    document.querySelectorAll(".bank-toggle").forEach((checkbox) => {
+      checkbox.addEventListener("change", function () {
+        clearTimeout(bankVisibilitySaveTimer);
+        bankVisibilitySaveTimer = setTimeout(updateBankVisibility, 450);
+      });
+    });
+
+    els.btnAddLogo?.addEventListener("click", function () {
+      els.inputLogo.click();
+    });
+
+    els.inputLogo?.addEventListener("change", handleLogoSelection);
+    els.btnSaveLogo?.addEventListener("click", uploadLogo);
+
+    els.modSalesRadio?.addEventListener("change", updateModuleOptionStyles);
+    els.modInvoicingRadio?.addEventListener("change", updateModuleOptionStyles);
+    els.btnSaveModule?.addEventListener("click", updateModule);
+
+    $("#previewModal").on("hidden.bs.modal", function () {
+      if (logoPreviewObjectUrl) {
+        URL.revokeObjectURL(logoPreviewObjectUrl);
+        logoPreviewObjectUrl = null;
+      }
+    });
+
+    $("#bank_account_modal").on("hidden.bs.modal", function () {
+      resetBankModal();
+    });
+  }
+
+  bindEvents();
+
+  loadCompanyInfo().catch((error) => {
+    console.error(error);
+    Swal.fire({
+      icon: "error",
+      title: "Erro",
+      text: error.message || "Não foi possível carregar os dados da empresa."
+    });
   });
-
-    loadActiveModuleUI().catch(console.error);
-
 });

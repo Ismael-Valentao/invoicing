@@ -1,13 +1,14 @@
 const mongoose = require('mongoose');
-const vd = require('./vd');
 
 const bankDetailsSchema = new mongoose.Schema({
-    bank: { type: String },
-    account_name: { type: String },
-    nib: { type: String },
-    nuib: { type: String },
-    account_number: { type: String }
-}, { _id: false });
+    label: { type: String, default: '' },
+    bank: { type: String, required: true },
+    account_name: { type: String, required: true },
+    nib: { type: String, required: true },
+    nuib: { type: String, default: '' },
+    account_number: { type: String, required: true },
+    isPrimary: { type: Boolean, default: false }
+}, { _id: true });
 
 const showBankDetailsSchema = new mongoose.Schema({
     invoices: { type: Boolean, default: false },
@@ -24,7 +25,12 @@ const companySchema = new mongoose.Schema({
     nuit: { type: String, required: true, default: 'N/A' },
     showBankDetails: showBankDetailsSchema,
     logoUrl: { type: String },
-    bankDetails: bankDetailsSchema,
+
+    bankDetails: {
+        type: [bankDetailsSchema],
+        default: []
+    },
+
     modules: {
         sales: {
             type: Boolean,
