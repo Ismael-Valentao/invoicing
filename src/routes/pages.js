@@ -1,13 +1,43 @@
 const express = require('express');
-const path = require('path');
+const { requirePermission } = require("../middlewares/requirePermission");
+const { requireAdmin } = require("../middlewares/requireAdmin");
+const { authMiddleware2 } = require('../middlewares/authMiddleware');
+const { ensureHasActiveModule } = require("../middlewares/validationMiddleware");
 
-const {authMiddleware2} = require('../middlewares/authMiddleware');
-const {ensureHasActiveModule} = require("../middlewares/validationMiddleware")
 const router = express.Router();
+
+function buildViewData(req, title, extra = {}) {
+    return {
+        title,
+        name: req.user?.name,
+        companyName: req.user?.company?.name,
+        modules: req.user?.company?.modules || {},
+        currentUser: {
+            _id: req.user?._id,
+            name: req.user?.name,
+            email: req.user?.email,
+            contact: req.user?.contact,
+            status: req.user?.status,
+            role: req.user?.role || 'ADMIN',
+            permissions: req.user?.permissions || {
+                dashboard: true,
+                sales: true,
+                stock: true,
+                invoicing: true,
+                products: true,
+                customers: true,
+                suppliers: true,
+                reports: true,
+                settings: true,
+                users: true
+            }
+        },
+        ...extra
+    };
+}
 
 // Rotas principais do sistema
 router.get('/', (req, res) => {
-    //res.render('index', { title: 'Home' });
     res.render("site", { title: 'Website' });
 });
 
@@ -19,152 +49,123 @@ router.get('/contact', (req, res) => {
     res.render('contact', { title: 'Contato' });
 });
 
-router.get('/dashboard', authMiddleware2,ensureHasActiveModule, (req, res) => {
-    if(req.user.company.modules.sales){
+router.get('/dashboard', authMiddleware2, ensureHasActiveModule, (req, res) => {
+    if (req.user.company.modules.sales) {
         return res.redirect("/sales-dashboard");
     }
-    res.render('dashboard', { title: 'Dashboard', name: req.user.name, companyName:req.user.company.name, modules: req.user.company.modules });
+
+    res.render('dashboard', buildViewData(req, 'Dashboard'));
 });
 
-router.get('/sales-dashboard', authMiddleware2, (req, res) => {
-    res.render('sales-dashboard', { title: 'Dashboard de Vendas', name: req.user.name, companyName:req.user.company.name, modules: req.user.company.modules });
+router.get('/sales-dashboard', authMiddleware2, requirePermission('dashboard'), (req, res) => {
+    res.render('sales-dashboard', buildViewData(req, 'Dashboard de Vendas'));
 });
 
-router.get('/invoices-dashboard', authMiddleware2, (req, res) => {
-    res.render('invoices-dashboard', { title: 'Dashboard de Faturas', name: req.user.name, companyName:req.user.company.name, modules: req.user.company.modules });
+router.get('/invoices-dashboard', authMiddleware2, requirePermission('dashboard'), (req, res) => {
+    res.render('invoices-dashboard', buildViewData(req, 'Dashboard de Faturas'));
 });
 
 router.get("/setup-modules", (req, res) => {
-  return res.render("setup-modules", { title: "Configurar Módulos" });
+    return res.render("setup-modules", { title: "Configurar Módulos" });
 });
 
-router.get('/invoices', authMiddleware2, (req, res) => {
-    res.render('invoices', { title: 'Facturas', name: req.user.name, companyName:req.user.company.name, modules: req.user.company.modules });
+router.get('/invoices', authMiddleware2, requirePermission('invoicing'), (req, res) => {
+    res.render('invoices', buildViewData(req, 'Facturas'));
 });
 
-router.get('/new-invoice', authMiddleware2, (req, res) => {
-    res.render('new-invoice', { title: 'Nova Factura', name: req.user.name, companyName:req.user.company.name, modules: req.user.company.modules });
+router.get('/new-invoice', authMiddleware2, requirePermission('invoicing'), (req, res) => {
+    res.render('new-invoice', buildViewData(req, 'Nova Factura'));
 });
 
-router.get('/quotations', authMiddleware2, (req, res) => {
-    res.render('quotations', { title: 'Cotações', name: req.user.name, companyName:req.user.company.name, modules: req.user.company.modules });
+router.get('/quotations', authMiddleware2, requirePermission('invoicing'), (req, res) => {
+    res.render('quotations', buildViewData(req, 'Cotações'));
 });
 
-router.get('/new-quotation', authMiddleware2, (req, res) => {
-    res.render('new-quotation', { title: 'Nova Cotação', name: req.user.name, companyName:req.user.company.name, modules: req.user.company.modules });
+router.get('/new-quotation', authMiddleware2, requirePermission('invoicing'), (req, res) => {
+    res.render('new-quotation', buildViewData(req, 'Nova Cotação'));
 });
 
-router.get('/vd', authMiddleware2, (req, res) => {
-    res.render('vd', { title: 'VD', name: req.user.name, companyName:req.user.company.name, modules: req.user.company.modules });
+router.get('/vd', authMiddleware2, requirePermission('invoicing'), (req, res) => {
+    res.render('vd', buildViewData(req, 'VD'));
 });
 
-router.get('/receipts', authMiddleware2, (req, res) => {
-    res.render('receipt', { title: 'Recibo', name: req.user.name, companyName:req.user.company.name, modules: req.user.company.modules });
+router.get('/receipts', authMiddleware2, requirePermission('invoicing'), (req, res) => {
+    res.render('receipt', buildViewData(req, 'Recibos'));
 });
 
-
-router.get('/new-vd', authMiddleware2, (req, res) => {
-    res.render('new-vd', { title: 'Nova VD', name: req.user.name, companyName:req.user.company.name, modules: req.user.company.modules });
+router.get('/new-vd', authMiddleware2, requirePermission('invoicing'), (req, res) => {
+    res.render('new-vd', buildViewData(req, 'Nova VD'));
 });
 
-router.get('/clients', authMiddleware2, (req, res) => {
-    res.render('clients', { title: 'Clientes', name: req.user.name, companyName:req.user.company.name, modules: req.user.company.modules });
+router.get('/clients', authMiddleware2, requirePermission('customers'), (req, res) => {
+    res.render('clients', buildViewData(req, 'Clientes'));
 });
 
-router.get('/products', authMiddleware2, (req, res) => {
-    res.render('products', { title: 'products', name: req.user.name, companyName:req.user.company.name, modules: req.user.company.modules });
+router.get('/products', authMiddleware2, requirePermission('products'), (req, res) => {
+    res.render('products', buildViewData(req, 'Produtos'));
 });
 
-router.get('/reports', authMiddleware2, (req, res)=>{
-    res.render('reports', { title: 'Relatórios', name: req.user.name, companyName:req.user.company.name, modules: req.user.company.modules })
-})
+router.get('/reports', authMiddleware2, requirePermission('reports'), (req, res) => {
+    res.render('reports', buildViewData(req, 'Relatórios'));
+});
 
-router.get('/invoices/:id', authMiddleware2, (req, res) => {
+router.get('/invoices/:id', authMiddleware2, requirePermission('invoicing'), (req, res) => {
     const invoiceId = req.params.id;
-    res.render('invoice-detail', { title: `Fatura ${invoiceId}`, invoiceId, companyName:req.user.company.name });
+    res.render('invoice-detail', buildViewData(req, `Fatura ${invoiceId}`, { invoiceId }));
 });
 
-router.get('/invoices/:id/edit', authMiddleware2, (req, res) => {
+router.get('/invoices/:id/edit', authMiddleware2, requirePermission('invoicing'), (req, res) => {
     const invoiceId = req.params.id;
-    res.render('edit-invoice', { title: `Editar Fatura ${invoiceId}`, invoiceId });
+    res.render('edit-invoice', buildViewData(req, `Editar Fatura ${invoiceId}`, { invoiceId }));
 });
 
-router.get('/invoices/:id/pdf', authMiddleware2, (req, res) => {
+router.get('/invoices/:id/pdf', authMiddleware2, requirePermission('invoicing'), (req, res) => {
     const invoiceId = req.params.id;
-    res.render('invoice-pdf', { title: `Fatura ${invoiceId}`, invoiceId });
+    res.render('invoice-pdf', buildViewData(req, `Fatura ${invoiceId}`, { invoiceId }));
 });
 
-//Sales
-
-router.get('/sales', authMiddleware2, (req, res) => {
-    res.render('sales', { title: 'Vendas', name: req.user.name, companyName:req.user.company.name, modules: req.user.company.modules });
+// Sales
+router.get('/sales', authMiddleware2, requirePermission('sales'), (req, res) => {
+    res.render('sales', buildViewData(req, 'Vendas'));
 });
 
-router.get('/new-sale', authMiddleware2, (req, res) => {
-    res.render('new-sale', { title: 'Nova Venda', name: req.user.name, companyName:req.user.company.name, modules: req.user.company.modules });
+router.get('/new-sale', authMiddleware2, requirePermission('sales'), (req, res) => {
+    res.render('new-sale', buildViewData(req, 'Nova Venda'));
 });
 
-//movements
-router.get("/stock-movements", authMiddleware2, (req, res) => {
-  res.render("stock-movements", { title: "Movimentos de Stock", name: req.user.name, companyName:req.user.company.name, modules: req.user.company.modules });
+// Movements
+router.get('/stock-movements', authMiddleware2, requirePermission('stock'), (req, res) => {
+    res.render('stock-movements', buildViewData(req, 'Movimentos de Stock'));
 });
-
 
 router.get('/login', (req, res) => {
     res.render('login', { title: 'Login' });
 });
+
 router.get('/register', (req, res) => {
     res.render('register', { title: 'Registrar' });
 });
-
 
 router.get('/forgot-password', (req, res) => {
     res.render('forgot-password', { title: 'Esqueci minha senha' });
 });
 
 router.get('/reset-password/:token', (req, res) => {
-    const {token} = req.params
+    const { token } = req.params;
     res.render('reset-password', { title: 'Redefinir senha', token });
 });
- /*
-router.get('/profile', authMiddleware2, (req, res) => {
-    res.render('profile', { title: 'Perfil', name: req.user.name, companyName:req.user.company.name });
-});*/
 
-router.get('/settings', authMiddleware2, (req, res) => {
-    res.render('settings', { title: 'Configurações', name: req.user.name, companyName:req.user.company.name, modules: req.user.company.modules });
+router.get('/users', authMiddleware2, requireAdmin, (req, res) => {
+    res.render('users', buildViewData(req, 'Utilizadores'));
 });
 
-/*router.get('/terms', (req, res) => {
-    res.render('terms', { title: 'Termos de Serviço' });
-});
-router.get('/privacy', (req, res) => {
-    res.render('privacy', { title: 'Política de Privacidade' });
-});
-router.get('/help', (req, res) => {
-    res.render('help', { title: 'Ajuda' });
+router.get('/settings', authMiddleware2, requirePermission('settings'), (req, res) => {
+    res.render('settings', buildViewData(req, 'Configurações'));
 });
 
-
-// Rota para a página de erro 500
-router.get('/500', (req, res) => {
-    res.status(500).render('500', { title: 'Erro interno do servidor' });
-});
-// Rota para a página de manutenção
-router.get('/maintenance', (req, res) => {
-    res.render('maintenance', { title: 'Manutenção' });
-});
-// Rota para a página de acesso negado
-router.get('/access-denied', (req, res) => {
-    res.render('access-denied', { title: 'Acesso negado' });
-});*/
-
-
-// Rota para a página de logout
+// Logout
 router.get('/logout', (req, res) => {
-    // Lógica para fazer logout do usuário
     res.redirect('/login');
 });
-
 
 module.exports = router;

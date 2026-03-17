@@ -45,7 +45,7 @@ exports.login = async (req, res) => {
   }
 
 
-  const token = jwt.sign({ id: user._id, name: user.name, email: user.email, company: user.companyId }, SECRET, { expiresIn: '1h' });
+  const token = jwt.sign({ id: user._id, name: user.name, email: user.email, permissions:user.permissions, role:user.role, company: user.companyId }, SECRET, { expiresIn: '1h' });
 
   const activatedModule = user.companyId.modules.invoice ? "invoice" : user.companyId.modules.stock ? "stock" : user.companyId.modules.sales ? "sales" : null;
 

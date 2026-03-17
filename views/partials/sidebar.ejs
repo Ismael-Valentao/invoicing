@@ -1,5 +1,17 @@
 <!-- Sidebar -->
 <ul class="navbar-nav bg-gradient-primary sidebar sidebar-dark accordion" id="accordionSidebar">
+  <% 
+    const isAdmin = currentUser?.role === 'ADMIN';
+
+    const can = (permission) => {
+      if (isAdmin) return true;
+      return !!currentUser?.permissions?.[permission];
+    };
+
+    const hasSalesModule = !!modules?.sales;
+    const hasInvoicingModule = !!modules?.invoicing;
+  %>
+
   <!-- Brand -->
   <a class="sidebar-brand d-flex align-items-center" style="justify-content: space-between;" href="/dashboard">
     <div class="sidebar-brand-icon">
@@ -9,215 +21,245 @@
 
   <hr class="sidebar-divider my-0" />
 
-  <!-- Dashboard (sempre) -->
-  <li class="nav-item <%= title === 'Dashboard' ? 'active' : '' %>">
-    <a class="nav-link" href="/dashboard">
-      <i class="fas fa-fw fa-tachometer-alt"></i>
-      <span>Dashboard</span>
-    </a>
-  </li>
-
-  <hr class="sidebar-divider" />
+  <!-- Dashboard -->
+  <% if (can('dashboard')) { %>
+    <li class="nav-item <%= title === 'Dashboard' ? 'active' : '' %>">
+      <a class="nav-link" href="/dashboard">
+        <i class="fas fa-fw fa-tachometer-alt"></i>
+        <span>Dashboard</span>
+      </a>
+    </li>
+    <hr class="sidebar-divider" />
+  <% } %>
 
   <!-- ===================== -->
   <!-- MÓDULO: VENDAS -->
   <!-- ===================== -->
-  <% if (modules && modules.sales) { %>
+  <% if (hasSalesModule && (can('sales') || can('stock') || can('products'))) { %>
     <div class="sidebar-heading">Vendas</div>
 
-    <!-- Vendas -->
-    <li class="nav-item <%= ['Vendas','Nova Venda','Lista de Vendas'].includes(title) ? 'active' : '' %>">
-      <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseSales" aria-expanded="true"
-        aria-controls="collapseSales">
-        <i class="fa-solid fa-cart-shopping"></i>
-        <span>Vendas</span>
-      </a>
-      <div id="collapseSales" class="collapse" aria-labelledby="headingSales" data-parent="#accordionSidebar">
-        <div class="bg-white py-2 collapse-inner rounded">
-          <h6 class="collapse-header">Opções:</h6>
-          <a class="collapse-item" href="/new-sale">Nova venda</a>
-          <a class="collapse-item" href="/sales">Lista de vendas</a>
+    <% if (can('sales')) { %>
+      <li class="nav-item <%= ['Vendas','Nova Venda','Lista de Vendas'].includes(title) ? 'active' : '' %>">
+        <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseSales" aria-expanded="true"
+          aria-controls="collapseSales">
+          <i class="fa-solid fa-cart-shopping"></i>
+          <span>Vendas</span>
+        </a>
+        <div id="collapseSales" class="collapse <%= ['Vendas','Nova Venda','Lista de Vendas'].includes(title) ? 'show' : '' %>"
+          aria-labelledby="headingSales" data-parent="#accordionSidebar">
+          <div class="bg-white py-2 collapse-inner rounded">
+            <h6 class="collapse-header">Opções:</h6>
+            <a class="collapse-item <%= title === 'Nova Venda' ? 'active' : '' %>" href="/new-sale">Nova venda</a>
+            <a class="collapse-item <%= ['Vendas','Lista de Vendas'].includes(title) ? 'active' : '' %>" href="/sales">Lista de vendas</a>
+          </div>
         </div>
-      </div>
-    </li>
+      </li>
+    <% } %>
 
-    <!-- Stock / Movimentos -->
-    <li class="nav-item <%= ['Stocks','Movimentos de Stock'].includes(title) ? 'active' : '' %>">
-      <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseStocks" aria-expanded="true"
-        aria-controls="collapseStocks">
-        <i class="fa-solid fa-boxes-stacked"></i>
-        <span>Stock</span>
-      </a>
-      <div id="collapseStocks" class="collapse" aria-labelledby="headingStocks" data-parent="#accordionSidebar">
-        <div class="bg-white py-2 collapse-inner rounded">
-          <h6 class="collapse-header">Opções:</h6>
-          <a class="collapse-item" href="/products">Produtos</a>
-          <a class="collapse-item" href="/stock-movements">Movimentos de stock</a>
+    <% if (can('stock') || can('products')) { %>
+      <li class="nav-item <%= ['Stocks','Movimentos de Stock','Produtos'].includes(title) ? 'active' : '' %>">
+        <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseStocks" aria-expanded="true"
+          aria-controls="collapseStocks">
+          <i class="fa-solid fa-boxes-stacked"></i>
+          <span>Stock</span>
+        </a>
+        <div id="collapseStocks" class="collapse <%= ['Stocks','Movimentos de Stock','Produtos'].includes(title) ? 'show' : '' %>"
+          aria-labelledby="headingStocks" data-parent="#accordionSidebar">
+          <div class="bg-white py-2 collapse-inner rounded">
+            <h6 class="collapse-header">Opções:</h6>
+
+            <% if (can('products')) { %>
+              <a class="collapse-item <%= title === 'Produtos' ? 'active' : '' %>" href="/products">Produtos</a>
+            <% } %>
+
+            <% if (can('stock')) { %>
+              <a class="collapse-item <%= title === 'Movimentos de Stock' ? 'active' : '' %>" href="/stock-movements">Movimentos de stock</a>
+            <% } %>
+          </div>
         </div>
-      </div>
+      </li>
+    <% } %>
+
+    <hr class="sidebar-divider" />
+  <% } %>
+
+  <!-- ===================== -->
+  <!-- MÓDULO: FACTURAÇÃO -->
+  <!-- ===================== -->
+  <% if (hasInvoicingModule && (can('invoicing') || can('customers') || can('reports'))) { %>
+    <div class="sidebar-heading">Facturação</div>
+
+    <% if (can('invoicing')) { %>
+      <li class="nav-item <%= ['Facturas','Nova Factura'].includes(title) ? 'active' : '' %>">
+        <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseInvoices"
+          aria-expanded="true" aria-controls="collapseInvoices">
+          <i class="fa-solid fa-file-invoice-dollar"></i>
+          <span>Facturas</span>
+        </a>
+        <div id="collapseInvoices" class="collapse <%= ['Facturas','Nova Factura'].includes(title) ? 'show' : '' %>"
+          aria-labelledby="headingInvoices" data-parent="#accordionSidebar">
+          <div class="bg-white py-2 collapse-inner rounded">
+            <h6 class="collapse-header">Opções:</h6>
+            <a class="collapse-item <%= title === 'Nova Factura' ? 'active' : '' %>" href="/new-invoice">Nova factura</a>
+            <a class="collapse-item <%= title === 'Facturas' ? 'active' : '' %>" href="/invoices">Listar facturas</a>
+          </div>
+        </div>
+      </li>
+
+      <li class="nav-item <%= ['VD','Nova VD'].includes(title) ? 'active' : '' %>">
+        <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseVD" aria-expanded="true"
+          aria-controls="collapseVD">
+          <i class="fa-solid fa-receipt"></i>
+          <span>VD</span>
+        </a>
+        <div id="collapseVD" class="collapse <%= ['VD','Nova VD'].includes(title) ? 'show' : '' %>"
+          aria-labelledby="headingVD" data-parent="#accordionSidebar">
+          <div class="bg-white py-2 collapse-inner rounded">
+            <h6 class="collapse-header">Opções:</h6>
+            <a class="collapse-item <%= title === 'Nova VD' ? 'active' : '' %>" href="/new-vd">Nova VD</a>
+            <a class="collapse-item <%= title === 'VD' ? 'active' : '' %>" href="/vd">Listar VD</a>
+          </div>
+        </div>
+      </li>
+
+      <li class="nav-item <%= title === 'Recibos' ? 'active' : '' %>">
+        <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseReceipts"
+          aria-expanded="true" aria-controls="collapseReceipts">
+          <i class="fa-solid fa-file-lines"></i>
+          <span>Recibos</span>
+        </a>
+        <div id="collapseReceipts" class="collapse <%= title === 'Recibos' ? 'show' : '' %>"
+          aria-labelledby="headingReceipts" data-parent="#accordionSidebar">
+          <div class="bg-white py-2 collapse-inner rounded">
+            <h6 class="collapse-header">Opções:</h6>
+            <a class="collapse-item <%= title === 'Recibos' ? 'active' : '' %>" href="/receipts">Listar recibos</a>
+          </div>
+        </div>
+      </li>
+
+      <li class="nav-item <%= ['Cotações','Nova Cotação'].includes(title) ? 'active' : '' %>">
+        <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseQuotations"
+          aria-expanded="true" aria-controls="collapseQuotations">
+          <i class="fa-solid fa-file"></i>
+          <span>Cotações</span>
+        </a>
+        <div id="collapseQuotations" class="collapse <%= ['Cotações','Nova Cotação'].includes(title) ? 'show' : '' %>"
+          aria-labelledby="headingQuotations" data-parent="#accordionSidebar">
+          <div class="bg-white py-2 collapse-inner rounded">
+            <h6 class="collapse-header">Opções:</h6>
+            <a class="collapse-item <%= title === 'Nova Cotação' ? 'active' : '' %>" href="/new-quotation">Nova cotação</a>
+            <a class="collapse-item <%= title === 'Cotações' ? 'active' : '' %>" href="/quotations">Listar cotações</a>
+          </div>
+        </div>
+      </li>
+    <% } %>
+
+    <% if (can('customers')) { %>
+      <li class="nav-item <%= title === 'Clientes' ? 'active' : '' %>">
+        <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseClients"
+          aria-expanded="true" aria-controls="collapseClients">
+          <i class="fa-solid fa-users"></i>
+          <span>Clientes</span>
+        </a>
+        <div id="collapseClients" class="collapse <%= title === 'Clientes' ? 'show' : '' %>"
+          aria-labelledby="headingClients" data-parent="#accordionSidebar">
+          <div class="bg-white py-2 collapse-inner rounded">
+            <h6 class="collapse-header">Opções:</h6>
+            <a class="collapse-item <%= title === 'Clientes' ? 'active' : '' %>" href="/clients">Lista de clientes</a>
+          </div>
+        </div>
+      </li>
+    <% } %>
+
+    <% if (can('reports')) { %>
+      <li class="nav-item <%= title === 'Relatórios' ? 'active' : '' %>">
+        <a class="nav-link" href="/reports">
+          <i class="fa fa-file-excel"></i>
+          <span>Relatórios</span>
+        </a>
+      </li>
+    <% } %>
+
+    <hr class="sidebar-divider" />
+  <% } %>
+
+  <% if (!hasSalesModule && !hasInvoicingModule) { %>
+    <div class="sidebar-heading">Aviso</div>
+    <li class="nav-item">
+      <a class="nav-link" href="/settings">
+        <i class="fa-solid fa-circle-exclamation"></i>
+        <span>Ativar módulos</span>
+      </a>
+    </li>
+  <% } %>
+
+  <!-- ===================== -->
+  <!-- UTILIZADORES -->
+  <!-- ===================== -->
+  <% if (can('users')) { %>
+    <div class="sidebar-heading">Administração</div>
+
+    <li class="nav-item <%= title === 'Utilizadores' ? 'active' : '' %>">
+      <a class="nav-link" href="/users">
+        <i class="fa-solid fa-users-gear"></i>
+        <span>Utilizadores</span>
+      </a>
     </li>
 
     <hr class="sidebar-divider" />
-    <% } %>
+  <% } %>
 
-      <!-- ===================== -->
-      <!-- MÓDULO: FACTURAÇÃO -->
-      <!-- ===================== -->
-      <% if (modules && modules.invoicing) { %>
-        <div class="sidebar-heading">Facturação</div>
+  <!-- ===================== -->
+  <!-- GLOBAL -->
+  <!-- ===================== -->
+  <div class="sidebar-heading">Conta</div>
 
-        <!-- Facturas -->
-        <li class="nav-item <%= (title === 'Facturas' || title === 'Nova Factura') ? 'active' : '' %>">
-          <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseInvoices"
-            aria-expanded="true" aria-controls="collapseInvoices">
-            <i class="fa-solid fa-file-invoice-dollar"></i>
-            <span>Facturas</span>
-          </a>
-          <div id="collapseInvoices" class="collapse" aria-labelledby="headingInvoices" data-parent="#accordionSidebar">
-            <div class="bg-white py-2 collapse-inner rounded">
-              <h6 class="collapse-header">Opções:</h6>
-              <a class="collapse-item" href="/new-invoice">Nova factura</a>
-              <a class="collapse-item" href="/invoices">Listar facturas</a>
-            </div>
-          </div>
-        </li>
+  <% if (can('settings')) { %>
+    <li class="nav-item <%= title === 'Configurações' ? 'active' : '' %>">
+      <a class="nav-link" href="/settings">
+        <i class="fa-solid fa-cog"></i>
+        <span>Configurações</span>
+      </a>
+    </li>
+  <% } %>
 
-        <!-- VD -->
-        <li class="nav-item <%= (title === 'VD' || title === 'Nova VD') ? 'active' : '' %>">
-          <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseVD" aria-expanded="true"
-            aria-controls="collapseVD">
-            <i class="fa-solid fa-receipt"></i>
-            <span>VD</span>
-          </a>
-          <div id="collapseVD" class="collapse" aria-labelledby="headingVD" data-parent="#accordionSidebar">
-            <div class="bg-white py-2 collapse-inner rounded">
-              <h6 class="collapse-header">Opções:</h6>
-              <a class="collapse-item" href="/new-vd">Nova VD</a>
-              <a class="collapse-item" href="/vd">Listar VD</a>
-            </div>
-          </div>
-        </li>
+  <hr class="sidebar-divider" />
 
-        <!-- Recibos -->
-        <li class="nav-item <%= title === 'Recibos' ? 'active' : '' %>">
-          <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseReceipts"
-            aria-expanded="true" aria-controls="collapseReceipts">
-            <i class="fa-solid fa-file-lines"></i>
-            <span>Recibos</span>
-          </a>
-          <div id="collapseReceipts" class="collapse" aria-labelledby="headingReceipts" data-parent="#accordionSidebar">
-            <div class="bg-white py-2 collapse-inner rounded">
-              <h6 class="collapse-header">Opções:</h6>
-              <a class="collapse-item" href="/receipts">Listar recibos</a>
-            </div>
-          </div>
-        </li>
+  <li class="nav-item">
+    <a class="nav-link btn_logout" href="#" onclick="logout()">
+      <i class="fa-solid fa-right-from-bracket fa-rotate-180"></i>
+      <span>Sair</span>
+    </a>
+  </li>
 
-        <!-- Cotações -->
-        <li class="nav-item <%= (title === 'Cotações' || title === 'Nova Cotação') ? 'active' : '' %>">
-          <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseQuotations"
-            aria-expanded="true" aria-controls="collapseQuotations">
-            <i class="fa-solid fa-file"></i>
-            <span>Cotações</span>
-          </a>
-          <div id="collapseQuotations" class="collapse" aria-labelledby="headingQuotations"
-            data-parent="#accordionSidebar">
-            <div class="bg-white py-2 collapse-inner rounded">
-              <h6 class="collapse-header">Opções:</h6>
-              <a class="collapse-item" href="/new-quotation">Nova cotação</a>
-              <a class="collapse-item" href="/quotations">Listar cotações</a>
-            </div>
-          </div>
-        </li>
+  <hr class="sidebar-divider d-none d-md-block" />
 
-        <!-- Clientes -->
-        <li class="nav-item <%= title === 'Clientes' ? 'active' : '' %>">
-          <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseClients"
-            aria-expanded="true" aria-controls="collapseClients">
-            <i class="fa-solid fa-users"></i>
-            <span>Clientes</span>
-          </a>
-          <div id="collapseClients" class="collapse" aria-labelledby="headingClients" data-parent="#accordionSidebar">
-            <div class="bg-white py-2 collapse-inner rounded">
-              <h6 class="collapse-header">Opções:</h6>
-              <a class="collapse-item" href="/clients">Lista de clientes</a>
-            </div>
-          </div>
-        </li>
-
-        <!-- Relatórios -->
-        <li class="nav-item <%= title === 'Relatórios' ? 'active' : '' %>">
-          <a class="nav-link" href="/reports">
-            <i class="fa fa-file-excel"></i>
-            <span>Relatórios</span>
-          </a>
-        </li>
-
-        <hr class="sidebar-divider" />
-        <% } %>
-
-          <% if (!modules?.sales && !modules?.invoicing) { %>
-            <div class="sidebar-heading">Aviso</div>
-            <li class="nav-item">
-              <a class="nav-link" href="/settings">
-                <i class="fa-solid fa-circle-exclamation"></i>
-                <span>Ativar módulos</span>
-              </a>
-            </li>
-            <% } %>
-
-              <!-- ===================== -->
-              <!-- GLOBAL -->
-              <!-- ===================== -->
-              <div class="sidebar-heading">Conta</div>
-
-              <li class="nav-item <%= title === 'Configurações' ? 'active' : '' %>">
-                <a class="nav-link" href="/settings">
-                  <i class="fa-solid fa-cog"></i>
-                  <span>Configurações</span>
-                </a>
-              </li>
-
-              <hr class="sidebar-divider" />
-
-              <li class="nav-item">
-                <a class="nav-link btn_logout" href="#" onclick="logout()">
-                  <i class="fa-solid fa-right-from-bracket fa-rotate-180"></i>
-                  <span>Sair</span>
-                </a>
-              </li>
-
-              <hr class="sidebar-divider d-none d-md-block" />
-
-              <div class="text-center d-none d-md-inline">
-                <button class="rounded-circle border-0" id="sidebarToggle"></button>
-              </div>
+  <div class="text-center d-none d-md-inline">
+    <button class="rounded-circle border-0" id="sidebarToggle"></button>
+  </div>
 </ul>
 <!-- End of Sidebar -->
- <script>
+
+<script>
   document.addEventListener("DOMContentLoaded", function () {
     const isMobile = () => window.innerWidth < 768;
 
-    // para todos os links que abrem collapse
     document.querySelectorAll('#accordionSidebar a[data-toggle="collapse"]').forEach((a) => {
       a.addEventListener("click", function (e) {
-        // evita o "#" dar jump e atrapalhar no mobile
         e.preventDefault();
 
         const targetSel = this.getAttribute("data-target");
         const target = document.querySelector(targetSel);
         if (!target) return;
 
-        // Se estiver em mobile, garante que sidebar não está "toggled" a bloquear interações
         if (isMobile()) {
           document.body.classList.remove("sidebar-toggled");
           const sidebar = document.querySelector(".sidebar");
           if (sidebar) sidebar.classList.remove("toggled");
         }
 
-        // usa o próprio bootstrap collapse
         $(target).collapse("toggle");
-      }, { passive: false });
+      });
     });
   });
 </script>

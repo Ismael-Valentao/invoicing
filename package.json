@@ -8,6 +8,7 @@
     "clearDB": "node src/utils/clearDB.js",
     "clearBitiray": "node src/utils/clearBitiray.js",
     "export": "node src/utils/exportData.js",
+    "migrateUsers": "node src/utils/migrateUsersToAdmin.js",
     "formatClientSchema": "node src/utils/formatClientSchema.js",
     "updateDB": "node src/utils/updateDB.js",
     "postinstall": "npx puppeteer browsers install chrome"
