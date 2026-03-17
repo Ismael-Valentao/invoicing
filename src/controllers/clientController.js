@@ -8,10 +8,10 @@ exports.createClient = async (req, res) => {
 
     const client = new Client({
         name,
-        email,
-        phone: clientPhone,
-        address,
-        nuit: clientNuit,
+        email: email || "N/A",
+        phone: clientPhone || "N/A",
+        address: address || "N/A",
+        nuit: clientNuit || "N/A",
         companyId
     });
 
