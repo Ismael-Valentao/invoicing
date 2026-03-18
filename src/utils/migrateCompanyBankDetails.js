@@ -6,7 +6,7 @@ const Company = require('../models/company');
 const MONGO_URI =
   process.env.NODE_ENV?.toLowerCase() === 'development'
     ? process.env.MONGODB_LOCAL_URI
-    : process.env.MONGODB_URI;
+    : process.env.MONGODB_URI_DEV;
 
 async function migrate() {
   try {

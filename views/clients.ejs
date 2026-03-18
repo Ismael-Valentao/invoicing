@@ -25,6 +25,7 @@
 
     <!-- Custom styles for this page -->
     <link href="assets/vendor/datatables/dataTables.bootstrap4.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
     <link href="assets/css/custom.css" rel="stylesheet" />
     <style>
         body {
@@ -42,6 +43,81 @@
 
         table tr td:last-child {
             text-align: center !important;
+        }
+
+        .page-header-actions {
+            gap: 0.5rem;
+        }
+
+        .mobile-client-card {
+            border: 1px solid #e3e6f0;
+            border-radius: 12px;
+            padding: 0.9rem;
+            margin-bottom: 0.75rem;
+            background: #fff;
+            box-shadow: 0 0.15rem 0.35rem rgba(58, 59, 69, 0.08);
+        }
+
+        .mobile-client-card .client-name {
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: #2e2f37;
+            margin-bottom: 0.5rem;
+        }
+
+        .mobile-client-meta {
+            display: flex;
+            flex-direction: column;
+            gap: 0.35rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .mobile-client-meta div {
+            font-size: 0.8rem;
+            color: #5a5c69;
+            line-height: 1.35;
+        }
+
+        .mobile-client-meta strong {
+            color: #3a3b45;
+        }
+
+        .mobile-client-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .mobile-client-actions .btn {
+            flex: 1;
+        }
+
+        @media (max-width: 767.98px) {
+            .container-fluid {
+                padding-left: 0.75rem !important;
+                padding-right: 0.75rem !important;
+            }
+
+            .d-sm-flex.align-items-center.justify-content-between.mb-3 {
+                display: flex !important;
+                flex-direction: column;
+                align-items: stretch !important;
+            }
+
+            .d-sm-flex.align-items-center.justify-content-between.mb-3 h1 {
+                margin-bottom: 0.75rem !important;
+            }
+
+            #btn-open-client-modal {
+                width: 100%;
+            }
+
+            .modal-dialog {
+                margin: 0.75rem;
+            }
+
+            .modal-body .form-group {
+                margin-bottom: 0.75rem;
+            }
         }
     </style>
 </head>
@@ -69,7 +145,7 @@
                                         class="fa-solid fa-user-plus"></i> Novo Cliente</button>
                             </div>
                             <!-- DataTales Example -->
-                            <div class="card shadow mb-4">
+                            <div class="card shadow mb-4 d-none d-md-block">
                                 <div class="card-body">
                                     <div class="table-responsive">
                                         <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
@@ -91,16 +167,17 @@
                                     </div>
                                 </div>
                             </div>
-
+                            <!-- Versão mobile -->
+                            <div class="d-block d-md-none" id="mobileClientsList"></div>
                         </div>
-                        </div>
-                        <!-- /.container-fluid -->
-                <%- include('partials/copyright') %>
                 </div>
-                <!-- End of Main Content -->
-
+                <!-- /.container-fluid -->
+                <%- include('partials/copyright') %>
             </div>
-            <!-- End of Content Wrapper -->
+            <!-- End of Main Content -->
+
+    </div>
+    <!-- End of Content Wrapper -->
 
     <!-- End of Page Wrapper -->
 
@@ -211,9 +288,9 @@
         <!-- Page level plugins -->
         <script src="assets/vendor/datatables/jquery.dataTables.min.js"></script>
         <script src="assets/vendor/datatables/dataTables.bootstrap4.min.js"></script>
-
+        <!-- Toastify -->
+        <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
         <!-- Page level custom scripts -->
-        <script src="assets/js/demo/datatables-demo.js"></script>
         <script src="assets/js/clients.js"></script>
 </body>
 
