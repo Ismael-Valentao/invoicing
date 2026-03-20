@@ -86,7 +86,7 @@ $("#invoice-form").submit(async function (e) {
                     const countResponse = await fetch('/api/invoices/total-invoices');
                     const countData = await countResponse.json();
                     
-                    
+
                     if (countData.success) {
                         await maybeShowSharePrompt(countData.totalInvoices);
                     }
@@ -166,6 +166,7 @@ $("#invoice-form").submit(async function (e) {
             confirmButtonText: 'OK'
         });
     } finally {
+        form.reset();
         submitBtn.prop('disabled', false).html(originalHtml);
     }
 });
