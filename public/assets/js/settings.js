@@ -58,8 +58,8 @@ document.addEventListener("DOMContentLoaded", function () {
     activeModuleHint: document.getElementById("active-module-hint"),
     activeModuleBadge: document.getElementById("active-module-badge"),
     currentModuleText: document.getElementById("current-module-text"),
-    modSalesRadio: document.getElementById("modSalesRadio"),
-    modInvoicingRadio: document.getElementById("modInvoicingRadio"),
+    modSalesCheckbox: document.getElementById("modSalesCheckbox"),
+    modInvoicingCheckbox: document.getElementById("modInvoicingCheckbox"),
     btnSaveModule: document.getElementById("btn-save-module"),
     moduleSalesOption: document.getElementById("module-option-sales"),
     moduleInvoicingOption: document.getElementById("module-option-invoicing"),
@@ -216,36 +216,43 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   function fillModuleSection(modules = {}) {
-    const active = modules.sales ? "sales" : modules.invoicing ? "invoicing" : null;
+    const activeModules = [];
 
-    if (!active) {
+    if (modules.sales) activeModules.push("Vendas");
+    if (modules.invoicing) activeModules.push("Facturação");
+
+    if (!activeModules.length) {
       els.activeModuleLabel.textContent = "Nenhum";
-      els.activeModuleHint.textContent = "Selecione um módulo para começar a usar o sistema.";
+      els.activeModuleHint.textContent = "Selecione pelo menos um módulo para começar a usar o sistema.";
       els.activeModuleBadge.className = "badge badge-warning";
       els.activeModuleBadge.textContent = "Sem módulo";
       els.currentModuleText.textContent = "Nenhum";
-      els.modSalesRadio.checked = false;
-      els.modInvoicingRadio.checked = false;
+
+      els.modSalesCheckbox.checked = false;
+      els.modInvoicingCheckbox.checked = false;
+
       updateModuleOptionStyles();
       return;
     }
 
-    if (active === "sales") {
-      els.activeModuleLabel.textContent = "Vendas";
+    els.activeModuleLabel.textContent = activeModules.join(" + ");
+
+    if (modules.sales && modules.invoicing) {
+      els.activeModuleHint.textContent = "A conta está configurada com Vendas e Facturação.";
+    } else if (modules.sales) {
       els.activeModuleHint.textContent = "Recibos + stock ligado ao caixa.";
-      els.currentModuleText.textContent = "Vendas";
-      els.modSalesRadio.checked = true;
-      els.modInvoicingRadio.checked = false;
-    } else {
-      els.activeModuleLabel.textContent = "Facturação";
+    } else if (modules.invoicing) {
       els.activeModuleHint.textContent = "Facturas, VD, cotações e recibos.";
-      els.currentModuleText.textContent = "Facturação";
-      els.modSalesRadio.checked = false;
-      els.modInvoicingRadio.checked = true;
     }
 
+    els.currentModuleText.textContent = activeModules.join(" + ");
+    const totalActive = [modules.sales, modules.invoicing].filter(Boolean).length;
     els.activeModuleBadge.className = "badge badge-success";
-    els.activeModuleBadge.textContent = "Ativo";
+    els.activeModuleBadge.textContent = totalActive === 2 ? "2 módulos" : "1 módulo";
+
+    els.modSalesCheckbox.checked = !!modules.sales;
+    els.modInvoicingCheckbox.checked = !!modules.invoicing;
+
     updateModuleOptionStyles();
   }
 
@@ -257,8 +264,8 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   function updateModuleOptionStyles() {
-    els.moduleSalesOption.classList.toggle("active", els.modSalesRadio.checked);
-    els.moduleInvoicingOption.classList.toggle("active", els.modInvoicingRadio.checked);
+    els.moduleSalesOption.classList.toggle("active", els.modSalesCheckbox.checked);
+    els.moduleInvoicingOption.classList.toggle("active", els.modInvoicingCheckbox.checked);
   }
 
   function populateCompanyModal() {
@@ -634,26 +641,25 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   async function updateModule() {
-    const selected = document.querySelector('input[name="moduleRadio"]:checked')?.value;
+    const sales = !!els.modSalesCheckbox.checked;
+    const invoicing = !!els.modInvoicingCheckbox.checked;
 
-    if (!selected) {
+    if (!sales && !invoicing) {
       return Swal.fire({
         icon: "warning",
-        title: "Selecione um módulo",
-        text: "Escolha Vendas ou Facturação."
+        title: "Selecione pelo menos um módulo",
+        text: "Escolha Vendas, Facturação ou ambos."
       });
     }
 
-    const current =
-      companyCache?.modules?.sales ? "sales" :
-      companyCache?.modules?.invoicing ? "invoicing" :
-      null;
+    const currentSales = !!companyCache?.modules?.sales;
+    const currentInvoicing = !!companyCache?.modules?.invoicing;
 
-    if (selected === current) {
+    if (sales === currentSales && invoicing === currentInvoicing) {
       return Swal.fire({
         icon: "info",
         title: "Sem alterações",
-        text: "Este módulo já está ativo."
+        text: "Os módulos selecionados já estão ativos."
       });
     }
 
@@ -663,10 +669,7 @@ document.addEventListener("DOMContentLoaded", function () {
       const response = await fetch("/api/company/modules", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          sales: selected === "sales",
-          invoicing: selected === "invoicing"
-        })
+        body: JSON.stringify({ sales, invoicing })
       });
 
       const data = await response.json().catch(() => ({}));
@@ -678,8 +681,8 @@ document.addEventListener("DOMContentLoaded", function () {
       if (companyCache) {
         companyCache.modules = {
           ...companyCache.modules,
-          sales: selected === "sales",
-          invoicing: selected === "invoicing"
+          sales,
+          invoicing
         };
         renderCompany(companyCache);
       }
@@ -689,10 +692,13 @@ document.addEventListener("DOMContentLoaded", function () {
       Swal.fire({
         icon: "success",
         title: "Pronto!",
-        text: "Módulo actualizado com sucesso.",
+        text: "Módulos actualizados com sucesso.",
         timer: 1200,
         showConfirmButton: false
       });
+      setTimeout(()=>{
+        location.reload()
+      }, 2000)
     } catch (error) {
       Swal.fire({
         icon: "error",
@@ -841,8 +847,8 @@ document.addEventListener("DOMContentLoaded", function () {
     els.inputLogo?.addEventListener("change", handleLogoSelection);
     els.btnSaveLogo?.addEventListener("click", uploadLogo);
 
-    els.modSalesRadio?.addEventListener("change", updateModuleOptionStyles);
-    els.modInvoicingRadio?.addEventListener("change", updateModuleOptionStyles);
+    els.modSalesCheckbox?.addEventListener("change", updateModuleOptionStyles);
+    els.modInvoicingCheckbox?.addEventListener("change", updateModuleOptionStyles);
     els.btnSaveModule?.addEventListener("click", updateModule);
 
     $("#previewModal").on("hidden.bs.modal", function () {

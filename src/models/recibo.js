@@ -7,6 +7,11 @@ const itemSchema = new mongoose.Schema({
 
 const reciboSchema = new mongoose.Schema({
     docType: { type: String, default: 'recibo' },
+    invoiceId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Invoice",
+        default: null
+    },
     companyName: { type: String, required: true },
     clientName: { type: String, required: true },
     clientNUIT: { type: String, required: true },

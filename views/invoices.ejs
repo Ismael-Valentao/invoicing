@@ -71,7 +71,8 @@
                                         <a href="/new-invoice" class="btn btn-primary btn-sm"><i
                                                 class="fa-solid fa-plus"></i>
                                             Nova Factura</a>
-                                        <button id="btn-export" class="btn btn-secondary btn-sm"><i class="fa fa-file-excel" aria-hidden="true"></i> Exportar</button>
+                                        <button id="btn-export" class="btn btn-secondary btn-sm"><i
+                                                class="fa fa-file-excel" aria-hidden="true"></i> Exportar</button>
                                     </div>
                                 </div>
                                 <div class="card-body">
@@ -98,8 +99,8 @@
                             </div>
 
                         </div>
-                        </div>
-                        <!-- /.container-fluid -->
+                </div>
+                <!-- /.container-fluid -->
                 <!-- End of Main Content -->
 
                 <%- include('partials/copyright') %>
@@ -116,26 +117,48 @@
     </a>
 
     <!-- Confirmation Modal-->
-    <div class="modal fade" id="invoiceStatusModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
-        aria-hidden="true">
-        <div class="modal-dialog" role="document">
+    <div class="modal fade" id="invoiceStatusModal" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h6 class="modal-title" id="exampleModalLabel"><strong><i class="fa-solid fa-pen-to-square"></i>
-                            Actualização de Status</strong></h6>
+                    <h6 class="modal-title">
+                        <strong>
+                            <i class="fa-solid fa-circle-check text-success mr-2"></i>
+                            Confirmar pagamento
+                        </strong>
+                    </h6>
                     <button class="close" type="button" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">×</span>
                     </button>
                 </div>
-                <div class="modal-body text-center"><strong class="text-danger" style="font-size: 1rem;">Deseja Mudar
-                        Status para <span id="invoiceStatusPT"></span>?</strong></div>
-                <form id="status-form">
-                    <input type="hidden" name="invoiceId" id="invoiceId" value="">
-                    <input type="hidden" name="status" id="invoiceStatus" value="">
-                </form>
+
+                <div class="modal-body">
+                    <form id="status-form">
+                        <input type="hidden" name="invoiceId" id="invoiceId" value="">
+                        <input type="hidden" name="status" id="invoiceStatus" value="paid">
+                    </form>
+
+                    <div class="alert alert-info mb-3">
+                        <i class="fa-solid fa-circle-info mr-2"></i>
+                        Ao marcar esta factura como <strong>paga</strong>, o recibo será gerado automaticamente e poderá
+                        ser baixado de imediato.
+                    </div>
+
+                    <p class="mb-2">
+                        Deseja marcar a factura <strong id="invoiceNumberLabel">—</strong> como <strong>paga</strong>?
+                    </p>
+
+                    <small class="text-muted">
+                        Esta acção altera o estado da factura e deverá ser usada apenas quando o pagamento tiver sido
+                        confirmado.
+                    </small>
+                </div>
+
                 <div class="modal-footer">
                     <button class="btn btn-secondary btn-sm" type="button" data-dismiss="modal">Cancelar</button>
-                    <button id="btn-save-status" class="btn btn-primary btn-sm">Confirmar</button>
+                    <button id="btn-save-status" class="btn btn-success btn-sm">
+                        <i class="fa-solid fa-check mr-1"></i> Confirmar pagamento
+                    </button>
                 </div>
             </div>
         </div>
@@ -148,7 +171,6 @@
         <script src="assets/vendor/datatables/dataTables.bootstrap4.min.js"></script>
 
         <!-- Page level custom scripts -->
-        <script src="assets/js/demo/datatables-demo.js"></script>
         <script src="assets/js/invoices.js"></script>
 </body>
 

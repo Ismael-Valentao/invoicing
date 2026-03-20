@@ -6,73 +6,88 @@ const PDFDocument = require("pdfkit");
 const logoPath = process.env.LOGO_PATH || "https://bitiray.com/public/invoicing-logos/";
 
 function mmToPt(mm) {
-    return (mm * 72) / 25.4;
+  return (mm * 72) / 25.4;
 }
 
 function formatCurrency(value, showCurrencyCode = false) {
-    const formatted = new Intl.NumberFormat("pt-MZ", {
-        style: "currency",
-        currency: "MZN",
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
-    }).format(Number(value || 0));
+  const formatted = new Intl.NumberFormat("pt-MZ", {
+    style: "currency",
+    currency: "MZN",
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(Number(value || 0));
 
-    return showCurrencyCode
-        ? formatted.replace("MTn", "MZN")
-        : formatted.replace("MTn", "");
+  return showCurrencyCode
+    ? formatted.replace("MTn", "MZN")
+    : formatted.replace("MTn", "");
 }
 
 function escapeHtml(value = "") {
-    return String(value)
-        .replaceAll("&", "&amp;")
-        .replaceAll("<", "&lt;")
-        .replaceAll(">", "&gt;")
-        .replaceAll('"', "&quot;")
-        .replaceAll("'", "&#039;");
+  return String(value)
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
 }
 
 function getPrimaryBank(companyInfo) {
-    const banks = Array.isArray(companyInfo?.bankDetails)
-        ? companyInfo.bankDetails
-        : companyInfo?.bankDetails
-            ? [companyInfo.bankDetails]
-            : [];
+  const banks = Array.isArray(companyInfo?.bankDetails)
+    ? companyInfo.bankDetails
+    : companyInfo?.bankDetails
+      ? [companyInfo.bankDetails]
+      : [];
 
-    return banks.find((b) => b?.isPrimary) || banks[0] || null;
+  return banks.find((b) => b?.isPrimary) || banks[0] || null;
 }
 
 function renderBankDetailsBlock(companyInfo, documentType) {
-    const visibilityMap = {
-        invoice: companyInfo?.showBankDetails?.invoices,
-        quotation: companyInfo?.showBankDetails?.quotations,
-        vd: companyInfo?.showBankDetails?.vds,
-        receipt: companyInfo?.showBankDetails?.receipts,
-    };
+  const visibilityMap = {
+    invoice: companyInfo?.showBankDetails?.invoices,
+    quotation: companyInfo?.showBankDetails?.quotations,
+    vd: companyInfo?.showBankDetails?.vds,
+    receipt: companyInfo?.showBankDetails?.receipts,
+  };
 
-    if (!visibilityMap[documentType]) return "";
+  if (!visibilityMap[documentType]) return "";
 
-    const bank = getPrimaryBank(companyInfo);
-    if (!bank) return "";
+  const banks = Array.isArray(companyInfo?.bankDetails)
+    ? companyInfo.bankDetails.filter(Boolean)
+    : companyInfo?.bankDetails
+      ? [companyInfo.bankDetails]
+      : [];
 
-    return `
+  if (!banks.length) return "";
+
+  return `
     <div class="bank-box">
       <div class="bank-title">Dados bancários para pagamento</div>
-      <div class="bank-grid">
-        <div><strong>Banco:</strong> ${escapeHtml(bank.bank || "-")}</div>
-        <div><strong>Titular:</strong> ${escapeHtml(bank.account_name || "-")}</div>
-        <div><strong>Nº da Conta:</strong> ${escapeHtml(bank.account_number || "-")}</div>
-        <div><strong>NIB:</strong> ${escapeHtml(bank.nib || "-")}</div>
-        ${bank.nuib
-            ? `<div><strong>NUIB:</strong> ${escapeHtml(bank.nuib)}</div>`
-            : ""
-        }
+      <div class="bank-list">
+        ${banks.map((bank) => `
+          <div class="bank-item">
+            <div class="bank-item-header">
+              <span class="bank-item-name">
+                ${escapeHtml(bank.label || bank.bank || "Conta bancária")}
+              </span>
+              ${bank.isPrimary ? `<span class="bank-primary-badge">Principal</span>` : ""}
+            </div>
+
+            <div class="bank-grid">
+              <div><strong>Banco:</strong> ${escapeHtml(bank.bank || "-")}</div>
+              <div><strong>Titular:</strong> ${escapeHtml(bank.account_name || "-")}</div>
+              <div><strong>Nº da Conta:</strong> ${escapeHtml(bank.account_number || "-")}</div>
+              <div><strong>NIB:</strong> ${escapeHtml(bank.nib || "-")}</div>
+              ${bank.nuib ? `<div><strong>NUIB:</strong> ${escapeHtml(bank.nuib)}</div>` : ""}
+            </div>
+          </div>
+        `).join("")}
       </div>
     </div>
   `;
 }
 
 function renderItemsTable(items = []) {
-    return `
+  return `
     <table>
       <thead>
         <tr>
@@ -84,26 +99,26 @@ function renderItemsTable(items = []) {
       </thead>
       <tbody>
         ${items
-            .map(
-                (item) => `
+      .map(
+        (item) => `
           <tr>
             <td>${escapeHtml(item.description || item.name || "-")}</td>
             <td class="text-center">${Number(item.quantity || 0)}</td>
             <td class="text-center">${formatCurrency(item.unitPrice ?? item.price ?? 0)}</td>
             <td class="text-right">${formatCurrency(
-                    Number(item.quantity || 0) * Number(item.unitPrice ?? item.price ?? 0)
-                )}</td>
+          Number(item.quantity || 0) * Number(item.unitPrice ?? item.price ?? 0)
+        )}</td>
           </tr>
         `
-            )
-            .join("")}
+      )
+      .join("")}
       </tbody>
     </table>
   `;
 }
 
 function renderTotalsTable(doc) {
-    return `
+  return `
     <table class="totals-table">
       <tbody>
         <tr>
@@ -124,23 +139,23 @@ function renderTotalsTable(doc) {
 }
 
 function buildA4DocumentHtml({
-    companyInfo,
-    title,
-    docNumberLabel,
-    docNumber,
-    date,
-    clientName,
-    clientNUIT,
-    items,
-    totals,
-    footerNotes = [],
-    bankBlock = "",
+  companyInfo,
+  title,
+  docNumberLabel,
+  docNumber,
+  date,
+  clientName,
+  clientNUIT,
+  items,
+  totals,
+  footerNotes = [],
+  bankBlock = "",
 }) {
-    const logoSrc = companyInfo.logoUrl
-        ? logoPath + companyInfo.logoUrl
-        : logoPath + "logo-default.png";
+  const logoSrc = companyInfo.logoUrl
+    ? logoPath + companyInfo.logoUrl
+    : logoPath + "logo-default.png";
 
-    return `
+  return `
   <html lang="pt">
   <head>
     <meta charset="utf-8" />
@@ -368,6 +383,44 @@ function buildA4DocumentHtml({
         font-size: 11px;
         color: #4b5563;
       }
+
+            .bank-list {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+
+      .bank-item {
+        border: 1px solid #dbeafe;
+        background: #ffffff;
+        border-radius: 12px;
+        padding: 12px;
+      }
+
+      .bank-item-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 8px;
+      }
+
+      .bank-item-name {
+        font-size: 12px;
+        font-weight: 800;
+        color: #111827;
+      }
+
+      .bank-primary-badge {
+        display: inline-block;
+        padding: 3px 8px;
+        font-size: 10px;
+        font-weight: 800;
+        color: #166534;
+        background: #dcfce7;
+        border-radius: 999px;
+        white-space: nowrap;
+      }
     </style>
   </head>
   <body>
@@ -392,7 +445,7 @@ function buildA4DocumentHtml({
       <div class="doc-title-wrap">
         <div>
           <h1 class="doc-title">${escapeHtml(title)}</h1>
-          <p class="doc-subtitle">Documento emitido automaticamente pelo sistema Invoicing</p>
+          <p class="doc-subtitle">Documento emitido automaticamente por computador</p>
         </div>
 
         <div class="doc-meta">
@@ -427,139 +480,138 @@ function buildA4DocumentHtml({
 }
 
 async function renderA4Pdf(html) {
-    const browserArgs =
-        process.env.NODE_ENV.toLowerCase() === "production"
-            ? ["--no-sandbox", "--disable-setuid-sandbox", "--no-zygote", "--single-process"]
-            : ["--no-sandbox", "--disable-setuid-sandbox"];
+  const browserArgs =
+    process.env.NODE_ENV.toLowerCase() === "production"
+      ? ["--no-sandbox", "--disable-setuid-sandbox", "--no-zygote", "--single-process"]
+      : ["--no-sandbox", "--disable-setuid-sandbox"];
 
-    const browser = await puppeteer.launch({
-        headless: "new",
-        args: browserArgs,
-    });
+  const browser = await puppeteer.launch({
+    headless: "new",
+    args: browserArgs,
+  });
 
-    const page = await browser.newPage();
-    await page.setContent(html, { waitUntil: "networkidle0", timeout: 0 });
+  const page = await browser.newPage();
+  await page.setContent(html, { waitUntil: "networkidle0", timeout: 0 });
 
-    const pdfBuffer = await page.pdf({
-        format: "A4",
-        printBackground: true,
-        margin: {
-            top: "12mm",
-            right: "12mm",
-            bottom: "12mm",
-            left: "12mm",
-        },
-    });
+  const pdfBuffer = await page.pdf({
+    format: "A4",
+    printBackground: true,
+    margin: {
+      top: "12mm",
+      right: "12mm",
+      bottom: "12mm",
+      left: "12mm",
+    },
+  });
 
-    await browser.close();
-    return pdfBuffer;
+  await browser.close();
+  return pdfBuffer;
 }
 
 async function generateInvoicePDF(companyInfo, invoice) {
-    const html = buildA4DocumentHtml({
-        companyInfo,
-        title: "FACTURA",
-        docNumberLabel: "Factura Nº",
-        docNumber: invoice.invoiceNumber,
-        date: invoice.date,
-        clientName: invoice.clientName,
-        clientNUIT: invoice.clientNUIT,
-        items: invoice.items || [],
-        totals: {
-            subTotal: invoice.subTotal,
-            appliedTax: invoice.appliedTax,
-            tax: invoice.tax,
-            totalAmount: invoice.totalAmount,
-        },
-        bankBlock: renderBankDetailsBlock(companyInfo, "invoice"),
-        footerNotes: [
-            "Esta factura serve como comprovativo da prestação de serviços e/ou fornecimento de bens.",
-            "Prazo de pagamento: até 15 dias após a emissão deste documento.",
-            `Em caso de dúvidas, contacte o departamento financeiro: ${companyInfo.email || "-"} | ${companyInfo.contact || "-"}`,
-        ],
-    });
+  const html = buildA4DocumentHtml({
+    companyInfo,
+    title: "FACTURA",
+    docNumberLabel: "Factura Nº",
+    docNumber: invoice.invoiceNumber,
+    date: invoice.date,
+    clientName: invoice.clientName,
+    clientNUIT: invoice.clientNUIT,
+    items: invoice.items || [],
+    totals: {
+      subTotal: invoice.subTotal,
+      appliedTax: invoice.appliedTax,
+      tax: invoice.tax,
+      totalAmount: invoice.totalAmount,
+    },
+    bankBlock: renderBankDetailsBlock(companyInfo, "invoice"),
+    footerNotes: [
+      "Este documento serve como comprovativo da prestação de serviços e/ou fornecimento de bens.",
+      `Em caso de dúvidas, contacte o departamento financeiro: ${companyInfo.email || "-"} | ${companyInfo.contact || "-"}`,
+    ],
+  });
 
-    return await renderA4Pdf(html);
+  return await renderA4Pdf(html);
 }
 
 async function generateQuotationPDF(companyInfo, quotation) {
-    const html = buildA4DocumentHtml({
-        companyInfo,
-        title: "COTAÇÃO",
-        docNumberLabel: "Cotação Nº",
-        docNumber: quotation.quotationNumber,
-        date: quotation.date,
-        clientName: quotation.clientName,
-        clientNUIT: quotation.clientNUIT,
-        items: quotation.items || [],
-        totals: {
-            subTotal: quotation.subTotal,
-            appliedTax: quotation.appliedTax,
-            tax: quotation.tax,
-            totalAmount: quotation.totalAmount,
-        },
-        bankBlock: renderBankDetailsBlock(companyInfo, "quotation"),
-        footerNotes: [
-            "Esta cotação representa uma proposta comercial de fornecimento de bens e/ou serviços.",
-            `Em caso de dúvidas, contacte o departamento financeiro: ${companyInfo.email || "-"} | ${companyInfo.contact || "-"}`,
-        ],
-    });
+  const html = buildA4DocumentHtml({
+    companyInfo,
+    title: "COTAÇÃO",
+    docNumberLabel: "Cotação Nº",
+    docNumber: quotation.quotationNumber,
+    date: quotation.date,
+    clientName: quotation.clientName,
+    clientNUIT: quotation.clientNUIT,
+    items: quotation.items || [],
+    totals: {
+      subTotal: quotation.subTotal,
+      appliedTax: quotation.appliedTax,
+      tax: quotation.tax,
+      totalAmount: quotation.totalAmount,
+    },
+    bankBlock: renderBankDetailsBlock(companyInfo, "quotation"),
+    footerNotes: [
+      "Esta cotação representa uma proposta comercial de fornecimento de bens e/ou serviços.",
+      `Em caso de dúvidas, contacte o departamento financeiro: ${companyInfo.email || "-"} | ${companyInfo.contact || "-"}`,
+    ],
+  });
 
-    return await renderA4Pdf(html);
+  return await renderA4Pdf(html);
 }
 
 async function generateVDPDF(companyInfo, vd) {
-    const html = buildA4DocumentHtml({
-        companyInfo,
-        title: "VENDA A DINHEIRO",
-        docNumberLabel: "VD Nº",
-        docNumber: vd.invoiceNumber,
-        date: vd.date,
-        clientName: vd.clientName,
-        clientNUIT: vd.clientNUIT,
-        items: vd.items || [],
-        totals: {
-            subTotal: vd.subTotal,
-            appliedTax: vd.appliedTax,
-            tax: vd.tax,
-            totalAmount: vd.totalAmount,
-        },
-        bankBlock: renderBankDetailsBlock(companyInfo, "vd"),
-        footerNotes: [
-            "Este documento comprova o pagamento imediato dos bens ou serviços descritos acima.",
-            "Não necessita de factura adicional. Conserve este documento como comprovativo legal.",
-            `Emitido por: ${companyInfo.name || "-"} | Contacto: ${companyInfo.contact || "-"}`,
-        ],
-    });
+  const html = buildA4DocumentHtml({
+    companyInfo,
+    title: "VENDA A DINHEIRO",
+    docNumberLabel: "VD Nº",
+    docNumber: vd.invoiceNumber,
+    date: vd.date,
+    clientName: vd.clientName,
+    clientNUIT: vd.clientNUIT,
+    items: vd.items || [],
+    totals: {
+      subTotal: vd.subTotal,
+      appliedTax: vd.appliedTax,
+      tax: vd.tax,
+      totalAmount: vd.totalAmount,
+    },
+    bankBlock: renderBankDetailsBlock(companyInfo, "vd"),
+    footerNotes: [
+      "Este documento comprova o pagamento imediato dos bens ou serviços descritos acima.",
+      "Não necessita de factura adicional. Conserve este documento como comprovativo legal.",
+      `Emitido por: ${companyInfo.name || "-"} | Contacto: ${companyInfo.contact || "-"}`,
+    ],
+  });
 
-    return await renderA4Pdf(html);
+  return await renderA4Pdf(html);
 }
 
 async function generateReciboPDF(companyInfo, invoice) {
-    const html = buildA4DocumentHtml({
-        companyInfo,
-        title: "RECIBO",
-        docNumberLabel: "Recibo Nº",
-        docNumber: invoice.reciboNumber,
-        date: invoice.date,
-        clientName: invoice.clientName,
-        clientNUIT: invoice.clientNUIT,
-        items: invoice.items || [],
-        totals: {
-            subTotal: invoice.subTotal,
-            appliedTax: invoice.appliedTax,
-            tax: invoice.tax,
-            totalAmount: invoice.totalAmount,
-        },
-        bankBlock: renderBankDetailsBlock(companyInfo, "receipt"),
-        footerNotes: [
-            "Este recibo confirma o pagamento referente aos bens ou serviços descritos acima.",
-            `Data do pagamento: ${formatedDate(new Date().toISOString())}`,
-            `Emitido por: ${companyInfo.name || "-"} | Contacto: ${companyInfo.contact || "-"}`,
-        ],
-    });
+  const html = buildA4DocumentHtml({
+    companyInfo,
+    title: "RECIBO",
+    docNumberLabel: "Recibo Nº",
+    docNumber: invoice.reciboNumber,
+    date: invoice.date,
+    clientName: invoice.clientName,
+    clientNUIT: invoice.clientNUIT,
+    items: invoice.items || [],
+    totals: {
+      subTotal: invoice.subTotal,
+      appliedTax: invoice.appliedTax,
+      tax: invoice.tax,
+      totalAmount: invoice.totalAmount,
+    },
+    bankBlock: renderBankDetailsBlock(companyInfo, "receipt"),
+    footerNotes: [
+      "Este recibo confirma o pagamento referente aos bens ou serviços descritos acima.",
+      `Data do pagamento: ${formatedDate(new Date().toISOString())}`,
+      `Emitido por: ${companyInfo.name || "-"} | Contacto: ${companyInfo.contact || "-"}`,
+    ],
+  });
 
-    return await renderA4Pdf(html);
+  return await renderA4Pdf(html);
 }
 
 // =========================
@@ -567,175 +619,175 @@ async function generateReciboPDF(companyInfo, invoice) {
 // =========================
 
 function calcHeight(doc, blocks, contentWidth) {
-    let h = 0;
+  let h = 0;
 
-    for (const b of blocks) {
-        if (b.type === "gap") {
-            doc.font("Courier").fontSize(b.fontSize || 9);
-            h += (b.lines || 0) * doc.currentLineHeight(true);
-            continue;
-        }
-
-        if (b.type === "line" || b.type === "text") {
-            doc.font("Courier").fontSize(b.fontSize || 9);
-            h += doc.heightOfString(b.text, {
-                width: contentWidth,
-                align: b.align || "left",
-            });
-            continue;
-        }
-
-        if (b.type === "row") {
-            doc.font("Courier").fontSize(b.fontSize || 9);
-            h += doc.currentLineHeight(true);
-        }
+  for (const b of blocks) {
+    if (b.type === "gap") {
+      doc.font("Courier").fontSize(b.fontSize || 9);
+      h += (b.lines || 0) * doc.currentLineHeight(true);
+      continue;
     }
 
-    return h;
+    if (b.type === "line" || b.type === "text") {
+      doc.font("Courier").fontSize(b.fontSize || 9);
+      h += doc.heightOfString(b.text, {
+        width: contentWidth,
+        align: b.align || "left",
+      });
+      continue;
+    }
+
+    if (b.type === "row") {
+      doc.font("Courier").fontSize(b.fontSize || 9);
+      h += doc.currentLineHeight(true);
+    }
+  }
+
+  return h;
 }
 
 function buildReceiptBlocks(companyInfo, sale) {
-    const receiptNo = sale.receiptNumber || String(sale._id);
-    const dateStr = new Date(sale.createdAt || Date.now()).toLocaleString("pt-MZ");
-    const operator = sale.operatorName || "Sistema";
-    const dash = "----------------------------------------";
+  const receiptNo = sale.receiptNumber || String(sale._id);
+  const dateStr = new Date(sale.createdAt || Date.now()).toLocaleString("pt-MZ");
+  const operator = sale.operatorName || "Sistema";
+  const dash = "----------------------------------------";
 
-    const blocks = [];
+  const blocks = [];
 
-    blocks.push({ type: "text", text: companyInfo.name || "-", fontSize: 12, align: "center" });
-    blocks.push({ type: "text", text: companyInfo.address || "", fontSize: 9, align: "center" });
-    blocks.push({ type: "text", text: `Tel: ${companyInfo.contact || "-"}`, fontSize: 9, align: "center" });
-    blocks.push({ type: "text", text: `NUIT: ${companyInfo.nuit || "-"}`, fontSize: 9, align: "center" });
+  blocks.push({ type: "text", text: companyInfo.name || "-", fontSize: 12, align: "center" });
+  blocks.push({ type: "text", text: companyInfo.address || "", fontSize: 9, align: "center" });
+  blocks.push({ type: "text", text: `Tel: ${companyInfo.contact || "-"}`, fontSize: 9, align: "center" });
+  blocks.push({ type: "text", text: `NUIT: ${companyInfo.nuit || "-"}`, fontSize: 9, align: "center" });
 
-    blocks.push({ type: "gap", lines: 0.4, fontSize: 9 });
-    blocks.push({ type: "line", text: dash, fontSize: 9, align: "center" });
+  blocks.push({ type: "gap", lines: 0.4, fontSize: 9 });
+  blocks.push({ type: "line", text: dash, fontSize: 9, align: "center" });
 
-    blocks.push({ type: "text", text: `Recibo Nº: ${receiptNo}`, fontSize: 9 });
-    blocks.push({ type: "text", text: `Data: ${dateStr}`, fontSize: 9 });
-    blocks.push({ type: "text", text: `Operador: ${operator}`, fontSize: 9 });
+  blocks.push({ type: "text", text: `Recibo Nº: ${receiptNo}`, fontSize: 9 });
+  blocks.push({ type: "text", text: `Data: ${dateStr}`, fontSize: 9 });
+  blocks.push({ type: "text", text: `Operador: ${operator}`, fontSize: 9 });
 
-    blocks.push({ type: "gap", lines: 0.4, fontSize: 9 });
-    blocks.push({ type: "line", text: dash, fontSize: 9, align: "center" });
+  blocks.push({ type: "gap", lines: 0.4, fontSize: 9 });
+  blocks.push({ type: "line", text: dash, fontSize: 9, align: "center" });
 
-    for (const item of sale.items || []) {
-        blocks.push({ type: "text", text: item.description || item.name || "Produto", fontSize: 9 });
-        blocks.push({ type: "row", fontSize: 9 });
-        blocks.push({ type: "gap", lines: 0.2, fontSize: 9 });
-    }
-
-    blocks.push({ type: "line", text: dash, fontSize: 9, align: "center" });
-    blocks.push({ type: "row", fontSize: 11 });
+  for (const item of sale.items || []) {
+    blocks.push({ type: "text", text: item.description || item.name || "Produto", fontSize: 9 });
     blocks.push({ type: "row", fontSize: 9 });
-    blocks.push({ type: "row", fontSize: 9 });
-    blocks.push({ type: "gap", lines: 0.4, fontSize: 9 });
-    blocks.push({ type: "line", text: dash, fontSize: 9, align: "center" });
+    blocks.push({ type: "gap", lines: 0.2, fontSize: 9 });
+  }
 
-    blocks.push({ type: "text", text: "Obrigado pela preferência!", fontSize: 9, align: "center" });
-    blocks.push({ type: "text", text: "Volte sempre", fontSize: 9, align: "center" });
+  blocks.push({ type: "line", text: dash, fontSize: 9, align: "center" });
+  blocks.push({ type: "row", fontSize: 11 });
+  blocks.push({ type: "row", fontSize: 9 });
+  blocks.push({ type: "row", fontSize: 9 });
+  blocks.push({ type: "gap", lines: 0.4, fontSize: 9 });
+  blocks.push({ type: "line", text: dash, fontSize: 9, align: "center" });
 
-    return blocks;
+  blocks.push({ type: "text", text: "Obrigado pela preferência!", fontSize: 9, align: "center" });
+  blocks.push({ type: "text", text: "Volte sempre", fontSize: 9, align: "center" });
+
+  return blocks;
 }
 
 function renderReceipt(doc, companyInfo, sale, contentWidth) {
-    const receiptNo = sale.receiptNumber || String(sale._id);
-    const dateStr = new Date(sale.createdAt || Date.now()).toLocaleString("pt-MZ");
-    const operator = sale.operatorName || "Sistema";
-    const dash = "----------------------------------------";
+  const receiptNo = sale.receiptNumber || String(sale._id);
+  const dateStr = new Date(sale.createdAt || Date.now()).toLocaleString("pt-MZ");
+  const operator = sale.operatorName || "Sistema";
+  const dash = "----------------------------------------";
 
-    doc.font("Courier");
+  doc.font("Courier");
 
-    doc.fontSize(12).text(companyInfo.name || "-", { align: "center", width: contentWidth });
-    doc.fontSize(9).text(companyInfo.address || "", { align: "center", width: contentWidth });
-    doc.text(`Tel: ${companyInfo.contact || "-"}`, { align: "center", width: contentWidth });
-    doc.text(`NUIT: ${companyInfo.nuit || "-"}`, { align: "center", width: contentWidth });
+  doc.fontSize(12).text(companyInfo.name || "-", { align: "center", width: contentWidth });
+  doc.fontSize(9).text(companyInfo.address || "", { align: "center", width: contentWidth });
+  doc.text(`Tel: ${companyInfo.contact || "-"}`, { align: "center", width: contentWidth });
+  doc.text(`NUIT: ${companyInfo.nuit || "-"}`, { align: "center", width: contentWidth });
 
-    doc.moveDown(0.4);
-    doc.text(dash, { align: "center", width: contentWidth });
+  doc.moveDown(0.4);
+  doc.text(dash, { align: "center", width: contentWidth });
 
-    doc.text(`Recibo Nº: ${receiptNo}`, { width: contentWidth });
-    doc.text(`Data: ${dateStr}`, { width: contentWidth });
-    doc.text(`Operador: ${operator}`, { width: contentWidth });
+  doc.text(`Recibo Nº: ${receiptNo}`, { width: contentWidth });
+  doc.text(`Data: ${dateStr}`, { width: contentWidth });
+  doc.text(`Operador: ${operator}`, { width: contentWidth });
 
-    doc.moveDown(0.4);
-    doc.text(dash, { align: "center", width: contentWidth });
+  doc.moveDown(0.4);
+  doc.text(dash, { align: "center", width: contentWidth });
 
-    for (const item of sale.items || []) {
-        const name = item.name || item.description || "Produto";
-        const qty = Number(item.quantity || 0);
-        const price = Number(item.price ?? item.unitPrice ?? 0);
+  for (const item of sale.items || []) {
+    const name = item.name || item.description || "Produto";
+    const qty = Number(item.quantity || 0);
+    const price = Number(item.price ?? item.unitPrice ?? 0);
 
-        doc.fontSize(9).text(name, { width: contentWidth });
-        doc.text(`${qty} x ${formatCurrency(price)}`, { continued: true, width: contentWidth });
-        doc.text(`${formatCurrency(qty * price)}`, { align: "right" });
-        doc.moveDown(0.2);
-    }
+    doc.fontSize(9).text(name, { width: contentWidth });
+    doc.text(`${qty} x ${formatCurrency(price)}`, { continued: true, width: contentWidth });
+    doc.text(`${formatCurrency(qty * price)}`, { align: "right" });
+    doc.moveDown(0.2);
+  }
 
-    doc.text(dash, { align: "center", width: contentWidth });
+  doc.text(dash, { align: "center", width: contentWidth });
 
-    doc.fontSize(11).text("TOTAL", { continued: true, width: contentWidth });
-    doc.text(formatCurrency(sale.total), { align: "right" });
+  doc.fontSize(11).text("TOTAL", { continued: true, width: contentWidth });
+  doc.text(formatCurrency(sale.total), { align: "right" });
 
-    doc.fontSize(9).text("Pago", { continued: true, width: contentWidth });
-    doc.text(formatCurrency(sale.paidAmount ?? sale.total), { align: "right" });
+  doc.fontSize(9).text("Pago", { continued: true, width: contentWidth });
+  doc.text(formatCurrency(sale.paidAmount ?? sale.total), { align: "right" });
 
-    doc.text("Troco", { continued: true, width: contentWidth });
-    doc.text(formatCurrency((sale.paidAmount ?? sale.total) - sale.total), { align: "right" });
+  doc.text("Troco", { continued: true, width: contentWidth });
+  doc.text(formatCurrency((sale.paidAmount ?? sale.total) - sale.total), { align: "right" });
 
-    doc.moveDown(0.4);
-    doc.text(dash, { align: "center", width: contentWidth });
+  doc.moveDown(0.4);
+  doc.text(dash, { align: "center", width: contentWidth });
 
-    doc.text("Obrigado pela preferência!", { align: "center", width: contentWidth });
-    doc.text("Volte sempre", { align: "center", width: contentWidth });
+  doc.text("Obrigado pela preferência!", { align: "center", width: contentWidth });
+  doc.text("Volte sempre", { align: "center", width: contentWidth });
 }
 
 async function generateSaleReceiptPDFKit(companyInfo, sale) {
-    const pageWidthPt = mmToPt(80);
-    const margins = {
-        top: mmToPt(5),
-        bottom: mmToPt(5),
-        left: mmToPt(5),
-        right: mmToPt(5),
-    };
+  const pageWidthPt = mmToPt(80);
+  const margins = {
+    top: mmToPt(5),
+    bottom: mmToPt(5),
+    left: mmToPt(5),
+    right: mmToPt(5),
+  };
 
-    const contentWidth = pageWidthPt - margins.left - margins.right;
+  const contentWidth = pageWidthPt - margins.left - margins.right;
 
-    const measureDoc = new PDFDocument({ autoFirstPage: false });
-    measureDoc.addPage({ size: [pageWidthPt, mmToPt(200)], margins });
+  const measureDoc = new PDFDocument({ autoFirstPage: false });
+  measureDoc.addPage({ size: [pageWidthPt, mmToPt(200)], margins });
 
-    const blocks = buildReceiptBlocks(companyInfo, sale);
-    const contentHeight = calcHeight(measureDoc, blocks, contentWidth);
+  const blocks = buildReceiptBlocks(companyInfo, sale);
+  const contentHeight = calcHeight(measureDoc, blocks, contentWidth);
 
-    const safetyPt = mmToPt(8);
-    const finalHeightPt = margins.top + contentHeight + margins.bottom + safetyPt;
+  const safetyPt = mmToPt(8);
+  const finalHeightPt = margins.top + contentHeight + margins.bottom + safetyPt;
 
-    const doc = new PDFDocument({ autoFirstPage: false });
-    doc.addPage({ size: [pageWidthPt, finalHeightPt], margins });
+  const doc = new PDFDocument({ autoFirstPage: false });
+  doc.addPage({ size: [pageWidthPt, finalHeightPt], margins });
 
-    const chunks = [];
-    doc.on("data", (c) => chunks.push(c));
+  const chunks = [];
+  doc.on("data", (c) => chunks.push(c));
 
-    renderReceipt(doc, companyInfo, sale, contentWidth);
+  renderReceipt(doc, companyInfo, sale, contentWidth);
 
-    doc.end();
+  doc.end();
 
-    return await new Promise((resolve, reject) => {
-        doc.on("end", () => resolve(Buffer.concat(chunks)));
-        doc.on("error", reject);
-    });
+  return await new Promise((resolve, reject) => {
+    doc.on("end", () => resolve(Buffer.concat(chunks)));
+    doc.on("error", reject);
+  });
 }
 
 async function generateSaleReceiptPDF(companyInfo, sale) {
-    const browserArgs =
-        process.env.NODE_ENV.toLowerCase() === "production"
-            ? ["--no-sandbox", "--disable-setuid-sandbox", "--no-zygote", "--single-process"]
-            : ["--no-sandbox", "--disable-setuid-sandbox"];
+  const browserArgs =
+    process.env.NODE_ENV.toLowerCase() === "production"
+      ? ["--no-sandbox", "--disable-setuid-sandbox", "--no-zygote", "--single-process"]
+      : ["--no-sandbox", "--disable-setuid-sandbox"];
 
-    const browser = await puppeteer.launch({ headless: "new", args: browserArgs });
-    const page = await browser.newPage();
+  const browser = await puppeteer.launch({ headless: "new", args: browserArgs });
+  const page = await browser.newPage();
 
-    await page.setViewport({ width: 320, height: 800, deviceScaleFactor: 2 });
+  await page.setViewport({ width: 320, height: 800, deviceScaleFactor: 2 });
 
-    const html = `
+  const html = `
   <html>
   <head>
     <meta charset="utf-8" />
@@ -818,40 +870,40 @@ async function generateSaleReceiptPDF(companyInfo, sale) {
   </html>
   `;
 
-    await page.setContent(html, { waitUntil: "networkidle0" });
+  await page.setContent(html, { waitUntil: "networkidle0" });
 
-    const contentHeight = await page.evaluate(() => {
-        const body = document.body;
-        const html = document.documentElement;
-        return Math.max(
-            body.scrollHeight,
-            body.offsetHeight,
-            html.clientHeight,
-            html.scrollHeight,
-            html.offsetHeight
-        );
-    });
+  const contentHeight = await page.evaluate(() => {
+    const body = document.body;
+    const html = document.documentElement;
+    return Math.max(
+      body.scrollHeight,
+      body.offsetHeight,
+      html.clientHeight,
+      html.scrollHeight,
+      html.offsetHeight
+    );
+  });
 
-    const extra = 40;
-    const heightPx = contentHeight + extra;
+  const extra = 40;
+  const heightPx = contentHeight + extra;
 
-    const pdfBuffer = await page.pdf({
-        width: "80mm",
-        height: `${heightPx}px`,
-        printBackground: true,
-        margin: { top: "0mm", bottom: "0mm", left: "0mm", right: "0mm" },
-        preferCSSPageSize: false
-    });
+  const pdfBuffer = await page.pdf({
+    width: "80mm",
+    height: `${heightPx}px`,
+    printBackground: true,
+    margin: { top: "0mm", bottom: "0mm", left: "0mm", right: "0mm" },
+    preferCSSPageSize: false
+  });
 
-    await browser.close();
-    return pdfBuffer;
+  await browser.close();
+  return pdfBuffer;
 }
 
 module.exports = {
-    generateQuotationPDF,
-    generateInvoicePDF,
-    generateVDPDF,
-    generateReciboPDF,
-    generateSaleReceiptPDF,
-    generateSaleReceiptPDFKit,
+  generateQuotationPDF,
+  generateInvoicePDF,
+  generateVDPDF,
+  generateReciboPDF,
+  generateSaleReceiptPDF,
+  generateSaleReceiptPDFKit,
 };

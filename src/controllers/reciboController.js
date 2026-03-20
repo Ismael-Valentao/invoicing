@@ -36,7 +36,7 @@ exports.createRecibo = async (req, res) => {
     clientName: req.body.clientName,
     clientNUIT: req.body.clientNUIT,
     reciboNumber: newNumber,
-    appliedTax:req.body.iva*1*0.01,
+    appliedTax: req.body.iva * 1 * 0.01,
     date: req.body.date,
     items: req.body.items,
     subTotal,
@@ -114,57 +114,91 @@ exports.generateReciboPDF = async (req, res) => {
 };
 
 exports.generateReciboFromInvoice = async (req, res) => {
-  const companyId = req.user.company._id;
-  const companyInfo = req.user.company;
-  const invoice = await Invoice.findOne({
-    _id: req.params.id,
-    companyId,
-    docType: "invoice",
-  });
-
-  if (!invoice) {
-    return res.status(404).json({
-      error: "Fatura não encontrada",
-    });
-  }
-
-  const { subTotal, tax, totalAmount } = amounts(invoice.items);
-
-  const recibo = new Recibo({
-    docType: "recibo",
-    companyName: invoice.companyName,
-    clientName: invoice.clientName,
-    clientNUIT: invoice.clientNUIT,
-    reciboNumber: invoice.invoiceNumber,
-    date: new Date(),
-    items: invoice.items,
-    subTotal,
-    tax,
-    totalAmount,
-    dueDate: new Date(),
-    companyId,
-    userId: req.user._id,
-  });
-
-  await recibo.save();
-  //download the recibo pdf
   try {
-    const pdfBuffer = await generateReciboPDF(companyInfo, recibo);
-    res.set({
-      "Content-Type": "application/pdf",
-      "Content-Disposition": `attachment; filename=recibo-${recibo.reciboNumber}.pdf`,
+    const companyId = req.user.company._id;
+
+    const invoice = await Invoice.findOne({
+      _id: req.params.id,
+      companyId,
+      docType: "invoice",
     });
-    res.send(pdfBuffer);
+
+    if (!invoice) {
+      return res.status(404).json({
+        success: false,
+        message: "Factura não encontrada",
+      });
+    }
+
+    // Verifica se já existe recibo para esta factura
+    let existingRecibo = await Recibo.findOne({
+      companyId,
+      invoiceId: invoice._id,
+    });
+
+    if (existingRecibo) {
+      return res.json({
+        success: true,
+        recibo: {
+          _id: existingRecibo._id,
+          reciboNumber: existingRecibo.reciboNumber,
+          pdfUrl: `/api/recibos/${existingRecibo._id}/pdf`,
+        },
+        alreadyExists: true,
+      });
+    }
+
+    const { subTotal, tax, totalAmount } = amounts(invoice.items);
+
+    const lastRecibo = await Recibo.findOne({ companyId }).sort({ createdAt: -1 });
+
+    let newNumber = "0001";
+    if (lastRecibo) {
+      const lastNumber = parseInt(lastRecibo.reciboNumber, 10);
+      newNumber = (lastNumber + 1).toString().padStart(4, "0");
+    }
+
+    const recibo = new Recibo({
+      docType: "recibo",
+      companyName: invoice.companyName,
+      clientName: invoice.clientName,
+      clientNUIT: invoice.clientNUIT,
+      reciboNumber: newNumber,
+      date: new Date(),
+      items: invoice.items,
+      subTotal,
+      tax,
+      totalAmount,
+      dueDate: new Date(),
+      companyId,
+      userId: req.user._id,
+      invoiceId: invoice._id,
+    });
+
+    await recibo.save();
+
+    return res.status(201).json({
+      success: true,
+      recibo: {
+        _id: recibo._id,
+        reciboNumber: recibo.reciboNumber,
+        pdfUrl: `/api/recibos/${recibo._id}/pdf`,
+      },
+      alreadyExists: false,
+    });
   } catch (error) {
-    console.error("Erro ao gerar PDF:", error);
+    console.error("Erro ao gerar recibo:", error);
     return res.status(500).json({
-      error: "Erro ao gerar PDF",
+      success: false,
+      message: "Erro ao gerar recibo",
     });
   }
 };
 
+
 exports.downloadReciboPDF = async (req, res) => {
   const companyId = req.user.company._id;
+
   const recibo = await Recibo.findOne({
     _id: req.params.id,
     companyId,

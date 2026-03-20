@@ -6,7 +6,7 @@ const { generateInvoicePDF } = require("../utils/pdfGenerator");
 const { amounts, normalizeItems } = require("../utils/amountCalculator");
 const { normalizeInvoiceStatus } = require("../utils/normalizeStatus")
 const { buildInvoiceFilter } = require("../utils/invoiceFilter");
-const { generateStatementFileName} = require("../utils/extratoNameGenerator")
+const { generateStatementFileName } = require("../utils/extratoNameGenerator")
 
 exports.createInvoice = async (req, res) => {
   const { subTotal, tax, totalAmount } = amounts(req.body.items, req.body.iva * 1 * 0.01);
@@ -15,11 +15,24 @@ exports.createInvoice = async (req, res) => {
 
   const userId = req.user._id;
   const companyId = req.user.company._id;
+
+  const existingInvoice = await Invoice.findOne({
+    invoiceNumber: req.body.invoiceNumber,
+    companyId,
+  });
+
+  if (existingInvoice) {
+    return res.status(400).json({
+      success: false,
+      message: "Factura já existe",
+    });
+  }
+
   const invoice = new Invoice({
     docType: "invoice",
     companyName: req.body.companyName,
     clientName: req.body.clientName,
-    clientNUIT: req.body.clientNUIT || 'N/A',
+    clientNUIT: req.body.clientNUIT || "N/A",
     invoiceNumber: req.body.invoiceNumber,
     date: req.body.date,
     items: cleanedItems,
@@ -30,23 +43,16 @@ exports.createInvoice = async (req, res) => {
     dueDate: req.body.date,
     companyId,
     userId,
-    clientId:req.body.clientId || null
+    clientId: req.body.clientId || null
   });
-
-  const existingInvoice = await Invoice.findOne({
-    invoiceNumber: req.body.invoiceNumber,
-    companyId,
-  });
-  if (existingInvoice) {
-    return res.status(400).json({
-      error: "Factura já existe",
-    });
-  }
 
   await invoice.save();
+
   res.status(201).json({
     success: true,
+    message: "Factura criada com sucesso.",
     invoice,
+    downloadUrl: `/api/invoices/${invoice._id}/pdf`
   });
 };
 
@@ -138,55 +144,154 @@ exports.getPaidInvoices = async (req, res) => {
 };
 
 exports.updateInvoiceStatus = async (req, res) => {
-  const companyId = req.user.company._id;
-  const invoice = await Invoice.findOne({
-    _id: req.params.id,
-    companyId,
-  });
-  if (!invoice) {
-    return res.status(404).json({
-      error: "Fatura não encontrada",
-    });
-  }
+  try {
+    const companyId = req.user.company._id;
+    const nextStatus = String(req.body.status || "").toLowerCase().trim();
 
-  invoice.status = req.body.status.toLowerCase();
-  await invoice.save();
-
-  if (invoice.status === "paid") {
-    const lastReciboNumber = await Recibo.findOne({
-      companyId,
-    }).sort({ createdAt: -1 });
-    let newNumber = "0001";
-    if (lastReciboNumber) {
-      const lastNumber = parseInt(lastReciboNumber.reciboNumber);
-      newNumber = (lastNumber + 1).toString().padStart(4, "0"); // Ensure 6 digits
-    } else {
-      newNumber = "0001"; // Start with 0001 if no previous recibos exist
+    if (!["paid", "unpaid", "overdue"].includes(nextStatus)) {
+      return res.status(400).json({
+        success: false,
+        message: "Status inválido.",
+      });
     }
 
-    const recibo = new Recibo({
-      docType: "recibo",
-      companyName: invoice.companyName,
-      clientName: invoice.clientName,
-      clientNUIT: invoice.clientNUIT,
-      reciboNumber: newNumber,
-      date: new Date(),
-      items: invoice.items,
-      subTotal: invoice.subTotal,
-      tax: invoice.tax,
-      totalAmount: invoice.totalAmount,
-      dueDate: invoice.dueDate,
-      companyId: companyId,
-      userId: req.user._id,
+    const invoice = await Invoice.findOne({
+      _id: req.params.id,
+      companyId,
     });
 
-    await recibo.save();
-  }
+    if (!invoice) {
+      return res.status(404).json({
+        success: false,
+        message: "Fatura não encontrada",
+      });
+    }
 
-  return res.json({
-    success: true,
-    invoiceStatus: invoice.status,
-  });
+    const previousStatus = invoice.status;
+
+    // Sem alterações
+    if (previousStatus === nextStatus) {
+      let existingReceipt = null;
+
+      if (nextStatus === "paid") {
+        existingReceipt = await Recibo.findOne({
+          companyId,
+          invoiceId: invoice._id,
+        });
+      }
+
+      return res.json({
+        success: true,
+        message: "Sem alterações.",
+        invoiceStatus: invoice.status,
+        receipt: existingReceipt
+          ? {
+            _id: existingReceipt._id,
+            receiptNumber: existingReceipt.reciboNumber,
+            pdfUrl: `/api/recibos/${existingReceipt._id}/pdf`,
+          }
+          : null,
+      });
+    }
+
+    // Bloqueia reversão directa
+    if (previousStatus === "paid" && nextStatus !== "paid") {
+      return res.status(400).json({
+        success: false,
+        message: "Não é permitido reverter uma factura paga.",
+      });
+    }
+
+    invoice.status = nextStatus;
+    await invoice.save();
+
+    let receiptPayload = null;
+
+    // Só gera recibo quando transita para pago
+    if (previousStatus !== "paid" && nextStatus === "paid") {
+      let existingRecibo = await Recibo.findOne({
+        companyId,
+        invoiceId: invoice._id,
+      });
+
+      if (!existingRecibo) {
+        const lastReciboNumber = await Recibo.findOne({ companyId }).sort({ createdAt: -1 });
+
+        let newNumber = "0001";
+        if (lastReciboNumber) {
+          const lastNumber = parseInt(lastReciboNumber.reciboNumber, 10);
+          newNumber = (lastNumber + 1).toString().padStart(4, "0");
+        }
+
+        try {
+          const recibo = new Recibo({
+            docType: "recibo",
+            companyName: invoice.companyName,
+            clientName: invoice.clientName,
+            clientNUIT: invoice.clientNUIT,
+            reciboNumber: newNumber,
+            date: new Date(),
+            items: invoice.items,
+            subTotal: invoice.subTotal,
+            tax: invoice.tax,
+            totalAmount: invoice.totalAmount,
+            dueDate: invoice.dueDate,
+            companyId,
+            userId: req.user._id,
+            invoiceId: invoice._id,
+          });
+
+          await recibo.save();
+
+          receiptPayload = {
+            _id: recibo._id,
+            receiptNumber: recibo.reciboNumber,
+            pdfUrl: `/api/recibos/${recibo._id}/pdf`,
+          };
+        } catch (error) {
+          // Se falhar por duplicado, busca o já criado
+          if (error.code === 11000) {
+            existingRecibo = await Recibo.findOne({
+              companyId,
+              invoiceId: invoice._id,
+            });
+
+            if (existingRecibo) {
+              receiptPayload = {
+                _id: existingRecibo._id,
+                receiptNumber: existingRecibo.reciboNumber,
+                pdfUrl: `/api/recibos/${existingRecibo._id}/pdf`,
+              };
+            }
+          } else {
+            throw error;
+          }
+        }
+      } else {
+        receiptPayload = {
+          _id: existingRecibo._id,
+          receiptNumber: existingRecibo.reciboNumber,
+          pdfUrl: `/api/recibos/${existingRecibo._id}/pdf`,
+        };
+      }
+    }
+
+    return res.json({
+      success: true,
+      message:
+        nextStatus === "paid"
+          ? "Factura marcada como paga com sucesso."
+          : "Estado da factura actualizado com sucesso.",
+      invoiceStatus: invoice.status,
+      receipt: receiptPayload,
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      message: "Erro ao actualizar factura.",
+    });
+  }
 };
 
 exports.getTotalAmountByMonth = async (req, res) => {
@@ -386,8 +491,8 @@ exports.getInvoicesPreview = async (req, res) => {
     const simplifiedInvoices = invoices.map(inv => ({
       _id: inv._id,
       invoiceNumber: inv.invoiceNumber,
-      subTotal:inv.subTotal,
-      tax:inv.tax,
+      subTotal: inv.subTotal,
+      tax: inv.tax,
       clientName: inv.client?.name || inv.clientName,
       date: inv.date ? inv.date.toISOString().split("T")[0] : "",
       totalAmount: inv.totalAmount,
