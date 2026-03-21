@@ -7,7 +7,8 @@ const {
     getLastQuotation,
     getQuotationsTotalAmount,
     getTotalQuotations,
-    downloadQuotationPDF
+    downloadQuotationPDF,
+    approveQuotation
 } = require('../controllers/quotationController');
 
 const { authMiddleware } = require('../middlewares/authMiddleware');
@@ -19,6 +20,6 @@ router.get('/total-amount', authMiddleware, getQuotationsTotalAmount);
 router.get('/total-Quotations', authMiddleware, getTotalQuotations);
 router.get('/:id', authMiddleware, getQuotationById);
 router.get('/:id/pdf', authMiddleware, downloadQuotationPDF);
-
+router.patch('/:id/approve', authMiddleware, approveQuotation);
 
 module.exports = router;

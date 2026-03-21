@@ -22,6 +22,16 @@ const quotationSchema = new mongoose.Schema({
     dueDate: { type: Date, },
     companyId: { type: mongoose.Schema.Types.ObjectId, ref: 'Company' },
     userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    status: {
+        type: String,
+        enum: ["pending", "approved", "converted"],
+        default: "pending"
+    },
+    invoiceId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Invoice",
+        default: null
+    }
 },
     {
         timestamps: true

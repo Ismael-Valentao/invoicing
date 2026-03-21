@@ -1,93 +1,271 @@
 const Quotation = require('../models/quotation');
+const Invoice = require('../models/invoice');
 const { generateQuotationPDF } = require('../utils/pdfGenerator');
 const { amounts, normalizeItems } = require('../utils/amountCalculator');
 
 exports.createQuotation = async (req, res) => {
-    const { subTotal, tax, totalAmount } = amounts(req.body.items, req.body.iva * 1 * 0.01);
-    console.log(req.body.iva*1*0.1)
-    const cleanedItems = normalizeItems(req.body.items);
+    try {
+        const { subTotal, tax, totalAmount } = amounts(
+            req.body.items,
+            req.body.iva * 1 * 0.01
+        );
 
-    const userId = req.user._id;
-    const companyId = req.user.company._id;
-    const quotation = new Quotation({
-        companyName: req.body.companyName,
-        clientName: req.body.clientName,
-        clientNUIT: req.body.clientNUIT || 'N/A',
-        quotationNumber: req.body.quotationNumber,
-        date: req.body.date,
-        items: cleanedItems,
-        appliedTax: req.body.iva * 1 * 0.01,
-        subTotal,
-        tax,
-        totalAmount,
-        dueDate: req.body.date,
-        companyId,
-        userId
-    });
+        const cleanedItems = normalizeItems(req.body.items);
 
-    await quotation.save();
-    res.status(201).json({ status: "success", Quotation });
+        const userId = req.user._id;
+        const companyId = req.user.company._id;
+
+        const existingQuotation = await Quotation.findOne({
+            quotationNumber: req.body.quotationNumber,
+            companyId,
+        });
+
+        if (existingQuotation) {
+            return res.status(400).json({
+                success: false,
+                message: 'Cotação já existe',
+            });
+        }
+
+        const quotation = new Quotation({
+            companyName: req.body.companyName,
+            clientName: req.body.clientName,
+            clientNUIT: req.body.clientNUIT || 'N/A',
+            quotationNumber: req.body.quotationNumber,
+            date: req.body.date,
+            items: cleanedItems,
+            appliedTax: req.body.iva * 1 * 0.01,
+            subTotal,
+            tax,
+            totalAmount,
+            dueDate: req.body.date,
+            companyId,
+            userId
+        });
+
+        await quotation.save();
+
+        return res.status(201).json({
+            success: true,
+            message: 'Cotação criada com sucesso.',
+            quotation,
+            downloadUrl: `/api/quotations/${quotation._id}/pdf`
+        });
+    } catch (error) {
+        console.error('Erro ao criar cotação:', error);
+        return res.status(500).json({
+            success: false,
+            message: 'Erro ao criar cotação.'
+        });
+    }
 };
 
 exports.getQuotations = async (req, res) => {
-    const companyId = req.user.company._id;
-    const quotations = await Quotation.find({ companyId });
-    if (!quotations) {
-        return res.status(404).json({ error: 'Nenhuma fatura encontrada' });
+    try {
+        const companyId = req.user.company._id;
+        const quotations = await Quotation.find({ companyId });
+
+        return res.json({
+            success: true,
+            quotations
+        });
+    } catch (error) {
+        console.error('Erro ao obter cotações:', error);
+        return res.status(500).json({
+            success: false,
+            message: 'Erro ao obter cotações.'
+        });
     }
-    return res.json({ status: 'success', quotations });
 };
 
 exports.getQuotationById = async (req, res) => {
-    const companyId = req.user.company._id;
-    const quotation = await Quotation.findOne({ _id: req.params.id, companyId });
-    if (!Quotation) {
-        return res.status(404).json({ error: 'Fatura não encontrada' });
+    try {
+        const companyId = req.user.company._id;
+        const quotation = await Quotation.findOne({
+            _id: req.params.id,
+            companyId
+        });
+
+        if (!quotation) {
+            return res.status(404).json({
+                success: false,
+                message: 'Cotação não encontrada'
+            });
+        }
+
+        return res.json({
+            success: true,
+            quotation
+        });
+    } catch (error) {
+        console.error('Erro ao obter cotação:', error);
+        return res.status(500).json({
+            success: false,
+            message: 'Erro ao obter cotação.'
+        });
     }
-    return res.json({ status: 'success', quotation });
 };
 
 exports.getLastQuotation = async (req, res) => {
-    const companyId = req.user.company._id;
-    const lastQuotation = await Quotation.findOne({ companyId }).sort({ createdAt: -1 }).limit(1);
+    try {
+        const companyId = req.user.company._id;
+        const lastQuotation = await Quotation.findOne({ companyId })
+            .sort({ createdAt: -1 })
+            .limit(1);
 
-    return res.status(200).json({ success: true, lastQuotation: !lastQuotation ? '000' : lastQuotation.quotationNumber });
-}
+        return res.status(200).json({
+            success: true,
+            lastQuotation: !lastQuotation ? '000' : lastQuotation.quotationNumber
+        });
+    } catch (error) {
+        console.error('Erro ao obter última cotação:', error);
+        return res.status(500).json({
+            success: false,
+            message: 'Erro ao obter última cotação.'
+        });
+    }
+};
 
 exports.getQuotationsTotalAmount = async (req, res) => {
-    const companyId = req.user.company._id;
-    const quotations = await Quotation.find({ companyId: companyId });
-    const total = quotations.reduce((acc, Quotation) => acc + Quotation.totalAmount, 0);
+    try {
+        const companyId = req.user.company._id;
+        const quotations = await Quotation.find({ companyId });
 
-    const totalCotado = Quotations.length > 0 ? total : 0;
-    res.status(200).json({ success: true, totalAmount: totalCotado });
+        const total = quotations.reduce((acc, quotation) => acc + quotation.totalAmount, 0);
+        const totalCotado = quotations.length > 0 ? total : 0;
 
-}
+        return res.status(200).json({
+            success: true,
+            totalAmount: totalCotado
+        });
+    } catch (error) {
+        console.error('Erro ao obter total das cotações:', error);
+        return res.status(500).json({
+            success: false,
+            message: 'Erro ao obter total das cotações.'
+        });
+    }
+};
 
 exports.getTotalQuotations = async (req, res) => {
-    const companyId = req.user.company._id;
-    const totalQuotations = await Quotation.countDocuments({ companyId });
-    res.status(200).json({ success: true, totalQuotations });
-}
+    try {
+        const companyId = req.user.company._id;
+        const totalQuotations = await Quotation.countDocuments({ companyId });
+
+        return res.status(200).json({
+            success: true,
+            totalQuotations
+        });
+    } catch (error) {
+        console.error('Erro ao contar cotações:', error);
+        return res.status(500).json({
+            success: false,
+            message: 'Erro ao contar cotações.'
+        });
+    }
+};
 
 exports.downloadQuotationPDF = async (req, res) => {
-    const companyInfo = req.user.company;
-    const companyId = companyInfo._id;
-    const quotation = await Quotation.findOne({ _id: req.params.id, companyId });
-
-    if (!quotation) {
-        return res.status(404).json({ error: 'Fatura não encontrada' });
-    }
-
     try {
+        const companyInfo = req.user.company;
+        const companyId = companyInfo._id;
+
+        const quotation = await Quotation.findOne({
+            _id: req.params.id,
+            companyId
+        });
+
+        if (!quotation) {
+            return res.status(404).json({
+                success: false,
+                message: 'Cotação não encontrada'
+            });
+        }
+
         const pdfBuffer = await generateQuotationPDF(companyInfo, quotation);
+
         res.set({
             'Content-Type': 'application/pdf',
             'Content-Disposition': `attachment; filename=cotacao-${quotation.quotationNumber}.pdf`,
         });
-        res.send(pdfBuffer);
+
+        return res.send(pdfBuffer);
     } catch (err) {
         console.error('Erro ao gerar PDF:', err);
-        res.status(500).json({ error: 'Erro ao gerar o PDF da fatura' });
+        return res.status(500).json({
+            success: false,
+            message: 'Erro ao gerar o PDF da cotação'
+        });
+    }
+};
+
+exports.approveQuotation = async (req, res) => {
+    try {
+        const companyId = req.user.company._id;
+        const userId = req.user._id;
+
+        const quotation = await Quotation.findOne({
+            _id: req.params.id,
+            companyId
+        });
+
+        if (!quotation) {
+            return res.status(404).json({
+                success: false,
+                message: 'Cotação não encontrada'
+            });
+        }
+
+        if (quotation.invoiceId) {
+            return res.status(400).json({
+                success: false,
+                message: 'Esta cotação já foi convertida em factura.'
+            });
+        }
+
+        const lastInvoice = await Invoice.findOne({ companyId }).sort({ createdAt: -1 });
+        const nextInvoiceNumber = !lastInvoice
+            ? '0001'
+            : (parseInt(lastInvoice.invoiceNumber, 10) + 1).toString().padStart(4, '0');
+
+        const invoice = new Invoice({
+            docType: "invoice",
+            companyName: quotation.companyName,
+            clientName: quotation.clientName,
+            clientNUIT: quotation.clientNUIT || 'N/A',
+            invoiceNumber: nextInvoiceNumber,
+            date: new Date(),
+            items: quotation.items,
+            appliedTax: quotation.appliedTax,
+            subTotal: quotation.subTotal,
+            tax: quotation.tax,
+            totalAmount: quotation.totalAmount,
+            dueDate: new Date(),
+            companyId,
+            userId
+        });
+
+        await invoice.save();
+
+        quotation.status = "approved";
+        quotation.invoiceId = invoice._id;
+        await quotation.save();
+
+        return res.json({
+            success: true,
+            message: 'Cotação aprovada e convertida em factura com sucesso.',
+            quotationStatus: quotation.status,
+            invoice: {
+                _id: invoice._id,
+                invoiceNumber: invoice.invoiceNumber,
+                pdfUrl: `/api/invoices/${invoice._id}/pdf`
+            }
+        });
+    } catch (error) {
+        console.error('Erro ao aprovar cotação:', error);
+        return res.status(500).json({
+            success: false,
+            message: 'Erro ao aprovar cotação.'
+        });
     }
 };
