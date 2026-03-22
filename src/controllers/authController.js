@@ -40,7 +40,8 @@ exports.login = async (req, res) => {
 
   if (!user.emailVerified) {
     return res.status(403).json({
-      message: 'Seu e-mail ainda não foi verificado. Verifique sua caixa de entrada.'
+      message: 'Seu e-mail ainda não foi verificado. Verifique sua caixa de entrada.',
+      resendVerificationEmail:true
     });
   }
 
