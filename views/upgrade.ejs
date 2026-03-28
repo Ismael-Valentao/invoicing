@@ -49,7 +49,6 @@
             <div class="plan-card card h-100 p-4" data-plan="FREE" data-price="0" data-label="Gratuito">
               <div class="d-flex justify-content-between align-items-center mb-3">
                 <h5 class="font-weight-bold mb-0">Gratuito</h5>
-                <span class="plan-badge bg-secondary text-white">ATUAL</span>
               </div>
               <div class="price-big mb-1">0 <small style="font-size:1rem; color:#858796">MZN</small></div>
               <p class="text-muted small mb-3">30 dias de trial</p>
@@ -68,11 +67,11 @@
 
           <!-- BASIC -->
           <div class="col-lg-3 col-md-6 mb-4">
-            <div class="plan-card card h-100 p-4" data-plan="BASIC" data-price="1500" data-label="Básico">
+            <div class="plan-card card h-100 p-4" data-plan="BASIC" data-price="799" data-label="Básico">
               <div class="d-flex justify-content-between align-items-center mb-3">
                 <h5 class="font-weight-bold mb-0">Básico</h5>
               </div>
-              <div class="price-big mb-1">1.500 <small style="font-size:1rem; color:#858796">MZN/mês</small></div>
+              <div class="price-big mb-1">799 <small style="font-size:1rem; color:#858796">MZN/mês</small></div>
               <p class="text-muted small mb-3">Ideal para pequenas empresas</p>
               <hr/>
               <ul class="list-unstyled small mb-0">
@@ -89,12 +88,12 @@
 
           <!-- PREMIUM -->
           <div class="col-lg-3 col-md-6 mb-4">
-            <div class="plan-card recommended card h-100 p-4" data-plan="PREMIUM" data-price="3500" data-label="Premium">
+            <div class="plan-card recommended card h-100 p-4" data-plan="PREMIUM" data-price="1.299" data-label="Premium">
               <div class="d-flex justify-content-between align-items-center mb-3">
                 <h5 class="font-weight-bold mb-0">Premium</h5>
                 <span class="plan-badge bg-success text-white">RECOMENDADO</span>
               </div>
-              <div class="price-big mb-1">3.500 <small style="font-size:1rem; color:#858796">MZN/mês</small></div>
+              <div class="price-big mb-1">1.299 <small style="font-size:1rem; color:#858796">MZN/mês</small></div>
               <p class="text-muted small mb-3">Para empresas em crescimento</p>
               <hr/>
               <ul class="list-unstyled small mb-0">
@@ -147,23 +146,23 @@
               <div id="paymentDetails" class="mb-4 p-3 rounded" style="background:#f8f9fc; border:1px solid #e3e6f0;">
                 <div id="detailMpesa">
                   <p class="mb-1"><strong>Número M-Pesa:</strong>
-                    <span id="mpesaNum">84 XXX XXXX</span>
+                    <span id="mpesaNum">—</span>
                     <span class="copy-btn ml-2" onclick="copyText('mpesaNum')"><i class="far fa-copy"></i> copiar</span>
                   </p>
                   <p class="mb-0 text-muted small">Envia o valor exacto do plano e guarda a confirmação.</p>
                 </div>
                 <div id="detailEmola" style="display:none;">
                   <p class="mb-1"><strong>Número E-mola:</strong>
-                    <span id="emolaNum">86 XXX XXXX</span>
+                    <span id="emolaNum">—</span>
                     <span class="copy-btn ml-2" onclick="copyText('emolaNum')"><i class="far fa-copy"></i> copiar</span>
                   </p>
                   <p class="mb-0 text-muted small">Envia o valor exacto do plano e guarda a confirmação.</p>
                 </div>
                 <div id="detailBank" style="display:none;">
-                  <p class="mb-1"><strong>Banco:</strong> BCI</p>
-                  <p class="mb-1"><strong>Titular:</strong> Bitiray, Lda</p>
+                  <p class="mb-1"><strong>Banco:</strong> <span id="bankName">—</span></p>
+                  <p class="mb-1"><strong>Titular:</strong> <span id="bankHolder">—</span></p>
                   <p class="mb-1"><strong>NIB:</strong>
-                    <span id="nibNum">0008 0000 XXXXXXXXXX 53</span>
+                    <span id="nibNum">—</span>
                     <span class="copy-btn ml-2" onclick="copyText('nibNum')"><i class="far fa-copy"></i> copiar</span>
                   </p>
                   <p class="mb-0 text-muted small">Usa o nome da empresa como referência.</p>
@@ -209,6 +208,39 @@
 <script src="/assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
 <script src="/assets/js/sb-admin-2.min.js"></script>
 <script>
+  // Carregar dados de pagamento da API
+  fetch('/api/subscriptions/payment-settings')
+    .then(r => r.ok ? r.json() : null)
+    .then(data => {
+      if (!data || !data.success) return;
+      const s = data.settings;
+      if (s.mpesa)      document.getElementById('mpesaNum').textContent  = s.mpesa;
+      if (s.emola)      document.getElementById('emolaNum').textContent  = s.emola;
+      if (s.bankName)   document.getElementById('bankName').textContent  = s.bankName;
+      if (s.bankHolder) document.getElementById('bankHolder').textContent = s.bankHolder;
+      if (s.bankNIB)    document.getElementById('nibNum').textContent    = s.bankNIB;
+    })
+    .catch(() => {});
+
+  // Marcar o plano actual dinamicamente
+  fetch('/api/subscriptions/my', { cache: 'no-store' })
+    .then(r => r.ok ? r.json() : null)
+    .then(data => {
+      if (!data || !data.success) return;
+      const currentPlan = data.subscription?.plan || 'FREE';
+      const card = document.querySelector(`.plan-card[data-plan="${currentPlan}"]`);
+      if (!card) return;
+      const header = card.querySelector('.d-flex.justify-content-between');
+      if (!header) return;
+      // Remove qualquer badge anterior
+      header.querySelectorAll('.plan-badge-current').forEach(b => b.remove());
+      const badge = document.createElement('span');
+      badge.className = 'plan-badge bg-secondary text-white plan-badge-current';
+      badge.textContent = 'ACTUAL';
+      header.appendChild(badge);
+    })
+    .catch(() => {});
+
   let selectedPlan = null;
 
   // Seleccionar plano ao clicar no card

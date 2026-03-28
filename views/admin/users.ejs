@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"/>
+  <title>Invoicing — <%- title %></title>
+  <link rel="icon" type="image/png" href="/images/invoicing-logo-simple.png"/>
+  <link href="/assets/vendor/fontawesome-free/css/all.min.css" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css?family=Nunito:400,600,700,800" rel="stylesheet"/>
+  <link href="/assets/css/sb-admin-2.min.css" rel="stylesheet"/>
+  <link href="/assets/css/custom.css" rel="stylesheet"/>
+</head>
+<body id="page-top">
+<div id="wrapper">
+  <%- include('../partials/admin-sidebar') %>
+  <div id="content-wrapper" class="d-flex flex-column">
+    <div id="content">
+      <%- include('../partials/topbar') %>
+      <div class="container-fluid py-4">
+
+        <div class="d-flex justify-content-between align-items-center mb-4">
+          <h4 class="font-weight-bold text-gray-800 mb-0">
+            <i class="fas fa-users text-primary mr-2"></i>Todos os Utilizadores
+          </h4>
+        </div>
+
+        <!-- Pesquisa -->
+        <div class="card shadow-sm mb-4">
+          <div class="card-body py-3">
+            <div class="row">
+              <div class="col-md-5 mb-2 mb-md-0">
+                <input type="text" id="searchInput" class="form-control form-control-sm" placeholder="Pesquisar por nome ou email..."/>
+              </div>
+              <div class="col-md-2">
+                <button class="btn btn-primary btn-sm btn-block" onclick="loadUsers()">
+                  <i class="fas fa-search mr-1"></i>Pesquisar
+                </button>
+              </div>
+              <div class="col-md-5 text-md-right mt-2 mt-md-0">
+                <button class="btn btn-outline-danger btn-sm" data-toggle="modal" data-target="#promoteModal">
+                  <i class="fas fa-user-shield mr-1"></i>Promover a SUPERADMIN
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tabela -->
+        <div class="card shadow">
+          <div class="card-body p-0">
+            <div class="table-responsive">
+              <table class="table table-hover mb-0">
+                <thead class="thead-light">
+                  <tr>
+                    <th>Nome</th>
+                    <th>Email</th>
+                    <th>Empresa</th>
+                    <th>Role</th>
+                    <th>Estado</th>
+                    <th>Registado</th>
+                  </tr>
+                </thead>
+                <tbody id="usersTbody">
+                  <tr><td colspan="6" class="text-center text-muted py-4">A carregar...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+    <%- include('../partials/footer') %>
+  </div>
+</div>
+
+<!-- Modal Promover SUPERADMIN -->
+<div class="modal fade" id="promoteModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title"><i class="fas fa-user-shield text-danger mr-2"></i>Promover a SUPERADMIN</h5>
+        <button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
+      </div>
+      <div class="modal-body">
+        <p class="text-muted small">Atenção: este utilizador terá acesso total ao painel de administração da plataforma.</p>
+        <div class="form-group mb-0">
+          <label class="small font-weight-bold">Email do utilizador</label>
+          <input type="email" class="form-control" id="promoteEmail" placeholder="email@exemplo.com"/>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+        <button class="btn btn-danger" id="btnPromote">
+          <i class="fas fa-user-shield mr-1"></i>Promover
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="/assets/vendor/jquery/jquery.min.js"></script>
+<script src="/assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+<script src="/assets/js/sb-admin-2.min.js"></script>
+<script>
+const ROLE_COLORS = { SUPERADMIN:'danger', ADMIN:'primary', USER:'secondary' };
+
+async function loadUsers() {
+  const search = document.getElementById('searchInput').value;
+  const tbody = document.getElementById('usersTbody');
+  tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted py-4">A carregar...</td></tr>';
+
+  try {
+    const params = search ? '?search=' + encodeURIComponent(search) : '';
+    const res = await fetch('/api/admin/users' + params);
+    const data = await res.json();
+    if (!data.success) throw new Error(data.message);
+
+    if (!data.users.length) {
+      tbody.innerHTML = '<tr><td colspan="6" class="text-muted text-center py-4">Nenhum utilizador encontrado.</td></tr>';
+      return;
+    }
+
+    tbody.innerHTML = data.users.map(u => `<tr>
+      <td class="font-weight-bold">${u.name}</td>
+      <td>${u.email}</td>
+      <td>${u.companyId?.name || '—'}</td>
+      <td><span class="badge badge-${ROLE_COLORS[u.role]||'secondary'}">${u.role}</span></td>
+      <td><span class="badge ${u.status==='active'?'badge-success':'badge-danger'}">${u.status}</span></td>
+      <td>${new Date(u.createdAt).toLocaleDateString('pt-PT')}</td>
+    </tr>`).join('');
+  } catch(e) {
+    tbody.innerHTML = `<tr><td colspan="6" class="text-danger text-center py-3">${e.message}</td></tr>`;
+  }
+}
+
+document.getElementById('btnPromote').addEventListener('click', async function() {
+  const email = document.getElementById('promoteEmail').value.trim();
+  if (!email) return alert('Insere o email.');
+  if (!confirm(`Promover ${email} a SUPERADMIN?`)) return;
+  this.disabled = true;
+  try {
+    const res = await fetch('/api/admin/users/promote', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ email })
+    });
+    const d = await res.json();
+    alert(d.message);
+    if (d.success) { $('#promoteModal').modal('hide'); loadUsers(); }
+  } finally { this.disabled = false; }
+});
+
+document.getElementById('searchInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter') loadUsers();
+});
+
+loadUsers();
+</script>
+</body>
+</html>

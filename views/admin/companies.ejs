@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"/>
+  <title>Invoicing — <%- title %></title>
+  <link rel="icon" type="image/png" href="/images/invoicing-logo-simple.png"/>
+  <link href="/assets/vendor/fontawesome-free/css/all.min.css" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css?family=Nunito:400,600,700,800" rel="stylesheet"/>
+  <link href="/assets/css/sb-admin-2.min.css" rel="stylesheet"/>
+  <link href="/assets/css/custom.css" rel="stylesheet"/>
+  <style>
+    .plan-pill { padding:3px 10px; border-radius:20px; font-size:.72rem; font-weight:700; }
+    .plan-FREE    { background:#e2e8f0; color:#4a5568; }
+    .plan-BASIC   { background:#dbeafe; color:#1d4ed8; }
+    .plan-PREMIUM { background:#d1fae5; color:#065f46; }
+    .status-active  { color:#1cc88a; }
+    .status-expired { color:#e74a3b; }
+    .module-badge { font-size:.7rem; background:#eef2ff; color:#4338ca; padding:2px 7px; border-radius:10px; margin-right:3px; }
+  </style>
+</head>
+<body id="page-top">
+<div id="wrapper">
+  <%- include('../partials/admin-sidebar') %>
+  <div id="content-wrapper" class="d-flex flex-column">
+    <div id="content">
+      <%- include('../partials/topbar') %>
+      <div class="container-fluid py-4">
+
+        <div class="d-flex justify-content-between align-items-center mb-4">
+          <h4 class="font-weight-bold text-gray-800 mb-0">
+            <i class="fas fa-building text-primary mr-2"></i>Gestão de Empresas
+          </h4>
+        </div>
+
+        <!-- Pesquisa -->
+        <div class="card shadow-sm mb-4">
+          <div class="card-body py-3">
+            <div class="row align-items-end">
+              <div class="col-md-5 mb-2 mb-md-0">
+                <input type="text" id="searchInput" class="form-control form-control-sm" placeholder="Pesquisar por nome ou email..."/>
+              </div>
+              <div class="col-md-2">
+                <button class="btn btn-primary btn-sm btn-block" onclick="loadCompanies()">
+                  <i class="fas fa-search mr-1"></i>Pesquisar
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tabela -->
+        <div class="card shadow">
+          <div class="card-body p-0">
+            <div class="table-responsive">
+              <table class="table table-hover mb-0">
+                <thead class="thead-light">
+                  <tr>
+                    <th>Empresa</th>
+                    <th>Módulos</th>
+                    <th>Plano</th>
+                    <th>Estado</th>
+                    <th>Expira</th>
+                    <th>Utilizadores</th>
+                    <th>Registada</th>
+                    <th class="text-center">Acções</th>
+                  </tr>
+                </thead>
+                <tbody id="companiesTbody">
+                  <tr><td colspan="8" class="text-center text-muted py-4">A carregar...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+    <%- include('../partials/footer') %>
+  </div>
+</div>
+
+<!-- Modal Detalhes / Acção rápida -->
+<div class="modal fade" id="companyModal" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title"><i class="fas fa-building mr-2"></i><span id="modalTitle">Detalhes da Empresa</span></h5>
+        <button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
+      </div>
+      <div class="modal-body" id="modalBody">
+        <div class="text-center py-4"><i class="fas fa-spinner fa-spin fa-2x text-primary"></i></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="/assets/vendor/jquery/jquery.min.js"></script>
+<script src="/assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+<script src="/assets/js/sb-admin-2.min.js"></script>
+<script>
+const PLAN_LABELS = { FREE: 'Gratuito', BASIC: 'Básico', PREMIUM: 'Premium' };
+
+async function loadCompanies() {
+  const search = document.getElementById('searchInput').value;
+  const tbody = document.getElementById('companiesTbody');
+  tbody.innerHTML = '<tr><td colspan="8" class="text-center text-muted py-4">A carregar...</td></tr>';
+
+  try {
+    const params = search ? '?search=' + encodeURIComponent(search) : '';
+    const res = await fetch('/api/admin/companies' + params);
+    const data = await res.json();
+    if (!data.success) throw new Error(data.message);
+
+    if (!data.companies.length) {
+      tbody.innerHTML = '<tr><td colspan="8" class="text-muted text-center py-4">Nenhuma empresa encontrada.</td></tr>';
+      return;
+    }
+
+    tbody.innerHTML = data.companies.map(c => {
+      const sub = c.subscription;
+      const planLabel = sub ? (PLAN_LABELS[sub.plan] || sub.plan) : '—';
+      const planCls   = sub ? 'plan-' + sub.plan : '';
+      const expDate   = sub?.expiresAt ? new Date(sub.expiresAt).toLocaleDateString('pt-PT') : '—';
+      const statusCls = sub?.status === 'active' ? 'status-active' : 'status-expired';
+      const statusLbl = sub?.status === 'active' ? 'Activa' : (sub?.status || '—');
+      const modules = [];
+      if (c.modules?.invoicing) modules.push('Facturação');
+      if (c.modules?.sales) modules.push('Vendas');
+
+      return `<tr>
+        <td>
+          <div class="font-weight-bold">${c.name}</div>
+          <small class="text-muted">${c.email}</small>
+        </td>
+        <td>${modules.map(m => `<span class="module-badge">${m}</span>`).join('') || '<span class="text-muted small">Nenhum</span>'}</td>
+        <td>${sub ? `<span class="plan-pill ${planCls}">${planLabel}</span>` : '—'}</td>
+        <td><span class="${statusCls}">${statusLbl}</span></td>
+        <td>${expDate}</td>
+        <td><span class="badge badge-light">${c.userCount}</span></td>
+        <td>${new Date(c.createdAt).toLocaleDateString('pt-PT')}</td>
+        <td class="text-center">
+          <button class="btn btn-outline-primary btn-sm mr-1" onclick="viewCompany('${c._id}','${c.name.replace(/'/g,'\\\'')}')" title="Detalhes">
+            <i class="fas fa-eye"></i>
+          </button>
+          <button class="btn btn-success btn-sm" onclick="openActivateFromCompany('${c._id}','${c.name.replace(/'/g,'\\\'')}')" title="Gerir subscrição">
+            <i class="fas fa-star"></i>
+          </button>
+        </td>
+      </tr>`;
+    }).join('');
+  } catch(e) {
+    tbody.innerHTML = `<tr><td colspan="8" class="text-danger text-center py-3">${e.message}</td></tr>`;
+  }
+}
+
+async function viewCompany(id, name) {
+  document.getElementById('modalTitle').textContent = name;
+  document.getElementById('modalBody').innerHTML = '<div class="text-center py-4"><i class="fas fa-spinner fa-spin fa-2x text-primary"></i></div>';
+  $('#companyModal').modal('show');
+
+  try {
+    const res = await fetch('/api/admin/companies/' + id);
+    const data = await res.json();
+    if (!data.success) throw new Error(data.message);
+    const c = data.company;
+    const sub = data.subscription;
+    const planLabel = sub ? ({'FREE':'Gratuito','BASIC':'Básico','PREMIUM':'Premium'}[sub.plan] || sub.plan) : 'Sem subscrição';
+
+    document.getElementById('modalBody').innerHTML = `
+      <div class="row">
+        <div class="col-md-6">
+          <h6 class="font-weight-bold text-primary">Informações</h6>
+          <p class="mb-1"><strong>Nome:</strong> ${c.name}</p>
+          <p class="mb-1"><strong>Email:</strong> ${c.email}</p>
+          <p class="mb-1"><strong>Contacto:</strong> ${c.contact}</p>
+          <p class="mb-1"><strong>NUIT:</strong> ${c.nuit || 'N/A'}</p>
+          <p class="mb-1"><strong>Módulos:</strong>
+            ${c.modules?.invoicing ? '<span class="module-badge">Facturação</span>' : ''}
+            ${c.modules?.sales ? '<span class="module-badge">Vendas</span>' : ''}
+          </p>
+        </div>
+        <div class="col-md-6">
+          <h6 class="font-weight-bold text-primary">Subscrição</h6>
+          <p class="mb-1"><strong>Plano:</strong> ${planLabel}</p>
+          <p class="mb-1"><strong>Estado:</strong> ${sub?.status || '—'}</p>
+          <p class="mb-1"><strong>Expira:</strong> ${sub?.expiresAt ? new Date(sub.expiresAt).toLocaleDateString('pt-PT') : '—'}</p>
+          <hr/>
+          <h6 class="font-weight-bold text-primary mt-2">Uso</h6>
+          <p class="mb-1"><strong>Facturas:</strong> ${data.usage.invoices}</p>
+          <p class="mb-1"><strong>Vendas:</strong> ${data.usage.sales}</p>
+        </div>
+      </div>
+      <hr/>
+      <h6 class="font-weight-bold text-primary">Utilizadores (${data.users.length})</h6>
+      <div class="table-responsive">
+        <table class="table table-sm mb-0">
+          <thead class="thead-light"><tr><th>Nome</th><th>Email</th><th>Role</th><th>Estado</th></tr></thead>
+          <tbody>
+            ${data.users.map(u => `<tr>
+              <td>${u.name}</td>
+              <td>${u.email}</td>
+              <td><span class="badge badge-secondary">${u.role}</span></td>
+              <td><span class="badge ${u.status==='active'?'badge-success':'badge-danger'}">${u.status}</span></td>
+            </tr>`).join('')}
+          </tbody>
+        </table>
+      </div>
+      <div class="mt-3 text-right">
+        <button class="btn btn-success btn-sm" onclick="$('#companyModal').modal('hide'); openActivateFromCompany('${id}','${name.replace(/'/g,"\\'")}')">
+          <i class="fas fa-star mr-1"></i>Gerir Subscrição
+        </button>
+      </div>`;
+  } catch(e) {
+    document.getElementById('modalBody').innerHTML = `<div class="alert alert-danger">${e.message}</div>`;
+  }
+}
+
+function openActivateFromCompany(companyId, companyName) {
+  window.location.href = `/admin/subscriptions`;
+}
+
+document.getElementById('searchInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter') loadCompanies();
+});
+
+loadCompanies();
+</script>
+</body>
+</html>

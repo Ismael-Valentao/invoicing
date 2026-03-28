@@ -7,7 +7,7 @@ const requirePermission = (permission) => {
             });
         }
 
-        if (req.user.role === 'ADMIN') {
+        if (req.user.role === 'ADMIN' || req.user.role === 'SUPERADMIN') {
             return next();
         }
 

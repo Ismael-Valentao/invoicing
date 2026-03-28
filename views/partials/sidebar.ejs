@@ -12,7 +12,7 @@
     <!-- Brand -->
     <a class="sidebar-brand d-flex align-items-center" style="justify-content: space-between;" href="/dashboard">
       <div class="sidebar-brand-icon">
-        <img src="https://bitiray.com/public/assets/images/logos/invoicing-logo-white.png" style="width: 70%" alt="" />
+        <img src="https://bitiray.com/public/assets/images/logos/invoicing-logo-white.png" style="width: 55%" alt="" />
       </div>
     </a>
 
@@ -214,15 +214,23 @@
 <!-- End of Sidebar -->
 
 <script>
-  // Badge do plano na sidebar
+  // ── Ocultar sidebar imediatamente no mobile (evita flash) ──────────────────
   (function() {
-    const badge = document.getElementById('sidebarPlanBadge');
+    if (window.innerWidth < 768) {
+      var s = document.getElementById('accordionSidebar');
+      if (s) s.classList.add('toggled');
+    }
+  })();
+
+  // ── Badge do plano na sidebar ──────────────────────────────────────────────
+  (function() {
+    var badge = document.getElementById('sidebarPlanBadge');
     if (!badge) return;
     fetch('/api/subscriptions/my')
-      .then(r => r.json())
-      .then(data => {
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
         if (!data.success) return;
-        const s = data.subscription;
+        var s = data.subscription;
         badge.style.display = '';
         if (s.status === 'expired') {
           badge.textContent = 'Expirado';
@@ -234,28 +242,139 @@
           badge.textContent = s.planLabel;
           badge.className = 'badge badge-pill badge-primary ml-1';
         }
-      }).catch(() => {});
+      }).catch(function() {});
   })();
 
-  document.addEventListener("DOMContentLoaded", function () {
-    const isMobile = () => window.innerWidth < 768;
+  // ── Mobile: backdrop + fechar ao clicar fora ───────────────────────────────
+  document.addEventListener('DOMContentLoaded', function() {
+    var sidebar = document.querySelector('.sidebar');
 
-    document.querySelectorAll('#accordionSidebar a[data-toggle="collapse"]').forEach((a) => {
-      a.addEventListener("click", function (e) {
-        e.preventDefault();
+    function isMobile() { return window.innerWidth < 768; }
 
-        const targetSel = this.getAttribute("data-target");
-        const target = document.querySelector(targetSel);
-        if (!target) return;
+    // Criar backdrop
+    var bd = document.createElement('div');
+    bd.id = 'sidebarBackdrop';
+    Object.assign(bd.style, {
+      display: 'none',
+      position: 'fixed',
+      top: '0', left: '0', right: '0', bottom: '0',
+      background: 'rgba(0,0,0,0.45)',
+      zIndex: '1049',
+      cursor: 'pointer'
+    });
+    document.body.appendChild(bd);
 
-        if (isMobile()) {
-          document.body.classList.remove("sidebar-toggled");
-          const sidebar = document.querySelector(".sidebar");
-          if (sidebar) sidebar.classList.remove("toggled");
+    function closeSidebar() {
+      document.body.classList.add('sidebar-toggled');
+      if (sidebar) {
+        sidebar.classList.add('toggled');
+        // Fechar submenus abertos
+        sidebar.querySelectorAll('.collapse.show').forEach(function(el) {
+          el.classList.remove('show');
+        });
+      }
+      bd.style.display = 'none';
+    }
+
+    // Após clique no botão toggle, sincroniza o backdrop
+    document.addEventListener('click', function(e) {
+      if (!isMobile()) return;
+      if (!e.target.closest('#sidebarToggleTop, #sidebarToggle')) return;
+      setTimeout(function() {
+        bd.style.display = (sidebar && !sidebar.classList.contains('toggled')) ? 'block' : 'none';
+      }, 50);
+    });
+
+    // Redimensionamento
+    window.addEventListener('resize', function() {
+      if (isMobile()) {
+        // Voltou ao mobile: garantir sidebar fechada se backdrop não estiver visível
+        if (bd.style.display === 'none' && sidebar && !sidebar.classList.contains('toggled')) {
+          sidebar.classList.add('toggled');
         }
+      } else {
+        // Desktop: remover toggled e esconder backdrop
+        bd.style.display = 'none';
+        if (sidebar) sidebar.classList.remove('toggled');
+      }
+    });
 
-        $(target).collapse("toggle");
+    // ── Flyout de submenus no mobile ───────────────────────────────────────────
+    var flyout = document.createElement('div');
+    flyout.id = 'sidebarFlyout';
+    document.body.appendChild(flyout);
+
+    var flyoutSource = null; // track which nav-link triggered the flyout
+
+    function closeFlyout() {
+      flyout.style.display = 'none';
+      flyoutSource = null;
+    }
+
+    function openFlyout(trigger, collapseInnerEl) {
+      // Clone the inner menu content
+      flyout.innerHTML = collapseInnerEl.innerHTML;
+      flyout.style.display = 'block';
+
+      // Position: right of sidebar, vertically aligned with the trigger
+      var sidebarRect = sidebar.getBoundingClientRect();
+      var triggerRect = trigger.getBoundingClientRect();
+      var flyoutH = flyout.offsetHeight;
+      var viewH = window.innerHeight;
+
+      var left = sidebarRect.right + 8;
+      var top = triggerRect.top;
+
+      // Clamp vertically so flyout stays within viewport
+      if (top + flyoutH > viewH - 8) {
+        top = viewH - flyoutH - 8;
+      }
+      if (top < 8) top = 8;
+
+      flyout.style.left = left + 'px';
+      flyout.style.top = top + 'px';
+    }
+
+    // Intercept submenu parent clicks on mobile
+    sidebar.querySelectorAll('a[data-toggle="collapse"]').forEach(function(link) {
+      link.addEventListener('click', function(e) {
+        if (!isMobile()) return; // desktop: let Bootstrap handle it normally
+        e.preventDefault();
+        e.stopPropagation();
+
+        var targetId = link.getAttribute('data-target');
+        var collapseEl = targetId ? document.querySelector(targetId) : null;
+        var collapseInner = collapseEl ? collapseEl.querySelector('.collapse-inner') : null;
+        if (!collapseInner) return;
+
+        if (flyoutSource === link) {
+          // Same item tapped again — close flyout
+          closeFlyout();
+        } else {
+          flyoutSource = link;
+          openFlyout(link, collapseInner);
+        }
       });
+    });
+
+    // Close flyout when backdrop is clicked
+    bd.addEventListener('click', function() {
+      closeFlyout();
+      closeSidebar();
+    });
+
+    // Close flyout when clicking anywhere outside sidebar+flyout
+    document.addEventListener('click', function(e) {
+      if (!isMobile()) return;
+      if (flyout.style.display === 'none') return;
+      if (flyout.contains(e.target)) return;
+      if (sidebar.contains(e.target)) return;
+      closeFlyout();
+    });
+
+    // Close flyout on resize to desktop
+    window.addEventListener('resize', function() {
+      if (!isMobile()) closeFlyout();
     });
   });
 </script>

@@ -1,187 +1,210 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
-    <title>Invoicing - <%- title %></title>
-    <link rel="icon" type="image/png" href="images/invoicing-logo-simple.png"/>
-    <link href="assets/vendor/fontawesome-free/css/all.min.css" rel="stylesheet" />
-    <link href="https://fonts.googleapis.com/css?family=Nunito:200,300,400,600,700,800,900" rel="stylesheet" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" crossorigin="anonymous"/>
-    <link href="assets/css/sb-admin-2.min.css" rel="stylesheet" />
-    <link href="assets/css/custom.css" rel="stylesheet" />
-  </head>
 
-  <body id="page-top">
-    <div id="wrapper">
-      <%- include('partials/sidebar') %>
+<head>
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+  <title>Invoicing - <%- title %></title>
+  <link rel="icon" type="image/png" href="images/invoicing-logo-simple.png" />
+  <link href="assets/vendor/fontawesome-free/css/all.min.css" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css?family=Nunito:200,300,400,600,700,800,900" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css"
+    crossorigin="anonymous" />
+  <link href="assets/css/sb-admin-2.min.css" rel="stylesheet" />
+  <link href="assets/css/custom.css" rel="stylesheet" />
+</head>
+
+<body id="page-top">
+  <div id="wrapper">
+    <%- include('partials/sidebar') %>
 
       <div id="content-wrapper" class="d-flex flex-column">
         <div id="content">
           <%- include('partials/topbar') %>
 
-          <div class="container-fluid">
-            <!-- Banner de subscrição expirada -->
-            <div id="subExpiredBanner" style="display:none;" class="alert alert-danger d-flex align-items-center justify-content-between mb-3">
-              <span><i class="fas fa-lock mr-2"></i><strong>Subscrição expirada.</strong> Renova o teu plano para continuar a criar vendas.</span>
-              <a href="/upgrade" class="btn btn-danger btn-sm ml-3">Renovar agora</a>
-            </div>
-            <div id="subWarningBanner" style="display:none;" class="alert alert-warning d-flex align-items-center justify-content-between mb-3">
-              <span><i class="fas fa-exclamation-triangle mr-2"></i>A tua subscrição expira em <strong id="subDaysLeft"></strong> dias.</span>
-              <a href="/upgrade" class="btn btn-warning btn-sm ml-3">Renovar</a>
-            </div>
-            <%- include('partials/onboarding-checklist') %>
-            <div class="d-sm-flex align-items-center justify-content-between mb-4">
-              <h5 class="mb-0 text-gray-800"><strong>Dashboard de Vendas</strong></h5>
-
-              <div class="d-flex" style="gap:8px;">
-                <select id="range" class="form-control form-control-sm">
-                  <option value="7" selected>Últimos 7 dias</option>
-                  <option value="14">Últimos 14 dias</option>
-                  <option value="30">Últimos 30 dias</option>
-                </select>
-                <button id="btn-refresh" class="btn btn-primary btn-sm">
-                  <i class="fa-solid fa-rotate"></i>
-                </button>
+            <div class="container-fluid">
+              <!-- Banner de subscrição expirada -->
+              <div id="subExpiredBanner" class="alert alert-danger align-items-center justify-content-between mb-3"
+                style="display:none;">
+                <span><i class="fas fa-lock mr-2"></i><strong>Subscrição expirada.</strong> Renova o teu plano para
+                  continuar a criar vendas.</span>
+                <a href="/upgrade" class="btn btn-danger btn-sm ml-3">Renovar agora</a>
               </div>
-            </div>
 
-            <div class="row">
-              <div class="col-xl-3 col-md-6 mb-4">
-                <div class="card border-left-primary shadow h-100 py-2">
-                  <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                      <div class="col mr-2">
-                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
-                          Total vendido
+              <div id="subWarningBanner" class="alert alert-warning align-items-center justify-content-between mb-3"
+                style="display:none;">
+                <span><i class="fas fa-exclamation-triangle mr-2"></i>A tua subscrição expira em <strong
+                    id="subDaysLeft"></strong> dias.</span>
+                <a href="/upgrade" class="btn btn-warning btn-sm ml-3">Renovar</a>
+              </div>
+              <%- include('partials/onboarding-checklist') %>
+                <div class="d-sm-flex align-items-center justify-content-between mb-4">
+                  <h5 class="mb-0 text-gray-800"><strong>Dashboard de Vendas</strong></h5>
+
+                  <div class="d-flex" style="gap:8px;">
+                    <select id="range" class="form-control form-control-sm">
+                      <option value="7" selected>Últimos 7 dias</option>
+                      <option value="14">Últimos 14 dias</option>
+                      <option value="30">Últimos 30 dias</option>
+                    </select>
+                    <button id="btn-refresh" class="btn btn-primary btn-sm">
+                      <i class="fa-solid fa-rotate"></i>
+                    </button>
+                  </div>
+                </div>
+
+                <div class="row">
+                  <div class="col-xl-3 col-md-6 mb-4">
+                    <div class="card border-left-primary shadow h-100 py-2">
+                      <div class="card-body">
+                        <div class="row no-gutters align-items-center">
+                          <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                              Total vendido
+                            </div>
+                            <div class="h6 mb-0 font-weight-bold text-gray-800" id="total-sold"></div>
+                          </div>
+                          <div class="col-auto">
+                            <i class="fas fa-dollar-sign fa-2x text-gray-300"></i>
+                          </div>
                         </div>
-                        <div class="h6 mb-0 font-weight-bold text-gray-800" id="total-sold"></div>
-                      </div>
-                      <div class="col-auto">
-                        <i class="fas fa-dollar-sign fa-2x text-gray-300"></i>
                       </div>
                     </div>
                   </div>
-                </div>
-              </div>
 
-              <div class="col-xl-3 col-md-6 mb-4">
-                <div class="card border-left-success shadow h-100 py-2">
-                  <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                      <div class="col mr-2">
-                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
-                          Nº de vendas
+                  <div class="col-xl-3 col-md-6 mb-4">
+                    <div class="card border-left-success shadow h-100 py-2">
+                      <div class="card-body">
+                        <div class="row no-gutters align-items-center">
+                          <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                              Nº de vendas
+                            </div>
+                            <div class="h6 mb-0 font-weight-bold text-gray-800" id="total-sales"></div>
+                          </div>
+                          <div class="col-auto">
+                            <i class="fas fa-cart-shopping fa-2x text-gray-300"></i>
+                          </div>
                         </div>
-                        <div class="h6 mb-0 font-weight-bold text-gray-800" id="total-sales"></div>
-                      </div>
-                      <div class="col-auto">
-                        <i class="fas fa-cart-shopping fa-2x text-gray-300"></i>
                       </div>
                     </div>
                   </div>
-                </div>
-              </div>
 
-              <div class="col-xl-3 col-md-6 mb-4">
-                <div class="card border-left-info shadow h-100 py-2">
-                  <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                      <div class="col mr-2">
-                        <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
-                          Última venda
+                  <div class="col-xl-3 col-md-6 mb-4">
+                    <div class="card border-left-info shadow h-100 py-2">
+                      <div class="card-body">
+                        <div class="row no-gutters align-items-center">
+                          <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                              Última venda
+                            </div>
+                            <div class="h6 mb-0 font-weight-bold text-gray-800" id="last-sale"></div>
+                          </div>
+                          <div class="col-auto">
+                            <i class="fas fa-receipt fa-2x text-gray-300"></i>
+                          </div>
                         </div>
-                        <div class="h6 mb-0 font-weight-bold text-gray-800" id="last-sale"></div>
-                      </div>
-                      <div class="col-auto">
-                        <i class="fas fa-receipt fa-2x text-gray-300"></i>
                       </div>
                     </div>
                   </div>
-                </div>
-              </div>
 
-              <div class="col-xl-3 col-md-6 mb-4">
-                <div class="card border-left-warning shadow h-100 py-2">
-                  <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                      <div class="col mr-2">
-                        <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
-                          Vendas canceladas
+                  <div class="col-xl-3 col-md-6 mb-4">
+                    <div class="card border-left-warning shadow h-100 py-2">
+                      <div class="card-body">
+                        <div class="row no-gutters align-items-center">
+                          <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                              Vendas canceladas
+                            </div>
+                            <div class="h6 mb-0 font-weight-bold text-gray-800" id="cancelled-sales"></div>
+                          </div>
+                          <div class="col-auto">
+                            <i class="fas fa-ban fa-2x text-gray-300"></i>
+                          </div>
                         </div>
-                        <div class="h6 mb-0 font-weight-bold text-gray-800" id="cancelled-sales"></div>
-                      </div>
-                      <div class="col-auto">
-                        <i class="fas fa-ban fa-2x text-gray-300"></i>
                       </div>
                     </div>
                   </div>
                 </div>
-              </div>
+
+                <div class="row">
+                  <div class="col-xl-8 col-lg-7">
+                    <div class="card shadow mb-4">
+                      <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                        <h6 class="m-0 font-weight-bold text-primary">
+                          Vendas por dia
+                        </h6>
+                      </div>
+                      <div class="card-body">
+                        <div class="chart-area">
+                          <canvas id="salesAreaChart"></canvas>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="col-xl-4 col-lg-5">
+                    <div class="card shadow mb-4">
+                      <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                        <h6 class="m-0 font-weight-bold text-primary">
+                          Métodos de pagamento
+                        </h6>
+                      </div>
+                      <div class="card-body">
+                        <div class="chart-pie pt-4 pb-2">
+                          <canvas id="paymentsPieChart"></canvas>
+                        </div>
+                        <div class="mt-4 text-center small" id="paymentLegend"></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
             </div>
-
-            <div class="row">
-              <div class="col-xl-8 col-lg-7">
-                <div class="card shadow mb-4">
-                  <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-                    <h6 class="m-0 font-weight-bold text-primary">
-                      Vendas por dia
-                    </h6>
-                  </div>
-                  <div class="card-body">
-                    <div class="chart-area">
-                      <canvas id="salesAreaChart"></canvas>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div class="col-xl-4 col-lg-5">
-                <div class="card shadow mb-4">
-                  <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-                    <h6 class="m-0 font-weight-bold text-primary">
-                      Métodos de pagamento
-                    </h6>
-                  </div>
-                  <div class="card-body">
-                    <div class="chart-pie pt-4 pb-2">
-                      <canvas id="paymentsPieChart"></canvas>
-                    </div>
-                    <div class="mt-4 text-center small" id="paymentLegend"></div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
         </div>
 
         <%- include('partials/copyright') %>
       </div>
-    </div>
+  </div>
 
-    <a class="scroll-to-top rounded" href="#page-top">
-      <i class="fas fa-angle-up"></i>
-    </a>
+  <a class="scroll-to-top rounded" href="#page-top">
+    <i class="fas fa-angle-up"></i>
+  </a>
 
-    <%- include('partials/footer') %>
+  <%- include('partials/footer') %>
 
     <script src="assets/vendor/chart.js/Chart.min.js"></script>
     <script src="assets/js/sales-dashboard.js"></script>
     <script>
-    fetch('/api/subscriptions/my')
-      .then(r => r.json())
-      .then(data => {
-        if (!data.success) return;
-        const s = data.subscription;
-        const days = typeof s.daysLeft === 'number' ? s.daysLeft : 0;
-        if (s.status === 'expired') {
-          document.getElementById('subExpiredBanner').style.display = 'flex';
-        } else if (days <= 7) {
-          document.getElementById('subWarningBanner').style.display = 'flex';
-          document.getElementById('subDaysLeft').textContent = days;
-        }
-      }).catch(() => {});
+      function checkSubscriptionStatus() {
+        fetch('/api/subscriptions/my', { cache: 'no-store' })
+          .then(r => r.ok ? r.json() : null)
+          .then(data => {
+            if (!data || !data.success) return;
+
+            const s = data.subscription || {};
+            const days = Number(s.daysLeft || 0);
+
+            const expiredBanner = document.getElementById('subExpiredBanner');
+            const warningBanner = document.getElementById('subWarningBanner');
+
+            const isExpired = s.status === 'expired' || days <= 0;
+            const showWarning = s.status === 'active' && days > 0 && days <= 7;
+
+            expiredBanner.style.display = 'none';
+            warningBanner.style.display = 'none';
+
+            if (isExpired) {
+              expiredBanner.style.display = 'flex';
+            } else if (showWarning) {
+              document.getElementById('subDaysLeft').textContent = days;
+              warningBanner.style.display = 'flex';
+            }
+          })
+          .catch(console.error);
+      }
+      checkSubscriptionStatus();
     </script>
-  </body>
+</body>
+
 </html>

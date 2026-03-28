@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"/>
+  <title>Invoicing — <%- title %></title>
+  <link rel="icon" type="image/png" href="/images/invoicing-logo-simple.png"/>
+  <link href="/assets/vendor/fontawesome-free/css/all.min.css" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css?family=Nunito:400,600,700,800" rel="stylesheet"/>
+  <link href="/assets/css/sb-admin-2.min.css" rel="stylesheet"/>
+  <link href="/assets/css/custom.css" rel="stylesheet"/>
+  <style>
+    .status-active  { color:#1cc88a; font-weight:600; }
+    .status-expired { color:#e74a3b; font-weight:600; }
+    .status-cancelled { color:#858796; font-weight:600; }
+    .plan-FREE    { background:#e2e8f0; color:#4a5568; }
+    .plan-BASIC   { background:#dbeafe; color:#1d4ed8; }
+    .plan-PREMIUM { background:#d1fae5; color:#065f46; }
+    .plan-pill { padding:3px 10px; border-radius:20px; font-size:.75rem; font-weight:700; }
+  </style>
+</head>
+<body id="page-top">
+<div id="wrapper">
+  <%- include('../partials/admin-sidebar') %>
+  <div id="content-wrapper" class="d-flex flex-column">
+    <div id="content">
+      <%- include('../partials/topbar') %>
+      <div class="container-fluid py-4">
+
+        <div class="d-flex justify-content-between align-items-center mb-4">
+          <h4 class="font-weight-bold text-gray-800 mb-0">
+            <i class="fas fa-star text-warning mr-2"></i>Gestão de Subscrições
+          </h4>
+        </div>
+
+        <!-- Filtros -->
+        <div class="card shadow-sm mb-4">
+          <div class="card-body py-3">
+            <div class="row align-items-end">
+              <div class="col-md-4 mb-2 mb-md-0">
+                <input type="text" id="searchInput" class="form-control form-control-sm" placeholder="Pesquisar empresa..."/>
+              </div>
+              <div class="col-md-2 mb-2 mb-md-0">
+                <select id="filterPlan" class="form-control form-control-sm">
+                  <option value="">Todos os planos</option>
+                  <option value="FREE">Gratuito</option>
+                  <option value="BASIC">Básico</option>
+                  <option value="PREMIUM">Premium</option>
+                </select>
+              </div>
+              <div class="col-md-2 mb-2 mb-md-0">
+                <select id="filterStatus" class="form-control form-control-sm">
+                  <option value="">Todos os estados</option>
+                  <option value="active">Activa</option>
+                  <option value="expired">Expirada</option>
+                  <option value="cancelled">Cancelada</option>
+                </select>
+              </div>
+              <div class="col-md-2">
+                <button class="btn btn-primary btn-sm btn-block" onclick="loadSubscriptions()">
+                  <i class="fas fa-search mr-1"></i>Filtrar
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tabela -->
+        <div class="card shadow">
+          <div class="card-body p-0">
+            <div class="table-responsive">
+              <table class="table table-hover mb-0">
+                <thead class="thead-light">
+                  <tr>
+                    <th>Empresa</th>
+                    <th>Plano</th>
+                    <th>Estado</th>
+                    <th>Expira em</th>
+                    <th>Dias</th>
+                    <th class="text-center">Acções</th>
+                  </tr>
+                </thead>
+                <tbody id="subsTbody">
+                  <tr><td colspan="6" class="text-center text-muted py-4">A carregar...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+    <%- include('../partials/footer') %>
+  </div>
+</div>
+
+<!-- Modal Activar Plano -->
+<div class="modal fade" id="activateModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title"><i class="fas fa-star text-warning mr-2"></i>Activar / Alterar Plano</h5>
+        <button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
+      </div>
+      <div class="modal-body">
+        <p class="text-muted small mb-3">Empresa: <strong id="modalCompanyName"></strong></p>
+        <input type="hidden" id="modalCompanyId"/>
+        <div class="form-group">
+          <label class="small font-weight-bold">Plano</label>
+          <select class="form-control" id="modalPlan">
+            <option value="FREE">Gratuito (FREE)</option>
+            <option value="BASIC">Básico (799 MZN/mês)</option>
+            <option value="PREMIUM">Premium (1.299 MZN/mês)</option>
+          </select>
+        </div>
+        <div class="form-group mb-0">
+          <label class="small font-weight-bold">Duração (meses)</label>
+          <select class="form-control" id="modalMonths">
+            <option value="1">1 mês</option>
+            <option value="3">3 meses</option>
+            <option value="6">6 meses</option>
+            <option value="12">12 meses</option>
+          </select>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+        <button class="btn btn-success" id="btnActivate">
+          <i class="fas fa-check mr-1"></i>Activar Plano
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="/assets/vendor/jquery/jquery.min.js"></script>
+<script src="/assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+<script src="/assets/js/sb-admin-2.min.js"></script>
+<script>
+const STATUS_LABELS = { active: 'Activa', expired: 'Expirada', cancelled: 'Cancelada' };
+const STATUS_CLS    = { active: 'status-active', expired: 'status-expired', cancelled: 'status-cancelled' };
+const PLAN_LABELS   = { FREE: 'Gratuito', BASIC: 'Básico', PREMIUM: 'Premium' };
+
+async function loadSubscriptions() {
+  const search = document.getElementById('searchInput').value;
+  const plan   = document.getElementById('filterPlan').value;
+  const status = document.getElementById('filterStatus').value;
+  const params = new URLSearchParams();
+  if (search) params.set('search', search);
+  if (plan)   params.set('plan', plan);
+  if (status) params.set('status', status);
+
+  const tbody = document.getElementById('subsTbody');
+  tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted py-4">A carregar...</td></tr>';
+
+  try {
+    const res = await fetch('/api/admin/subscriptions?' + params);
+    const data = await res.json();
+    if (!data.success) throw new Error(data.message);
+
+    if (!data.subscriptions.length) {
+      tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted py-4">Nenhuma subscrição encontrada.</td></tr>';
+      return;
+    }
+
+    tbody.innerHTML = data.subscriptions.map(s => {
+      const daysLabel = s.status === 'active'
+        ? `<span class="badge ${s.daysLeft <= 7 ? 'badge-warning' : 'badge-light'}">${s.daysLeft}d</span>`
+        : '—';
+      const expDate = s.expiresAt ? new Date(s.expiresAt).toLocaleDateString('pt-PT') : '—';
+      return `<tr>
+        <td>
+          <div class="font-weight-bold">${s.companyName}</div>
+          <small class="text-muted">${s.companyEmail}</small>
+        </td>
+        <td><span class="plan-pill plan-${s.plan}">${PLAN_LABELS[s.plan] || s.plan}</span></td>
+        <td><span class="${STATUS_CLS[s.status] || ''}">${STATUS_LABELS[s.status] || s.status}</span></td>
+        <td>${expDate}</td>
+        <td>${daysLabel}</td>
+        <td class="text-center">
+          <button class="btn btn-success btn-sm mr-1" onclick="openActivateModal('${s.companyId}','${s.companyName}','${s.plan}')">
+            <i class="fas fa-edit"></i>
+          </button>
+          <button class="btn btn-outline-danger btn-sm" onclick="cancelSub('${s.companyId}','${s.companyName}')">
+            <i class="fas fa-ban"></i>
+          </button>
+        </td>
+      </tr>`;
+    }).join('');
+  } catch(e) {
+    tbody.innerHTML = `<tr><td colspan="6" class="text-danger text-center py-3">${e.message}</td></tr>`;
+  }
+}
+
+function openActivateModal(companyId, companyName, currentPlan) {
+  document.getElementById('modalCompanyId').value = companyId;
+  document.getElementById('modalCompanyName').textContent = companyName;
+  document.getElementById('modalPlan').value = currentPlan;
+  $('#activateModal').modal('show');
+}
+
+document.getElementById('btnActivate').addEventListener('click', async function() {
+  const companyId = document.getElementById('modalCompanyId').value;
+  const plan      = document.getElementById('modalPlan').value;
+  const months    = document.getElementById('modalMonths').value;
+  this.disabled = true;
+  this.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i>A activar...';
+  try {
+    const res = await fetch('/api/admin/subscriptions/activate', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ companyId, plan, months })
+    });
+    const d = await res.json();
+    alert(d.message);
+    if (d.success) { $('#activateModal').modal('hide'); loadSubscriptions(); }
+  } finally {
+    this.disabled = false;
+    this.innerHTML = '<i class="fas fa-check mr-1"></i>Activar Plano';
+  }
+});
+
+async function cancelSub(companyId, companyName) {
+  if (!confirm(`Cancelar subscrição de "${companyName}"?`)) return;
+  const res = await fetch('/api/admin/subscriptions/cancel', {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({ companyId })
+  });
+  const d = await res.json();
+  alert(d.message);
+  if (d.success) loadSubscriptions();
+}
+
+// Enter key na pesquisa
+document.getElementById('searchInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter') loadSubscriptions();
+});
+
+loadSubscriptions();
+</script>
+</body>
+</html>

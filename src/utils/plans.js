@@ -23,8 +23,8 @@ const PLANS = {
         maxUsers: 3,
         excelExport: true,
         advancedReports: false,
-        priceLabel: '1.500 MZN/mês',
-        priceMZN: 1500,
+        priceLabel: '799 MZN/mês',
+        priceMZN: 799,
     },
     PREMIUM: {
         name: 'PREMIUM',
@@ -36,8 +36,8 @@ const PLANS = {
         maxUsers: Infinity,
         excelExport: true,
         advancedReports: true,
-        priceLabel: '3.500 MZN/mês',
-        priceMZN: 3500,
+        priceLabel: '1.299 MZN/mês',
+        priceMZN: 1299,
     }
 };
 

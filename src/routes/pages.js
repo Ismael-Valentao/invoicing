@@ -1,6 +1,7 @@
 const express = require('express');
 const { requirePermission } = require("../middlewares/requirePermission");
 const { requireAdmin } = require("../middlewares/requireAdmin");
+const { requireSuperAdmin } = require("../middlewares/requireSuperAdmin");
 const { authMiddleware2 } = require('../middlewares/authMiddleware');
 const { ensureHasActiveModule } = require("../middlewares/validationMiddleware");
 
@@ -170,6 +171,28 @@ router.get('/subscription', authMiddleware2, (req, res) => {
 
 router.get('/upgrade', authMiddleware2, (req, res) => {
     res.render('upgrade', buildViewData(req, 'Upgrade de Plano'));
+});
+
+// Setup do primeiro SUPERADMIN
+router.get('/admin/setup', (req, res) => {
+    res.render('admin/setup', { title: 'Configurar SUPERADMIN' });
+});
+
+// ─── Painel de Administração ─────────────────────────────────────────────────
+router.get('/admin', authMiddleware2, requireSuperAdmin, (req, res) => {
+    res.render('admin/dashboard', buildViewData(req, 'Admin — Dashboard'));
+});
+
+router.get('/admin/subscriptions', authMiddleware2, requireSuperAdmin, (req, res) => {
+    res.render('admin/subscriptions', buildViewData(req, 'Admin — Subscrições'));
+});
+
+router.get('/admin/companies', authMiddleware2, requireSuperAdmin, (req, res) => {
+    res.render('admin/companies', buildViewData(req, 'Admin — Empresas'));
+});
+
+router.get('/admin/users', authMiddleware2, requireSuperAdmin, (req, res) => {
+    res.render('admin/users', buildViewData(req, 'Admin — Utilizadores'));
 });
 
 // Logout

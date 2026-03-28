@@ -22,12 +22,13 @@ const userSchema = new mongoose.Schema({
     companyId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Company',
-        required: true
+        required: false,
+        default: null
     },
 
     role: {
         type: String,
-        enum: ['ADMIN', 'USER'],
+        enum: ['SUPERADMIN', 'ADMIN', 'USER'],
         default: 'USER',
         required: true
     },

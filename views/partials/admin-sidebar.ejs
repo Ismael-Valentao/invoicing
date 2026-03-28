@@ -1,0 +1,90 @@
+<!-- Admin Sidebar -->
+<ul class="navbar-nav bg-gradient-danger sidebar sidebar-dark accordion" id="accordionSidebar">
+
+  <!-- Brand -->
+  <a class="sidebar-brand d-flex align-items-center justify-content-center" href="/admin">
+    <div class="sidebar-brand-icon">
+      <i class="fas fa-shield-alt"></i>
+    </div>
+    <div class="sidebar-brand-text mx-3">Admin <sup style="font-size:.6rem; opacity:.7">painel</sup></div>
+  </a>
+
+  <hr class="sidebar-divider my-0"/>
+
+  <!-- Dashboard -->
+  <li class="nav-item <%= title === 'Admin — Dashboard' ? 'active' : '' %>">
+    <a class="nav-link" href="/admin">
+      <i class="fas fa-fw fa-tachometer-alt"></i>
+      <span>Dashboard</span>
+    </a>
+  </li>
+
+  <hr class="sidebar-divider"/>
+  <div class="sidebar-heading">Gestão</div>
+
+  <!-- Subscrições -->
+  <li class="nav-item <%= title === 'Admin — Subscrições' ? 'active' : '' %>">
+    <a class="nav-link" href="/admin/subscriptions">
+      <i class="fas fa-fw fa-star"></i>
+      <span>Subscrições</span>
+      <span id="adminExpiringSoonBadge" class="badge badge-warning badge-pill ml-1" style="display:none;"></span>
+    </a>
+  </li>
+
+  <!-- Empresas -->
+  <li class="nav-item <%= title === 'Admin — Empresas' ? 'active' : '' %>">
+    <a class="nav-link" href="/admin/companies">
+      <i class="fas fa-fw fa-building"></i>
+      <span>Empresas</span>
+    </a>
+  </li>
+
+  <!-- Utilizadores -->
+  <li class="nav-item <%= title === 'Admin — Utilizadores' ? 'active' : '' %>">
+    <a class="nav-link" href="/admin/users">
+      <i class="fas fa-fw fa-users"></i>
+      <span>Utilizadores</span>
+    </a>
+  </li>
+
+  <hr class="sidebar-divider"/>
+  <div class="sidebar-heading">Conta</div>
+
+  <!-- Voltar à plataforma -->
+  <li class="nav-item">
+    <a class="nav-link" href="/dashboard">
+      <i class="fas fa-fw fa-arrow-left"></i>
+      <span>Voltar à plataforma</span>
+    </a>
+  </li>
+
+  <li class="nav-item">
+    <a class="nav-link btn_logout" href="#" onclick="logout()">
+      <i class="fas fa-fw fa-sign-out-alt"></i>
+      <span>Sair</span>
+    </a>
+  </li>
+
+  <hr class="sidebar-divider d-none d-md-block"/>
+  <div class="text-center d-none d-md-inline">
+    <button class="rounded-circle border-0" id="sidebarToggle"></button>
+  </div>
+</ul>
+
+<script>
+// Badge de subscrições a expirar
+fetch('/api/admin/stats')
+  .then(r => r.json())
+  .then(data => {
+    if (data.success && data.stats.expiringSoon > 0) {
+      const b = document.getElementById('adminExpiringSoonBadge');
+      b.textContent = data.stats.expiringSoon;
+      b.style.display = '';
+    }
+  }).catch(() => {});
+
+function logout() {
+  fetch('/api/auth/logout', { method: 'POST' })
+    .finally(() => { document.cookie = 'token=; Max-Age=0'; window.location.href = '/login'; });
+}
+</script>

@@ -10,7 +10,16 @@ const { sendUpgradeRequestEmail } = require('../utils/mailSender');
  */
 exports.getMySubscription = async (req, res) => {
     try {
-        const companyId = req.user.company._id;
+        // SUPERADMIN não tem empresa nem subscrição
+        if (req.user.role === 'SUPERADMIN') {
+            return res.status(404).json({ success: false, message: 'SUPERADMIN não tem subscrição.' });
+        }
+
+        const companyId = req.user.company?._id;
+        if (!companyId) {
+            return res.status(404).json({ success: false, message: 'Empresa não encontrada.' });
+        }
+
         const sub = await Subscription.findOne({ companyId });
 
         if (!sub) {
@@ -27,8 +36,16 @@ exports.getMySubscription = async (req, res) => {
             await sub.save();
         }
 
+        // Verificação de expiração em tempo real (sem esperar cron job)
+        if (sub.status === 'active' && sub.expiresAt < now) {
+            sub.status = 'expired';
+            await sub.save();
+        }
+
         const rawDays = Math.ceil((sub.expiresAt - now) / (1000 * 60 * 60 * 24));
         const daysLeft = Number.isFinite(rawDays) ? Math.max(0, rawDays) : 0;
+
+        res.set('Cache-Control', 'no-store');
 
         return res.json({
             success: true,

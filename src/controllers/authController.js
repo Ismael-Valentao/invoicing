@@ -48,8 +48,6 @@ exports.login = async (req, res) => {
 
   const token = jwt.sign({ id: user._id, name: user.name, email: user.email, permissions:user.permissions, role:user.role, company: user.companyId }, SECRET, { expiresIn: '1h' });
 
-  const activatedModule = user.companyId.modules.invoice ? "invoice" : user.companyId.modules.stock ? "stock" : user.companyId.modules.sales ? "sales" : null;
-
   res.cookie('token', token, {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
@@ -57,7 +55,13 @@ exports.login = async (req, res) => {
     maxAge: 3600000
   });
 
-  res.json({ success: true, message: 'Login bem-sucedido', redirect: activatedModule ? `/${activatedModule}-dashboard` : '/dashboard' });
+  if (user.role === 'SUPERADMIN') {
+    return res.json({ success: true, message: 'Login bem-sucedido', redirect: '/admin' });
+  }
+
+  const activatedModule = user.companyId?.modules?.invoicing ? "invoices" : user.companyId?.modules?.sales ? "sales" : null;
+
+  res.json({ success: true, message: 'Login bem-sucedido', redirect: '/dashboard' });
 };
 
 exports.logout = (req, res) => {

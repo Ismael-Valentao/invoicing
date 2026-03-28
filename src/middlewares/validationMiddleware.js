@@ -23,6 +23,8 @@ const loginValidation = (req, res, next) => {
     next();
 }
 const ensureHasActiveModule = (req, res, next) => {
+  if (req.user?.role === 'SUPERADMIN') return next();
+
   const modules = req.user?.company?.modules;
   console.log("Actual modules: "+modules)
 

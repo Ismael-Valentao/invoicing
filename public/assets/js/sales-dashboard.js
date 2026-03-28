@@ -1,4 +1,4 @@
-document.addEventListener("DOMContentLoaded", () => {
+function initSalesDashboard() {
   const currency = (v) =>
     new Intl.NumberFormat("pt-MZ", {
       style: "currency",
@@ -105,4 +105,11 @@ document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("range")?.addEventListener("change", loadDashboard);
 
   loadDashboard().catch(console.error);
-});
+}
+
+// Works whether DOMContentLoaded already fired or not
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initSalesDashboard);
+} else {
+  initSalesDashboard();
+}

@@ -1,5 +1,6 @@
 node_modules/
 .env
+.claude/
 reports/
 public/images/
 package-lock.json

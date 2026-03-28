@@ -287,19 +287,24 @@
     <script src="assets/js/dashboard.js"></script>
     <script>
     // Verificar estado da subscrição ao carregar o dashboard
-    fetch('/api/subscriptions/my')
-      .then(r => r.json())
-      .then(data => {
-        if (!data.success) return;
-        const s = data.subscription;
-        const days = typeof s.daysLeft === 'number' ? s.daysLeft : 0;
-        if (s.status === 'expired') {
-          document.getElementById('subExpiredBanner').style.display = 'flex';
-        } else if (days <= 7) {
-          document.getElementById('subWarningBanner').style.display = 'flex';
-          document.getElementById('subDaysLeft').textContent = days;
-        }
-      }).catch(() => {});
+    function checkSubscriptionStatus() {
+      fetch('/api/subscriptions/my', { cache: 'no-store' })
+        .then(r => r.ok ? r.json() : null)
+        .then(data => {
+          if (!data || !data.success) return;
+          const s = data.subscription;
+          const days = typeof s.daysLeft === 'number' ? s.daysLeft : 0;
+          const isExpired = s.status === 'expired' || days === 0;
+          console.log(isExpired)
+          const showWarning = !isExpired && days > 0 && days <= 7;
+          document.getElementById('subExpiredBanner').style.display = isExpired ? 'flex' : 'none';
+          document.getElementById('subWarningBanner').style.display = showWarning ? 'flex' : 'none';
+          if (showWarning) {
+            document.getElementById('subDaysLeft').textContent = days;
+          }
+        }).catch(() => {});
+    }
+    checkSubscriptionStatus();
     </script>
   </body>
 </html>

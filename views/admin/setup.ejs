@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"/>
+  <title>Invoicing — Configurar SUPERADMIN</title>
+  <link rel="icon" type="image/png" href="/images/invoicing-logo-simple.png"/>
+  <link href="/assets/vendor/fontawesome-free/css/all.min.css" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css?family=Nunito:400,600,700,800" rel="stylesheet"/>
+  <link href="/assets/css/sb-admin-2.min.css" rel="stylesheet"/>
+  <style>
+    body { background: linear-gradient(135deg, #c0392b 0%, #922b21 100%); min-height: 100vh; display:flex; align-items:center; justify-content:center; }
+    .setup-card { max-width: 460px; width: 100%; }
+    .setup-card .card { border:0; border-radius:1rem; box-shadow: 0 1rem 3rem rgba(0,0,0,.3); }
+    .setup-card .card-header { background: linear-gradient(135deg, #c0392b, #922b21); border-radius:1rem 1rem 0 0; padding:2rem; text-align:center; }
+    .setup-card .card-body { padding:2rem; }
+    .shield-icon { font-size: 3rem; color:#fff; margin-bottom:.5rem; }
+    .alert-setup { background:#fff3cd; border:1px solid #ffc107; border-radius:.5rem; padding:1rem; margin-bottom:1.5rem; font-size:.85rem; }
+  </style>
+</head>
+<body>
+  <div class="setup-card">
+    <div class="card">
+      <div class="card-header">
+        <div class="shield-icon"><i class="fas fa-user-shield"></i></div>
+        <h4 class="text-white font-weight-bold mb-1">Configuração Inicial</h4>
+        <p class="text-white-50 mb-0 small">Criar conta de administrador da plataforma</p>
+      </div>
+      <div class="card-body">
+        <div class="alert-setup">
+          <i class="fas fa-exclamation-triangle text-warning mr-1"></i>
+          <strong>Atenção:</strong> Esta página só funciona uma vez, quando não existe nenhum SUPERADMIN.
+          Após criar a conta, este formulário ficará inacessível.
+        </div>
+
+        <div id="alertBox" class="d-none mb-3"></div>
+
+        <form id="setupForm">
+          <div class="form-group">
+            <label class="small font-weight-bold text-gray-700">Nome completo</label>
+            <div class="input-group">
+              <div class="input-group-prepend">
+                <span class="input-group-text"><i class="fas fa-user"></i></span>
+              </div>
+              <input type="text" class="form-control" id="name" placeholder="Administrador" required/>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="small font-weight-bold text-gray-700">Email</label>
+            <div class="input-group">
+              <div class="input-group-prepend">
+                <span class="input-group-text"><i class="fas fa-envelope"></i></span>
+              </div>
+              <input type="email" class="form-control" id="email" placeholder="admin@empresa.com" required/>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="small font-weight-bold text-gray-700">Password</label>
+            <div class="input-group">
+              <div class="input-group-prepend">
+                <span class="input-group-text"><i class="fas fa-lock"></i></span>
+              </div>
+              <input type="password" class="form-control" id="password" placeholder="Mínimo 8 caracteres" required minlength="8"/>
+            </div>
+          </div>
+          <div class="form-group mb-4">
+            <label class="small font-weight-bold text-gray-700">Confirmar password</label>
+            <div class="input-group">
+              <div class="input-group-prepend">
+                <span class="input-group-text"><i class="fas fa-lock"></i></span>
+              </div>
+              <input type="password" class="form-control" id="confirmPassword" placeholder="Repetir password" required/>
+            </div>
+          </div>
+          <button type="submit" class="btn btn-danger btn-block font-weight-bold" id="btnSubmit">
+            <i class="fas fa-user-shield mr-2"></i>Criar conta SUPERADMIN
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script>
+  document.getElementById('setupForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const alertBox = document.getElementById('alertBox');
+    const btn = document.getElementById('btnSubmit');
+
+    const name     = document.getElementById('name').value.trim();
+    const email    = document.getElementById('email').value.trim();
+    const password = document.getElementById('password').value;
+    const confirm  = document.getElementById('confirmPassword').value;
+
+    if (password !== confirm) {
+      alertBox.className = 'alert alert-warning';
+      alertBox.textContent = 'As passwords não coincidem.';
+      return;
+    }
+
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>A criar...';
+    alertBox.className = 'd-none';
+
+    try {
+      const res = await fetch('/api/admin/create-superadmin', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, email, password })
+      });
+      const data = await res.json();
+
+      if (data.success) {
+        alertBox.className = 'alert alert-success';
+        alertBox.innerHTML = '<i class="fas fa-check-circle mr-2"></i>' + data.message;
+        setTimeout(() => { window.location.href = '/login'; }, 2000);
+      } else {
+        alertBox.className = 'alert alert-danger';
+        alertBox.textContent = data.message || 'Erro ao criar conta.';
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-user-shield mr-2"></i>Criar conta SUPERADMIN';
+      }
+    } catch (err) {
+      alertBox.className = 'alert alert-danger';
+      alertBox.textContent = 'Erro de ligação. Tente novamente.';
+      btn.disabled = false;
+      btn.innerHTML = '<i class="fas fa-user-shield mr-2"></i>Criar conta SUPERADMIN';
+    }
+  });
+  </script>
+</body>
+</html>

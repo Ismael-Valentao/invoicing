@@ -21,6 +21,7 @@ const saleRoutes = require('./src/routes/sale');
 const stockMovementRoutes = require('./src/routes/movements');
 const passwordRoutes = require("./src/routes/passwordRoutes");
 const subscriptionRoutes = require('./src/routes/subscriptions');
+const adminRoutes = require('./src/routes/admin');
 const { startCronJobs } = require('./src/utils/cronJobs');
 
 const app = express();
@@ -50,6 +51,7 @@ app.use('/api/sales', saleRoutes);
 app.use('/api/stock-movements', stockMovementRoutes);
 app.use("/api/users/passwords/", passwordRoutes);
 app.use('/api/subscriptions', subscriptionRoutes);
+app.use('/api/admin', adminRoutes);
 app.use('/', pagesRoutes);
 app.use((req, res) => {
   return res.status(404).render("404", {
