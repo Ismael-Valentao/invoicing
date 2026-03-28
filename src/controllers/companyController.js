@@ -195,6 +195,19 @@ exports.createCompany = async (req, res) => {
                 contact: usercontact,
                 password: hashedPassword,
                 companyId: newCompany._id,
+                role: 'ADMIN',
+                permissions: {
+                    dashboard: true,
+                    sales: true,
+                    stock: true,
+                    invoicing: true,
+                    products: true,
+                    customers: true,
+                    suppliers: true,
+                    reports: true,
+                    settings: true,
+                    users: true
+                },
                 emailVerified: false,
                 emailVerificationToken: hashedToken,
                 emailVerificationExpires: tokenExpires

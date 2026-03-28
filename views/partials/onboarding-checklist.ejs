@@ -1,0 +1,144 @@
+<%#
+  Partial: onboarding-checklist
+  Requer: currentUser, modules
+%>
+<div id="onboardingChecklist" class="card shadow-sm mb-4" style="border-left: 4px solid #228CDF; border-radius:8px;">
+  <div class="card-header bg-white d-flex justify-content-between align-items-center py-2 px-4">
+    <span class="font-weight-bold text-gray-800" style="font-size:.95rem;">
+      <i class="fas fa-rocket text-primary mr-2"></i>Primeiros passos — Configura a tua conta
+    </span>
+    <button class="btn btn-link btn-sm p-0 text-muted" onclick="dismissChecklist()" title="Fechar">
+      <i class="fas fa-times"></i>
+    </button>
+  </div>
+  <div class="card-body px-4 py-3">
+    <p class="text-muted small mb-3">Completa estes passos para tirar o máximo partido da plataforma.</p>
+    <ul class="list-unstyled mb-3" id="checklistItems">
+      <li class="d-flex align-items-center mb-2 checklist-item" data-key="logo">
+        <span class="checklist-icon mr-3" style="width:22px;text-align:center;">
+          <i class="fas fa-circle-notch text-muted"></i>
+        </span>
+        <span class="checklist-text">Adicionar o logotipo da empresa</span>
+        <a href="/settings" class="btn btn-outline-primary btn-xs ml-auto" style="font-size:.75rem; padding:2px 10px;">Ir</a>
+      </li>
+      <li class="d-flex align-items-center mb-2 checklist-item" data-key="bank">
+        <span class="checklist-icon mr-3" style="width:22px;text-align:center;">
+          <i class="fas fa-circle-notch text-muted"></i>
+        </span>
+        <span class="checklist-text">Configurar dados bancários</span>
+        <a href="/settings" class="btn btn-outline-primary btn-xs ml-auto" style="font-size:.75rem; padding:2px 10px;">Ir</a>
+      </li>
+      <li class="d-flex align-items-center mb-2 checklist-item" data-key="product">
+        <span class="checklist-icon mr-3" style="width:22px;text-align:center;">
+          <i class="fas fa-circle-notch text-muted"></i>
+        </span>
+        <span class="checklist-text">Criar o primeiro produto ou serviço</span>
+        <a href="/products" class="btn btn-outline-primary btn-xs ml-auto" style="font-size:.75rem; padding:2px 10px;">Ir</a>
+      </li>
+      <li class="d-flex align-items-center mb-2 checklist-item" data-key="client">
+        <span class="checklist-icon mr-3" style="width:22px;text-align:center;">
+          <i class="fas fa-circle-notch text-muted"></i>
+        </span>
+        <span class="checklist-text">Registar o primeiro cliente</span>
+        <a href="/clients" class="btn btn-outline-primary btn-xs ml-auto" style="font-size:.75rem; padding:2px 10px;">Ir</a>
+      </li>
+      <li class="d-flex align-items-center mb-2 checklist-item" data-key="document">
+        <span class="checklist-icon mr-3" style="width:22px;text-align:center;">
+          <i class="fas fa-circle-notch text-muted"></i>
+        </span>
+        <span class="checklist-text">Emitir o primeiro documento</span>
+        <a href="<%= (modules && modules.invoicing) ? '/new-invoice' : '/new-sale' %>"
+           class="btn btn-outline-primary btn-xs ml-auto" style="font-size:.75rem; padding:2px 10px;">Ir</a>
+      </li>
+    </ul>
+    <!-- Barra de progresso -->
+    <div class="d-flex align-items-center">
+      <div style="flex:1; background:#e3e6f0; border-radius:4px; height:7px; overflow:hidden;" class="mr-2">
+        <div id="checklistProgress" style="height:100%; background:#228CDF; border-radius:4px; width:0%; transition:width .4s;"></div>
+      </div>
+      <span id="checklistProgressLabel" class="text-muted small">0 / 5</span>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  const STORAGE_KEY = 'invoicing_checklist_dismissed_<%= currentUser._id %>';
+  const DONE_KEY    = 'invoicing_checklist_done_<%= currentUser._id %>';
+
+  if (localStorage.getItem(STORAGE_KEY)) {
+    document.getElementById('onboardingChecklist').style.display = 'none';
+    return;
+  }
+
+  const done = JSON.parse(localStorage.getItem(DONE_KEY) || '[]');
+
+  function updateProgress() {
+    const total = 5;
+    const count = done.length;
+    document.getElementById('checklistProgress').style.width = (count / total * 100) + '%';
+    document.getElementById('checklistProgressLabel').textContent = count + ' / ' + total;
+    if (count >= total) {
+      setTimeout(() => {
+        document.getElementById('onboardingChecklist').style.display = 'none';
+        localStorage.setItem(STORAGE_KEY, '1');
+      }, 1200);
+    }
+  }
+
+  function markDone(key) {
+    if (!done.includes(key)) {
+      done.push(key);
+      localStorage.setItem(DONE_KEY, JSON.stringify(done));
+    }
+  }
+
+  // Restaurar estado guardado
+  document.querySelectorAll('.checklist-item').forEach(item => {
+    const key = item.dataset.key;
+    if (done.includes(key)) setItemDone(item);
+  });
+  updateProgress();
+
+  function setItemDone(item) {
+    item.querySelector('.checklist-icon').innerHTML = '<i class="fas fa-check-circle text-success"></i>';
+    item.querySelector('.checklist-text').style.textDecoration = 'line-through';
+    item.querySelector('.checklist-text').style.color = '#adb5bd';
+    const btn = item.querySelector('a');
+    if (btn) btn.style.display = 'none';
+  }
+
+  // Marca item ao clicar no botão "Ir"
+  document.querySelectorAll('.checklist-item a').forEach(link => {
+    link.addEventListener('click', function () {
+      const item = this.closest('.checklist-item');
+      const key = item.dataset.key;
+      markDone(key);
+      setItemDone(item);
+      updateProgress();
+    });
+  });
+
+  // Detecção automática pelo contexto da página
+  const path = window.location.pathname;
+  const autoMap = {
+    '/settings': ['logo', 'bank'],
+    '/products': ['product'],
+    '/clients': ['client'],
+    '/new-invoice': ['document'],
+    '/new-sale': ['document'],
+    '/new-vd': ['document'],
+  };
+  for (const [p, keys] of Object.entries(autoMap)) {
+    if (path.startsWith(p)) {
+      keys.forEach(k => markDone(k));
+    }
+  }
+  updateProgress();
+})();
+
+function dismissChecklist() {
+  document.getElementById('onboardingChecklist').style.display = 'none';
+  localStorage.setItem('invoicing_checklist_dismissed_<%= currentUser._id %>', '1');
+}
+</script>

@@ -17,8 +17,9 @@ const {
 } = require('../controllers/invoiceController');
 
 const {authMiddleware} = require('../middlewares/authMiddleware');
+const { checkSubscriptionActive, checkInvoiceLimit, checkExcelExportAllowed } = require('../middlewares/checkPlanLimit');
 
-router.post('/',authMiddleware, createInvoice);
+router.post('/', authMiddleware, checkSubscriptionActive, checkInvoiceLimit, createInvoice);
 router.get('/',authMiddleware, getInvoices);
 router.get('/paid-invoices',authMiddleware, getPaidInvoices);
 router.get('/last-invoice', authMiddleware, getLastInvoice);
@@ -29,7 +30,7 @@ router.get('/total-invoices', authMiddleware, getTotalInvoices);
 router.get('/total/months', authMiddleware, getTotalAmountByMonth);
 router.get('/:id',authMiddleware, getInvoiceById);
 router.get('/:id/pdf',authMiddleware, downloadInvoicePDF);
-router.get("/export/excel/:filter", authMiddleware,
+router.get("/export/excel/:filter", authMiddleware, checkExcelExportAllowed,
   downloadInvoicesStatementExcel
 );
 router.patch('/:id',authMiddleware, updateInvoiceStatus);

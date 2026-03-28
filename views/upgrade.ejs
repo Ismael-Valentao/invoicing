@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"/>
+  <title>Invoicing — Upgrade de Plano</title>
+  <link rel="icon" type="image/png" href="/images/invoicing-logo-simple.png"/>
+  <link href="/assets/vendor/fontawesome-free/css/all.min.css" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css?family=Nunito:400,600,700,800" rel="stylesheet"/>
+  <link href="/assets/css/sb-admin-2.min.css" rel="stylesheet"/>
+  <link href="/assets/css/custom.css" rel="stylesheet"/>
+  <style>
+    body { background: #f4f6f9; }
+    .plan-card { border-radius: 12px; transition: transform .2s, box-shadow .2s; cursor: pointer; border: 2px solid transparent; }
+    .plan-card:hover { transform: translateY(-4px); box-shadow: 0 8px 30px rgba(0,0,0,.12); }
+    .plan-card.selected { border-color: #228CDF; box-shadow: 0 0 0 3px rgba(34,140,223,.2); }
+    .plan-card.recommended { border-color: #1cc88a; }
+    .plan-badge { font-size: .7rem; font-weight: 700; padding: 3px 10px; border-radius: 20px; }
+    .feature-check { color: #1cc88a; }
+    .feature-x { color: #e74a3b; }
+    .price-big { font-size: 2rem; font-weight: 800; color: #228CDF; }
+    .payment-box { background: #fff; border-radius: 12px; border: 1px solid #e3e6f0; padding: 24px; }
+    .step-badge { width: 32px; height: 32px; background: #228CDF; color: #fff;
+      border-radius: 50%; display: flex; align-items: center; justify-content: center;
+      font-weight: 700; font-size: .9rem; flex-shrink: 0; }
+    .copy-btn { cursor: pointer; color: #228CDF; font-size: .8rem; }
+    .copy-btn:hover { text-decoration: underline; }
+  </style>
+</head>
+<body id="page-top">
+<div id="wrapper">
+  <%- include('partials/sidebar') %>
+  <div id="content-wrapper" class="d-flex flex-column">
+    <div id="content">
+      <%- include('partials/topbar') %>
+      <div class="container-fluid py-4">
+
+        <!-- Header -->
+        <div class="text-center mb-5">
+          <h2 class="h3 font-weight-bold text-gray-800">Escolhe o teu plano</h2>
+          <p class="text-muted">Sem contratos. Cancela quando quiseres.</p>
+        </div>
+
+        <!-- Planos -->
+        <div class="row justify-content-center mb-5" id="planCards">
+
+          <!-- FREE -->
+          <div class="col-lg-3 col-md-6 mb-4">
+            <div class="plan-card card h-100 p-4" data-plan="FREE" data-price="0" data-label="Gratuito">
+              <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="font-weight-bold mb-0">Gratuito</h5>
+                <span class="plan-badge bg-secondary text-white">ATUAL</span>
+              </div>
+              <div class="price-big mb-1">0 <small style="font-size:1rem; color:#858796">MZN</small></div>
+              <p class="text-muted small mb-3">30 dias de trial</p>
+              <hr/>
+              <ul class="list-unstyled small mb-0">
+                <li class="mb-2"><i class="fas fa-check feature-check mr-2"></i>5 facturas/mês</li>
+                <li class="mb-2"><i class="fas fa-check feature-check mr-2"></i>10 vendas/mês</li>
+                <li class="mb-2"><i class="fas fa-check feature-check mr-2"></i>10 clientes</li>
+                <li class="mb-2"><i class="fas fa-check feature-check mr-2"></i>15 produtos</li>
+                <li class="mb-2"><i class="fas fa-check feature-check mr-2"></i>1 utilizador</li>
+                <li class="mb-2"><i class="fas fa-times feature-x mr-2"></i>Exportação Excel</li>
+                <li class="mb-2"><i class="fas fa-times feature-x mr-2"></i>Relatórios avançados</li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- BASIC -->
+          <div class="col-lg-3 col-md-6 mb-4">
+            <div class="plan-card card h-100 p-4" data-plan="BASIC" data-price="1500" data-label="Básico">
+              <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="font-weight-bold mb-0">Básico</h5>
+              </div>
+              <div class="price-big mb-1">1.500 <small style="font-size:1rem; color:#858796">MZN/mês</small></div>
+              <p class="text-muted small mb-3">Ideal para pequenas empresas</p>
+              <hr/>
+              <ul class="list-unstyled small mb-0">
+                <li class="mb-2"><i class="fas fa-check feature-check mr-2"></i>50 facturas/mês</li>
+                <li class="mb-2"><i class="fas fa-check feature-check mr-2"></i>150 vendas/mês</li>
+                <li class="mb-2"><i class="fas fa-check feature-check mr-2"></i>100 clientes</li>
+                <li class="mb-2"><i class="fas fa-check feature-check mr-2"></i>200 produtos</li>
+                <li class="mb-2"><i class="fas fa-check feature-check mr-2"></i>3 utilizadores</li>
+                <li class="mb-2"><i class="fas fa-check feature-check mr-2"></i>Exportação Excel</li>
+                <li class="mb-2"><i class="fas fa-times feature-x mr-2"></i>Relatórios avançados</li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- PREMIUM -->
+          <div class="col-lg-3 col-md-6 mb-4">
+            <div class="plan-card recommended card h-100 p-4" data-plan="PREMIUM" data-price="3500" data-label="Premium">
+              <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="font-weight-bold mb-0">Premium</h5>
+                <span class="plan-badge bg-success text-white">RECOMENDADO</span>
+              </div>
+              <div class="price-big mb-1">3.500 <small style="font-size:1rem; color:#858796">MZN/mês</small></div>
+              <p class="text-muted small mb-3">Para empresas em crescimento</p>
+              <hr/>
+              <ul class="list-unstyled small mb-0">
+                <li class="mb-2"><i class="fas fa-check feature-check mr-2"></i>Facturas ilimitadas</li>
+                <li class="mb-2"><i class="fas fa-check feature-check mr-2"></i>Vendas ilimitadas</li>
+                <li class="mb-2"><i class="fas fa-check feature-check mr-2"></i>Clientes ilimitados</li>
+                <li class="mb-2"><i class="fas fa-check feature-check mr-2"></i>Produtos ilimitados</li>
+                <li class="mb-2"><i class="fas fa-check feature-check mr-2"></i>Utilizadores ilimitados</li>
+                <li class="mb-2"><i class="fas fa-check feature-check mr-2"></i>Exportação Excel</li>
+                <li class="mb-2"><i class="fas fa-check feature-check mr-2"></i>Relatórios avançados</li>
+              </ul>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Formulário de pagamento (aparece ao seleccionar plano pago) -->
+        <div class="row justify-content-center" id="paymentSection" style="display:none!important;">
+          <div class="col-lg-8">
+            <div class="payment-box mb-4">
+              <h5 class="font-weight-bold mb-4">
+                <i class="fas fa-credit-card text-primary mr-2"></i>
+                Como pagar — Plano <span id="selectedPlanLabel"></span>
+                (<span id="selectedPlanPrice"></span> MZN/mês)
+              </h5>
+
+              <!-- Passos -->
+              <div class="d-flex mb-4">
+                <div class="step-badge mr-3 mt-1">1</div>
+                <div>
+                  <strong>Escolhe o método de pagamento</strong>
+                  <div class="mt-2">
+                    <div class="form-check form-check-inline">
+                      <input class="form-check-input" type="radio" name="paymentMethod" id="pmMpesa" value="M-Pesa" checked/>
+                      <label class="form-check-label" for="pmMpesa">M-Pesa</label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                      <input class="form-check-input" type="radio" name="paymentMethod" id="pmEmola" value="E-mola"/>
+                      <label class="form-check-label" for="pmEmola">E-mola</label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                      <input class="form-check-input" type="radio" name="paymentMethod" id="pmBank" value="Transferência bancária"/>
+                      <label class="form-check-label" for="pmBank">Transferência bancária</label>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Dados de pagamento dinâmicos -->
+              <div id="paymentDetails" class="mb-4 p-3 rounded" style="background:#f8f9fc; border:1px solid #e3e6f0;">
+                <div id="detailMpesa">
+                  <p class="mb-1"><strong>Número M-Pesa:</strong>
+                    <span id="mpesaNum">84 XXX XXXX</span>
+                    <span class="copy-btn ml-2" onclick="copyText('mpesaNum')"><i class="far fa-copy"></i> copiar</span>
+                  </p>
+                  <p class="mb-0 text-muted small">Envia o valor exacto do plano e guarda a confirmação.</p>
+                </div>
+                <div id="detailEmola" style="display:none;">
+                  <p class="mb-1"><strong>Número E-mola:</strong>
+                    <span id="emolaNum">86 XXX XXXX</span>
+                    <span class="copy-btn ml-2" onclick="copyText('emolaNum')"><i class="far fa-copy"></i> copiar</span>
+                  </p>
+                  <p class="mb-0 text-muted small">Envia o valor exacto do plano e guarda a confirmação.</p>
+                </div>
+                <div id="detailBank" style="display:none;">
+                  <p class="mb-1"><strong>Banco:</strong> BCI</p>
+                  <p class="mb-1"><strong>Titular:</strong> Bitiray, Lda</p>
+                  <p class="mb-1"><strong>NIB:</strong>
+                    <span id="nibNum">0008 0000 XXXXXXXXXX 53</span>
+                    <span class="copy-btn ml-2" onclick="copyText('nibNum')"><i class="far fa-copy"></i> copiar</span>
+                  </p>
+                  <p class="mb-0 text-muted small">Usa o nome da empresa como referência.</p>
+                </div>
+              </div>
+
+              <div class="d-flex mb-4">
+                <div class="step-badge mr-3 mt-1">2</div>
+                <div class="w-100">
+                  <strong>Preenche os dados do pagamento</strong>
+                  <div class="form-group mt-2 mb-0">
+                    <label class="small text-muted">Referência / Comprovativo (número de transacção, nome, etc.)</label>
+                    <input type="text" class="form-control form-control-sm" id="paymentRef"
+                           placeholder="Ex: 3GP7X8 ou nome do titular"/>
+                  </div>
+                </div>
+              </div>
+
+              <div class="d-flex mb-4">
+                <div class="step-badge mr-3 mt-1">3</div>
+                <div>
+                  <strong>Envia o pedido</strong>
+                  <p class="small text-muted mb-0">Activamos o teu plano em até <strong>24 horas</strong> após confirmarmos o pagamento.</p>
+                </div>
+              </div>
+
+              <button class="btn btn-primary btn-block" id="btnRequestUpgrade">
+                <i class="fas fa-paper-plane mr-2"></i>Enviar pedido de upgrade
+              </button>
+
+              <div id="upgradeMsg" class="mt-3" style="display:none;"></div>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- /container-fluid -->
+    </div>
+    <%- include('partials/footer') %>
+  </div>
+</div>
+
+<script src="/assets/vendor/jquery/jquery.min.js"></script>
+<script src="/assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+<script src="/assets/js/sb-admin-2.min.js"></script>
+<script>
+  let selectedPlan = null;
+
+  // Seleccionar plano ao clicar no card
+  document.querySelectorAll('.plan-card[data-plan]').forEach(card => {
+    card.addEventListener('click', function () {
+      const plan = this.dataset.plan;
+      if (plan === 'FREE') return; // Não permite seleccionar FREE
+
+      document.querySelectorAll('.plan-card').forEach(c => c.classList.remove('selected'));
+      this.classList.add('selected');
+      selectedPlan = plan;
+
+      document.getElementById('selectedPlanLabel').textContent = this.dataset.label;
+      document.getElementById('selectedPlanPrice').textContent = Number(this.dataset.price).toLocaleString('pt-MZ');
+      document.getElementById('paymentSection').style.display = '';
+      document.getElementById('paymentSection').style.removeProperty('display');
+      document.getElementById('upgradeMsg').style.display = 'none';
+    });
+  });
+
+  // Troca detalhes de pagamento
+  document.querySelectorAll('input[name="paymentMethod"]').forEach(radio => {
+    radio.addEventListener('change', function () {
+      document.getElementById('detailMpesa').style.display = 'none';
+      document.getElementById('detailEmola').style.display = 'none';
+      document.getElementById('detailBank').style.display = 'none';
+      if (this.value === 'M-Pesa') document.getElementById('detailMpesa').style.display = '';
+      if (this.value === 'E-mola') document.getElementById('detailEmola').style.display = '';
+      if (this.value === 'Transferência bancária') document.getElementById('detailBank').style.display = '';
+    });
+  });
+
+  // Enviar pedido
+  document.getElementById('btnRequestUpgrade').addEventListener('click', async function () {
+    if (!selectedPlan) return;
+    const paymentMethod = document.querySelector('input[name="paymentMethod"]:checked')?.value || '';
+    const paymentRef = document.getElementById('paymentRef').value.trim();
+    const btn = this;
+
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>A enviar...';
+
+    try {
+      const res = await fetch('/api/subscriptions/request-upgrade', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ plan: selectedPlan, paymentMethod, paymentRef })
+      });
+      const data = await res.json();
+      const msgEl = document.getElementById('upgradeMsg');
+      msgEl.style.display = '';
+      if (data.success) {
+        msgEl.innerHTML = `<div class="alert alert-success"><i class="fas fa-check-circle mr-2"></i>${data.message}</div>`;
+        btn.innerHTML = '<i class="fas fa-check mr-2"></i>Pedido enviado';
+      } else {
+        msgEl.innerHTML = `<div class="alert alert-danger">${data.message}</div>`;
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-paper-plane mr-2"></i>Enviar pedido de upgrade';
+      }
+    } catch (e) {
+      document.getElementById('upgradeMsg').innerHTML = '<div class="alert alert-danger">Erro de ligação. Tenta novamente.</div>';
+      btn.disabled = false;
+      btn.innerHTML = '<i class="fas fa-paper-plane mr-2"></i>Enviar pedido de upgrade';
+    }
+  });
+
+  // Copiar texto
+  function copyText(id) {
+    const text = document.getElementById(id).textContent.trim();
+    navigator.clipboard.writeText(text).then(() => {
+      const el = document.querySelector(`[onclick="copyText('${id}')"]`);
+      if (el) { el.innerHTML = '<i class="fas fa-check"></i> copiado!'; setTimeout(() => { el.innerHTML = '<i class="far fa-copy"></i> copiar'; }, 2000); }
+    });
+  }
+</script>
+</body>
+</html>

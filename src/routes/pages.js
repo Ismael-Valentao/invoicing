@@ -163,6 +163,15 @@ router.get('/settings', authMiddleware2, requirePermission('settings'), (req, re
     res.render('settings', buildViewData(req, 'Configurações'));
 });
 
+// Subscrição
+router.get('/subscription', authMiddleware2, (req, res) => {
+    res.render('subscription', buildViewData(req, 'A minha Subscrição'));
+});
+
+router.get('/upgrade', authMiddleware2, (req, res) => {
+    res.render('upgrade', buildViewData(req, 'Upgrade de Plano'));
+});
+
 // Logout
 router.get('/logout', (req, res) => {
     res.redirect('/login');

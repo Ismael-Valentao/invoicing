@@ -49,6 +49,22 @@
           <!-- End of Topbar -->
           <!-- Begin Page Content -->
           <div class="container-fluid">
+
+            <!-- Banner de subscrição expirada -->
+            <div id="subExpiredBanner" style="display:none;" class="alert alert-danger d-flex align-items-center justify-content-between mb-3">
+              <span><i class="fas fa-lock mr-2"></i><strong>Subscrição expirada.</strong> Renova o teu plano para continuar a criar documentos.</span>
+              <a href="/upgrade" class="btn btn-danger btn-sm ml-3">Renovar agora</a>
+            </div>
+
+            <!-- Banner de expiração próxima -->
+            <div id="subWarningBanner" style="display:none;" class="alert alert-warning d-flex align-items-center justify-content-between mb-3">
+              <span><i class="fas fa-exclamation-triangle mr-2"></i>A tua subscrição expira em <strong id="subDaysLeft"></strong> dias.</span>
+              <a href="/upgrade" class="btn btn-warning btn-sm ml-3">Renovar</a>
+            </div>
+
+            <!-- Checklist de onboarding -->
+            <%- include('partials/onboarding-checklist') %>
+
             <!-- Content Row -->
             <div class="row">
               <!-- Earnings (Monthly) Card Example -->
@@ -269,5 +285,21 @@
     <script src="assets/js/demo/chart-area-demo.js"></script>
     <script src="assets/js/demo/chart-pie-demo.js"></script>
     <script src="assets/js/dashboard.js"></script>
+    <script>
+    // Verificar estado da subscrição ao carregar o dashboard
+    fetch('/api/subscriptions/my')
+      .then(r => r.json())
+      .then(data => {
+        if (!data.success) return;
+        const s = data.subscription;
+        const days = typeof s.daysLeft === 'number' ? s.daysLeft : 0;
+        if (s.status === 'expired') {
+          document.getElementById('subExpiredBanner').style.display = 'flex';
+        } else if (days <= 7) {
+          document.getElementById('subWarningBanner').style.display = 'flex';
+          document.getElementById('subDaysLeft').textContent = days;
+        }
+      }).catch(() => {});
+    </script>
   </body>
 </html>

@@ -3,9 +3,9 @@ const router = express.Router();
 
 const { createProduct, getProducts, getProductById, updateProduct, deleteProduct, adjustStock, setActive, deactivateProduct } = require('../controllers/productController');
 const { authMiddleware } = require('../middlewares/authMiddleware');
+const { checkSubscriptionActive, checkProductLimit } = require('../middlewares/checkPlanLimit');
 
-
-router.post('/', authMiddleware, createProduct);
+router.post('/', authMiddleware, checkSubscriptionActive, checkProductLimit, createProduct);
 router.get('/', authMiddleware, getProducts);
 router.get('/:id', authMiddleware, getProductById);
 router.patch('/:id', authMiddleware, updateProduct);

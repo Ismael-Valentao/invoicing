@@ -20,6 +20,8 @@ const newsletterRoutes = require('./src/routes/newsletter')
 const saleRoutes = require('./src/routes/sale');
 const stockMovementRoutes = require('./src/routes/movements');
 const passwordRoutes = require("./src/routes/passwordRoutes");
+const subscriptionRoutes = require('./src/routes/subscriptions');
+const { startCronJobs } = require('./src/utils/cronJobs');
 
 const app = express();
 const PORT = 3000;
@@ -47,6 +49,7 @@ app.use('/api/newsletter', newsletterRoutes)
 app.use('/api/sales', saleRoutes);
 app.use('/api/stock-movements', stockMovementRoutes);
 app.use("/api/users/passwords/", passwordRoutes);
+app.use('/api/subscriptions', subscriptionRoutes);
 app.use('/', pagesRoutes);
 app.use((req, res) => {
   return res.status(404).render("404", {
@@ -67,4 +70,5 @@ mongoose.connect(mongodbURI)
 
 app.listen(PORT, () => {
   console.log(`Servidor rodando em http://localhost:${PORT}`);
+  startCronJobs();
 });

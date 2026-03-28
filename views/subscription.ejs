@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"/>
+  <title>Invoicing — A minha Subscrição</title>
+  <link rel="icon" type="image/png" href="/images/invoicing-logo-simple.png"/>
+  <link href="/assets/vendor/fontawesome-free/css/all.min.css" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css?family=Nunito:400,600,700,800" rel="stylesheet"/>
+  <link href="/assets/css/sb-admin-2.min.css" rel="stylesheet"/>
+  <link href="/assets/css/custom.css" rel="stylesheet"/>
+  <style>
+    body { background: #f4f6f9; }
+    .sub-card { border-radius: 12px; border: none; }
+    .plan-pill { display: inline-block; padding: 4px 14px; border-radius: 20px;
+      font-weight: 700; font-size: .8rem; letter-spacing: .5px; }
+    .plan-FREE    { background: #e2e8f0; color: #4a5568; }
+    .plan-BASIC   { background: #dbeafe; color: #1d4ed8; }
+    .plan-PREMIUM { background: #d1fae5; color: #065f46; }
+    .status-active  { color: #1cc88a; }
+    .status-expired { color: #e74a3b; }
+    .limit-bar { height: 8px; border-radius: 4px; background: #e3e6f0; overflow: hidden; }
+    .limit-fill { height: 100%; border-radius: 4px; transition: width .4s; }
+    .limit-ok   { background: #1cc88a; }
+    .limit-warn { background: #f6c23e; }
+    .limit-full { background: #e74a3b; }
+  </style>
+</head>
+<body id="page-top">
+<div id="wrapper">
+  <%- include('partials/sidebar') %>
+  <div id="content-wrapper" class="d-flex flex-column">
+    <div id="content">
+      <%- include('partials/topbar') %>
+      <div class="container-fluid py-4">
+
+        <div class="d-flex justify-content-between align-items-center mb-4">
+          <h4 class="font-weight-bold text-gray-800 mb-0">
+            <i class="fas fa-star text-warning mr-2"></i>A minha Subscrição
+          </h4>
+          <a href="/upgrade" class="btn btn-primary btn-sm">
+            <i class="fas fa-arrow-up mr-1"></i>Fazer Upgrade
+          </a>
+        </div>
+
+        <!-- Card de estado -->
+        <div class="row mb-4">
+          <div class="col-xl-8 col-lg-10">
+            <div class="card sub-card shadow-sm">
+              <div class="card-body p-4" id="subInfo">
+                <div class="text-center py-4">
+                  <i class="fas fa-spinner fa-spin fa-2x text-primary"></i>
+                  <p class="mt-2 text-muted">A carregar informação...</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Limites de uso -->
+        <div class="row mb-4">
+          <div class="col-xl-8 col-lg-10">
+            <div class="card sub-card shadow-sm">
+              <div class="card-header bg-white font-weight-bold">
+                <i class="fas fa-chart-bar text-primary mr-2"></i>Utilização actual
+              </div>
+              <div class="card-body p-4" id="usageInfo">
+                <p class="text-muted text-center">A carregar...</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tabela de planos -->
+        <div class="row">
+          <div class="col-xl-8 col-lg-10">
+            <div class="card sub-card shadow-sm">
+              <div class="card-header bg-white font-weight-bold">
+                <i class="fas fa-list text-primary mr-2"></i>Comparação de planos
+              </div>
+              <div class="card-body p-0">
+                <div class="table-responsive">
+                  <table class="table table-bordered mb-0">
+                    <thead class="thead-light">
+                      <tr>
+                        <th>Funcionalidade</th>
+                        <th class="text-center">Gratuito</th>
+                        <th class="text-center">Básico<br><small class="text-muted font-weight-normal">1.500 MZN/mês</small></th>
+                        <th class="text-center">Premium<br><small class="text-muted font-weight-normal">3.500 MZN/mês</small></th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td>Facturas/mês</td>
+                        <td class="text-center">5</td><td class="text-center">50</td><td class="text-center font-weight-bold text-success">Ilimitado</td>
+                      </tr>
+                      <tr>
+                        <td>Vendas/mês</td>
+                        <td class="text-center">10</td><td class="text-center">150</td><td class="text-center font-weight-bold text-success">Ilimitado</td>
+                      </tr>
+                      <tr>
+                        <td>Clientes</td>
+                        <td class="text-center">10</td><td class="text-center">100</td><td class="text-center font-weight-bold text-success">Ilimitado</td>
+                      </tr>
+                      <tr>
+                        <td>Produtos</td>
+                        <td class="text-center">15</td><td class="text-center">200</td><td class="text-center font-weight-bold text-success">Ilimitado</td>
+                      </tr>
+                      <tr>
+                        <td>Utilizadores</td>
+                        <td class="text-center">1</td><td class="text-center">3</td><td class="text-center font-weight-bold text-success">Ilimitado</td>
+                      </tr>
+                      <tr>
+                        <td>Exportação Excel</td>
+                        <td class="text-center"><i class="fas fa-times text-danger"></i></td>
+                        <td class="text-center"><i class="fas fa-check text-success"></i></td>
+                        <td class="text-center"><i class="fas fa-check text-success"></i></td>
+                      </tr>
+                      <tr>
+                        <td>Relatórios avançados</td>
+                        <td class="text-center"><i class="fas fa-times text-danger"></i></td>
+                        <td class="text-center"><i class="fas fa-times text-danger"></i></td>
+                        <td class="text-center"><i class="fas fa-check text-success"></i></td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+              <div class="card-footer bg-white text-center">
+                <a href="/upgrade" class="btn btn-primary">
+                  <i class="fas fa-arrow-up mr-2"></i>Fazer upgrade agora
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+    <%- include('partials/footer') %>
+  </div>
+</div>
+
+<script src="/assets/vendor/jquery/jquery.min.js"></script>
+<script src="/assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+<script src="/assets/js/sb-admin-2.min.js"></script>
+<script>
+const planClasses = { FREE: 'plan-FREE', BASIC: 'plan-BASIC', PREMIUM: 'plan-PREMIUM' };
+
+function limitBar(current, max) {
+  if (max === 'Ilimitado') {
+    return `<div class="limit-bar"><div class="limit-fill limit-ok" style="width:10%"></div></div>
+            <small class="text-muted">Ilimitado</small>`;
+  }
+  const pct = Math.min((current / max) * 100, 100);
+  const cls = pct >= 100 ? 'limit-full' : pct >= 80 ? 'limit-warn' : 'limit-ok';
+  return `<div class="limit-bar"><div class="limit-fill ${cls}" style="width:${pct}%"></div></div>
+          <small class="text-muted">${current} / ${max}</small>`;
+}
+
+async function loadSubscription() {
+  try {
+    const res = await fetch('/api/subscriptions/my');
+    const data = await res.json();
+    if (!data.success) throw new Error(data.message);
+
+    const s = data.subscription;
+    const expDate = new Date(s.expiresAt).toLocaleDateString('pt-PT');
+    const startDate = new Date(s.startDate).toLocaleDateString('pt-PT');
+    const statusIcon = s.status === 'active'
+      ? `<i class="fas fa-check-circle status-active mr-1"></i>Activa`
+      : `<i class="fas fa-times-circle status-expired mr-1"></i>Expirada`;
+
+    document.getElementById('subInfo').innerHTML = `
+      <div class="d-flex justify-content-between align-items-start flex-wrap">
+        <div>
+          <div class="mb-2">
+            <span class="plan-pill ${planClasses[s.plan] || 'plan-FREE'}">${s.planLabel}</span>
+          </div>
+          <p class="mb-1"><strong>Estado:</strong> ${statusIcon}</p>
+          <p class="mb-1"><strong>Início:</strong> ${startDate}</p>
+          <p class="mb-1"><strong>Expira em:</strong> ${expDate}</p>
+          ${s.daysLeft > 0 && s.daysLeft <= 10
+            ? `<div class="alert alert-warning p-2 mt-2 mb-0 small">
+                <i class="fas fa-exclamation-triangle mr-1"></i>
+                Restam <strong>${s.daysLeft} dias</strong>. <a href="/upgrade">Renova agora</a>.
+              </div>` : ''}
+          ${s.status === 'expired'
+            ? `<div class="alert alert-danger p-2 mt-2 mb-0 small">
+                <i class="fas fa-lock mr-1"></i>Subscrição expirada.
+                <a href="/upgrade">Renova o plano</a> para continuar.
+              </div>` : ''}
+        </div>
+        <a href="/upgrade" class="btn btn-outline-primary btn-sm mt-2">
+          <i class="fas fa-arrow-up mr-1"></i>Fazer upgrade
+        </a>
+      </div>`;
+
+    const lim = s.limits;
+    document.getElementById('usageInfo').innerHTML = `
+      <div class="row">
+        <div class="col-md-6 mb-3">
+          <div class="d-flex justify-content-between small text-muted mb-1">
+            <span>Facturas este mês</span><span>${lim.maxInvoicesPerMonth}</span>
+          </div>
+          ${limitBar('—', lim.maxInvoicesPerMonth)}
+        </div>
+        <div class="col-md-6 mb-3">
+          <div class="d-flex justify-content-between small text-muted mb-1">
+            <span>Vendas este mês</span><span>${lim.maxSalesPerMonth}</span>
+          </div>
+          ${limitBar('—', lim.maxSalesPerMonth)}
+        </div>
+        <div class="col-md-6 mb-3">
+          <div class="d-flex justify-content-between small text-muted mb-1">
+            <span>Clientes</span><span>${lim.maxClients}</span>
+          </div>
+          ${limitBar('—', lim.maxClients)}
+        </div>
+        <div class="col-md-6 mb-3">
+          <div class="d-flex justify-content-between small text-muted mb-1">
+            <span>Produtos</span><span>${lim.maxProducts}</span>
+          </div>
+          ${limitBar('—', lim.maxProducts)}
+        </div>
+      </div>
+      <p class="text-muted small mb-0">
+        <i class="fas fa-info-circle mr-1"></i>
+        Exportação Excel: <strong>${lim.excelExport ? 'Incluída' : 'Não disponível'}</strong> &nbsp;|&nbsp;
+        Relatórios avançados: <strong>${lim.advancedReports ? 'Incluídos' : 'Não disponíveis'}</strong>
+      </p>`;
+  } catch (err) {
+    document.getElementById('subInfo').innerHTML =
+      `<div class="alert alert-danger">Erro ao carregar subscrição: ${err.message}</div>`;
+  }
+}
+
+loadSubscription();
+</script>
+</body>
+</html>
