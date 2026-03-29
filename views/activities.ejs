@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"/>
+  <title>Invoicing - <%- title %></title>
+  <link rel="icon" type="image/png" href="images/invoicing-logo-simple.png"/>
+  <link href="assets/vendor/fontawesome-free/css/all.min.css" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css?family=Nunito:200,400,600,700,800" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" crossorigin="anonymous"/>
+  <link href="assets/css/sb-admin-2.min.css" rel="stylesheet"/>
+  <link href="assets/css/custom.css" rel="stylesheet"/>
+</head>
+<body id="page-top">
+<div id="wrapper">
+  <%- include('partials/sidebar') %>
+  <div id="content-wrapper" class="d-flex flex-column">
+    <div id="content">
+      <%- include('partials/topbar') %>
+      <div class="container-fluid">
+        <div class="d-sm-flex align-items-center justify-content-between mb-4">
+          <h5 class="mb-0 text-gray-800"><strong><i class="fas fa-clock-rotate-left mr-2"></i>Histórico de Actividades</strong></h5>
+          <select id="entityFilter" class="form-control form-control-sm" style="width:auto;" onchange="loadActivities()">
+            <option value="">Todas</option>
+            <option value="invoice">Facturas</option>
+            <option value="sale">Vendas</option>
+            <option value="product">Produtos</option>
+            <option value="client">Clientes</option>
+            <option value="expense">Despesas</option>
+          </select>
+        </div>
+
+        <div class="card shadow">
+          <div class="card-body p-0">
+            <div id="activityList" class="p-3"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <%- include('partials/copyright') %>
+  </div>
+</div>
+<%- include('partials/footer') %>
+
+<script>
+const actionIcons = {created:'fas fa-plus-circle text-success',updated:'fas fa-edit text-primary',deleted:'fas fa-trash text-danger',cancelled:'fas fa-ban text-warning',paid:'fas fa-check-circle text-success',exported:'fas fa-file-export text-info',duplicated:'fas fa-copy text-primary',converted:'fas fa-exchange-alt text-info',login:'fas fa-sign-in-alt text-secondary'};
+
+async function loadActivities() {
+  var entity = document.getElementById('entityFilter').value;
+  var url = '/api/dashboard/activities?limit=50' + (entity ? '&entity=' + entity : '');
+  var res = await fetch(url);
+  var data = await res.json();
+  var el = document.getElementById('activityList');
+  if (!data.success || !data.activities.length) {
+    el.innerHTML = '<p class="text-center text-muted py-3">Sem actividades registadas.</p>';
+    return;
+  }
+  el.innerHTML = data.activities.map(function(a) {
+    var icon = actionIcons[a.action] || 'fas fa-info-circle text-secondary';
+    var time = new Date(a.createdAt).toLocaleString('pt-PT');
+    return '<div class="d-flex align-items-start py-2 border-bottom" style="gap:12px;">'
+      + '<i class="' + icon + ' mt-1" style="font-size:1.1rem; width:20px;"></i>'
+      + '<div><div class="small text-gray-500">' + time + (a.userName ? ' — ' + a.userName : '') + '</div>'
+      + '<div>' + a.description + '</div></div></div>';
+  }).join('');
+}
+
+loadActivities();
+</script>
+</body>
+</html>

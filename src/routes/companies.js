@@ -29,4 +29,19 @@ router.put('/update-bank-visibility', authMiddleware, updateBankDetailsVisibilit
 router.put('/', authMiddleware, updateCompany);
 router.delete('/:id', authMiddleware, deleteCompany);
 
+// Currency & invoice template
+router.patch('/preferences', authMiddleware, async (req, res) => {
+    try {
+        const Company = require('../models/company');
+        const { currency, invoiceTemplate } = req.body;
+        const update = {};
+        if (currency) update.currency = currency;
+        if (invoiceTemplate) update.invoiceTemplate = invoiceTemplate;
+        await Company.findByIdAndUpdate(req.user.company._id, { $set: update });
+        res.json({ success: true, message: 'Preferências actualizadas.' });
+    } catch (err) {
+        res.status(500).json({ success: false, message: err.message });
+    }
+});
+
 module.exports = router;

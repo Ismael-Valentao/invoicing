@@ -2,6 +2,7 @@ const puppeteer = require("puppeteer");
 const { formatedDate } = require("./dateFormatter");
 require("dotenv").config();
 const PDFDocument = require("pdfkit");
+const QRCode = require("qrcode");
 
 const logoPath = process.env.LOGO_PATH || "https://bitiray.com/public/invoicing-logos/";
 
@@ -150,6 +151,7 @@ function buildA4DocumentHtml({
   totals,
   footerNotes = [],
   bankBlock = "",
+  qrCodeDataUrl = "",
 }) {
   const logoSrc = companyInfo.logoUrl
     ? logoPath + companyInfo.logoUrl
@@ -469,6 +471,13 @@ function buildA4DocumentHtml({
       </div>
 
       ${bankBlock}
+
+      ${qrCodeDataUrl ? `
+      <div style="text-align:center; margin-top:14px;">
+        <img src="${qrCodeDataUrl}" style="width:80px; height:80px;" />
+        <p style="font-size:7px; color:#858796; margin-top:2px;">Digitalize para ver este documento online</p>
+      </div>
+      ` : ''}
         </div>
       <div class="footer-notes">
         ${footerNotes.map((note) => `<p>${escapeHtml(note)}</p>`).join("")}
@@ -509,6 +518,14 @@ async function renderA4Pdf(html) {
 }
 
 async function generateInvoicePDF(companyInfo, invoice) {
+  // Generate QR code linking to the client portal
+  let qrCodeDataUrl = "";
+  try {
+    const baseUrl = process.env.BASE_URL || "https://invoicing.bitiray.com";
+    const portalUrl = `${baseUrl}/p/${invoice._id}`;
+    qrCodeDataUrl = await QRCode.toDataURL(portalUrl, { width: 120, margin: 1 });
+  } catch (e) { /* QR code is optional */ }
+
   const html = buildA4DocumentHtml({
     companyInfo,
     title: "FACTURA",
@@ -525,6 +542,7 @@ async function generateInvoicePDF(companyInfo, invoice) {
       totalAmount: invoice.totalAmount,
     },
     bankBlock: renderBankDetailsBlock(companyInfo, "invoice"),
+    qrCodeDataUrl,
     footerNotes: [
       "Este documento serve como comprovativo da prestação de serviços e/ou fornecimento de bens.",
       `Em caso de dúvidas, contacte o departamento financeiro: ${companyInfo.email || "-"} | ${companyInfo.contact || "-"}`,
@@ -899,11 +917,69 @@ async function generateSaleReceiptPDF(companyInfo, sale) {
   return pdfBuffer;
 }
 
+async function generateCreditNotePDF(companyInfo, note, relatedInvoiceNumber) {
+  const html = buildA4DocumentHtml({
+    companyInfo,
+    title: "NOTA DE CRÉDITO",
+    docNumberLabel: "Nota de Crédito Nº",
+    docNumber: note.invoiceNumber,
+    date: note.date,
+    clientName: note.clientName,
+    clientNUIT: note.clientNUIT,
+    items: note.items || [],
+    totals: {
+      subTotal: note.subTotal,
+      appliedTax: note.appliedTax,
+      tax: note.tax,
+      totalAmount: note.totalAmount,
+    },
+    bankBlock: "",
+    footerNotes: [
+      `Referente à Factura: ${relatedInvoiceNumber || "—"}`,
+      `Motivo: ${note.reason || "—"}`,
+      "Esta Nota de Crédito anula total ou parcialmente a factura acima referenciada.",
+      `Emitido por: ${companyInfo.name || "-"} | Contacto: ${companyInfo.contact || "-"}`,
+    ],
+  });
+
+  return await renderA4Pdf(html);
+}
+
+async function generateDebitNotePDF(companyInfo, note, relatedInvoiceNumber) {
+  const html = buildA4DocumentHtml({
+    companyInfo,
+    title: "NOTA DE DÉBITO",
+    docNumberLabel: "Nota de Débito Nº",
+    docNumber: note.invoiceNumber,
+    date: note.date,
+    clientName: note.clientName,
+    clientNUIT: note.clientNUIT,
+    items: note.items || [],
+    totals: {
+      subTotal: note.subTotal,
+      appliedTax: note.appliedTax,
+      tax: note.tax,
+      totalAmount: note.totalAmount,
+    },
+    bankBlock: renderBankDetailsBlock(companyInfo, "invoice"),
+    footerNotes: [
+      `Referente à Factura: ${relatedInvoiceNumber || "—"}`,
+      `Motivo: ${note.reason || "—"}`,
+      "Esta Nota de Débito acrescenta valores à factura acima referenciada.",
+      `Em caso de dúvidas, contacte: ${companyInfo.email || "-"} | ${companyInfo.contact || "-"}`,
+    ],
+  });
+
+  return await renderA4Pdf(html);
+}
+
 module.exports = {
   generateQuotationPDF,
   generateInvoicePDF,
   generateVDPDF,
   generateReciboPDF,
+  generateCreditNotePDF,
+  generateDebitNotePDF,
   generateSaleReceiptPDF,
   generateSaleReceiptPDFKit,
 };

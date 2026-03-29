@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"/>
+  <title>Invoicing - <%- title %></title>
+  <link rel="icon" type="image/png" href="images/invoicing-logo-simple.png"/>
+  <link href="assets/vendor/fontawesome-free/css/all.min.css" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css?family=Nunito:200,400,600,700,800" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" crossorigin="anonymous"/>
+  <link href="assets/css/sb-admin-2.min.css" rel="stylesheet"/>
+  <link href="assets/css/custom.css" rel="stylesheet"/>
+  <style>
+    .pos-product { cursor:pointer; border:2px solid transparent; border-radius:10px; transition:all .15s; }
+    .pos-product:hover { border-color:#228CDF; transform:translateY(-2px); }
+    .pos-product.selected { border-color:#1cc88a; background:#f0fdf4; }
+    .pos-cart-item { display:flex; align-items:center; justify-content:space-between; padding:8px 0; border-bottom:1px solid #eee; }
+    .qty-btn { width:28px; height:28px; border:none; border-radius:50%; font-weight:700; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; }
+    .qty-minus { background:#e74a3b; color:#fff; }
+    .qty-plus { background:#1cc88a; color:#fff; }
+    #posSearch { border-radius:20px; }
+  </style>
+</head>
+<body id="page-top">
+<div id="wrapper">
+  <%- include('partials/sidebar') %>
+  <div id="content-wrapper" class="d-flex flex-column">
+    <div id="content">
+      <%- include('partials/topbar') %>
+      <div class="container-fluid">
+        <div class="row">
+          <!-- Products grid -->
+          <div class="col-lg-8">
+            <div class="d-flex align-items-center justify-content-between mb-3">
+              <h5 class="mb-0 text-gray-800"><strong><i class="fas fa-cash-register mr-2"></i>Venda Rápida</strong></h5>
+              <input type="text" id="posSearch" class="form-control form-control-sm" placeholder="Pesquisar produto..." style="width:250px;" oninput="filterProducts()"/>
+            </div>
+            <div class="row" id="productsGrid">
+              <div class="col-12 text-center text-muted py-4">A carregar produtos...</div>
+            </div>
+          </div>
+
+          <!-- Cart -->
+          <div class="col-lg-4">
+            <div class="card shadow" style="position:sticky; top:80px;">
+              <div class="card-header py-2 bg-primary text-white">
+                <h6 class="m-0 font-weight-bold"><i class="fas fa-shopping-cart mr-2"></i>Carrinho</h6>
+              </div>
+              <div class="card-body" style="max-height:50vh; overflow-y:auto;">
+                <div id="cartItems">
+                  <p class="text-center text-muted small py-2">Carrinho vazio</p>
+                </div>
+              </div>
+              <div class="card-footer">
+                <div class="d-flex justify-content-between mb-2">
+                  <strong>Total:</strong>
+                  <strong class="text-primary" id="cartTotal" style="font-size:1.3rem;">0 MZN</strong>
+                </div>
+                <div class="form-group mb-2">
+                  <select class="form-control form-control-sm" id="posPayment">
+                    <option value="cash">Dinheiro</option>
+                    <option value="mpesa">M-Pesa</option>
+                    <option value="emola">E-mola</option>
+                    <option value="card">Cartão</option>
+                    <option value="bank">Transferência</option>
+                  </select>
+                </div>
+                <div class="form-group mb-2">
+                  <input type="number" class="form-control form-control-sm" id="posPaid" placeholder="Valor recebido" step="0.01" min="0" oninput="updateChange()"/>
+                  <small class="text-muted" id="posChange"></small>
+                </div>
+                <button class="btn btn-success btn-block" id="posConfirmBtn" onclick="confirmSale()" disabled>
+                  <i class="fas fa-check mr-1"></i>Confirmar Venda
+                </button>
+                <button class="btn btn-outline-secondary btn-block btn-sm mt-1" onclick="clearCart()">Limpar carrinho</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <%- include('partials/copyright') %>
+  </div>
+</div>
+<%- include('partials/footer') %>
+
+<script>
+var allProducts = [];
+var cart = [];
+var currency = function(v) { return new Intl.NumberFormat('pt-MZ',{style:'currency',currency:'MZN'}).format(v||0); };
+
+async function loadProducts() {
+  var res = await fetch('/api/products');
+  var data = await res.json();
+  allProducts = (data.products || data || []).filter(function(p) { return p.active !== false; });
+  renderProducts(allProducts);
+}
+
+function filterProducts() {
+  var q = document.getElementById('posSearch').value.toLowerCase();
+  renderProducts(allProducts.filter(function(p) { return p.description.toLowerCase().includes(q); }));
+}
+
+function renderProducts(products) {
+  var grid = document.getElementById('productsGrid');
+  if (!products.length) { grid.innerHTML = '<div class="col-12 text-center text-muted py-4">Sem produtos</div>'; return; }
+  grid.innerHTML = products.map(function(p) {
+    var inCart = cart.find(function(c) { return c._id === p._id; });
+    var stockBadge = p.stock && p.stock.quantity !== undefined ? '<span class="badge badge-' + (p.stock.quantity <= (p.stock.min||0) ? 'danger' : 'success') + '">' + p.stock.quantity + ' ' + (p.unit||'un') + '</span>' : '';
+    return '<div class="col-6 col-md-4 col-lg-3 mb-3">'
+      + '<div class="pos-product card h-100 p-3 text-center ' + (inCart?'selected':'') + '" onclick="addToCart(\'' + p._id + '\')">'
+      + '<div style="font-size:2rem; color:#228CDF;"><i class="fas fa-box"></i></div>'
+      + '<h6 class="font-weight-bold mt-2 mb-1" style="font-size:.85rem;">' + p.description + '</h6>'
+      + '<div class="text-primary font-weight-bold">' + currency(p.unitPrice) + '</div>'
+      + stockBadge
+      + '</div></div>';
+  }).join('');
+}
+
+function addToCart(productId) {
+  var p = allProducts.find(function(x) { return x._id === productId; });
+  if (!p) return;
+  var existing = cart.find(function(c) { return c._id === productId; });
+  if (existing) { existing.quantity++; }
+  else { cart.push({ _id: p._id, name: p.description, price: p.unitPrice, quantity: 1 }); }
+  renderCart(); renderProducts(allProducts);
+}
+
+function changeQty(productId, delta) {
+  var item = cart.find(function(c) { return c._id === productId; });
+  if (!item) return;
+  item.quantity += delta;
+  if (item.quantity <= 0) cart = cart.filter(function(c) { return c._id !== productId; });
+  renderCart(); renderProducts(allProducts);
+}
+
+function renderCart() {
+  var el = document.getElementById('cartItems');
+  if (!cart.length) {
+    el.innerHTML = '<p class="text-center text-muted small py-2">Carrinho vazio</p>';
+    document.getElementById('cartTotal').textContent = '0 MZN';
+    document.getElementById('posConfirmBtn').disabled = true;
+    return;
+  }
+  el.innerHTML = cart.map(function(c) {
+    return '<div class="pos-cart-item">'
+      + '<div><strong style="font-size:.85rem;">' + c.name + '</strong><br><small class="text-muted">' + currency(c.price) + ' x ' + c.quantity + '</small></div>'
+      + '<div class="d-flex align-items-center" style="gap:6px;">'
+      + '<button class="qty-btn qty-minus" onclick="changeQty(\'' + c._id + '\',-1)">−</button>'
+      + '<span class="font-weight-bold">' + c.quantity + '</span>'
+      + '<button class="qty-btn qty-plus" onclick="changeQty(\'' + c._id + '\',1)">+</button>'
+      + '<strong class="ml-2">' + currency(c.price * c.quantity) + '</strong>'
+      + '</div></div>';
+  }).join('');
+  var total = cart.reduce(function(s,c) { return s + c.price * c.quantity; }, 0);
+  document.getElementById('cartTotal').textContent = currency(total);
+  document.getElementById('posConfirmBtn').disabled = false;
+  updateChange();
+}
+
+function updateChange() {
+  var total = cart.reduce(function(s,c) { return s + c.price * c.quantity; }, 0);
+  var paid = parseFloat(document.getElementById('posPaid').value) || 0;
+  var changeEl = document.getElementById('posChange');
+  if (paid > 0 && paid >= total) {
+    changeEl.textContent = 'Troco: ' + currency(paid - total);
+    changeEl.style.color = '#1cc88a';
+  } else if (paid > 0) {
+    changeEl.textContent = 'Falta: ' + currency(total - paid);
+    changeEl.style.color = '#e74a3b';
+  } else { changeEl.textContent = ''; }
+}
+
+function clearCart() {
+  cart = [];
+  document.getElementById('posPaid').value = '';
+  document.getElementById('posChange').textContent = '';
+  renderCart();
+  renderProducts(allProducts);
+}
+
+async function confirmSale() {
+  if (!cart.length) return;
+  var total = cart.reduce(function(s,c) { return s + c.price * c.quantity; }, 0);
+  var paid = parseFloat(document.getElementById('posPaid').value) || total;
+  var body = {
+    items: cart.map(function(c) { return { productId: c._id, name: c.name, quantity: c.quantity, price: c.price }; }),
+    paymentMethod: document.getElementById('posPayment').value,
+    paidAmount: paid,
+    subtotal: total, tax: 0, total: total
+  };
+  var btn = document.getElementById('posConfirmBtn');
+  btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i>A processar...';
+  try {
+    var res = await fetch('/api/sales', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) });
+    if (res.ok) {
+      clearCart();
+      if (typeof Swal !== 'undefined') {
+        Swal.fire({ icon:'success', title:'Venda registada!', text:'A venda foi confirmada com sucesso.', timer:2000, showConfirmButton:false });
+      } else { alert('Venda registada com sucesso!'); }
+      loadProducts(); // refresh stock
+    } else {
+      var data = await res.json().catch(function(){ return {}; });
+      alert(data.message || 'Erro ao registar venda.');
+    }
+  } catch(e) { alert('Erro de ligação.'); }
+  btn.disabled = false; btn.innerHTML = '<i class="fas fa-check mr-1"></i>Confirmar Venda';
+}
+
+loadProducts();
+</script>
+</body>
+</html>

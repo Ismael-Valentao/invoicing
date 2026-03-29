@@ -160,6 +160,82 @@
                     </div>
                   </div>
                 </div>
+
+                <!-- Insights + Profit + Savings -->
+                <div class="row">
+                  <!-- Insights -->
+                  <div class="col-xl-6 col-lg-6 mb-4">
+                    <div class="card shadow h-100">
+                      <div class="card-header py-2">
+                        <h6 class="m-0 font-weight-bold text-primary"><i class="fas fa-lightbulb mr-1 text-warning"></i>Insights</h6>
+                      </div>
+                      <div class="card-body" id="insightsList">
+                        <p class="text-muted small">A analisar...</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Profit overview -->
+                  <div class="col-xl-3 col-lg-3 mb-4">
+                    <div class="card shadow h-100">
+                      <div class="card-header py-2">
+                        <h6 class="m-0 font-weight-bold text-primary"><i class="fas fa-chart-pie mr-1"></i>Lucro do mês</h6>
+                      </div>
+                      <div class="card-body text-center">
+                        <div class="small text-muted mb-1">Receita</div>
+                        <div class="h5 text-success font-weight-bold" id="profitRevenue">—</div>
+                        <div class="small text-muted mb-1">Despesas</div>
+                        <div class="h5 text-danger font-weight-bold" id="profitExpenses">—</div>
+                        <hr/>
+                        <div class="small text-muted mb-1">Lucro</div>
+                        <div class="h4 font-weight-bold" id="profitNet" style="color:#228CDF;">—</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Savings -->
+                  <div class="col-xl-3 col-lg-3 mb-4">
+                    <div class="card shadow h-100 border-left-success">
+                      <div class="card-header py-2">
+                        <h6 class="m-0 font-weight-bold text-success"><i class="fas fa-clock mr-1"></i>Quanto poupaste</h6>
+                      </div>
+                      <div class="card-body text-center">
+                        <div class="h3 font-weight-bold text-success" id="savingsHours">—</div>
+                        <div class="small text-muted mb-2">horas poupadas este mês</div>
+                        <div class="small" id="savingsDetails"></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Stock Alerts + Debts -->
+                <div class="row">
+                  <!-- Low Stock -->
+                  <div class="col-xl-6 col-lg-6 mb-4">
+                    <div class="card shadow h-100">
+                      <div class="card-header py-2 d-flex justify-content-between align-items-center">
+                        <h6 class="m-0 font-weight-bold text-warning"><i class="fas fa-exclamation-triangle mr-1"></i>Stock Baixo</h6>
+                        <a href="/products" class="btn btn-sm btn-outline-warning">Ver produtos</a>
+                      </div>
+                      <div class="card-body p-0" id="lowStockList">
+                        <p class="text-muted text-center py-3 small">A verificar...</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Top Debts -->
+                  <div class="col-xl-6 col-lg-6 mb-4">
+                    <div class="card shadow h-100">
+                      <div class="card-header py-2 d-flex justify-content-between align-items-center">
+                        <h6 class="m-0 font-weight-bold text-danger"><i class="fas fa-hand-holding-usd mr-1"></i>Quem me deve</h6>
+                        <a href="/debts" class="btn btn-sm btn-outline-danger">Ver todas</a>
+                      </div>
+                      <div class="card-body p-0" id="debtsSummary">
+                        <p class="text-muted text-center py-3 small">A verificar...</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
             </div>
         </div>
 
@@ -204,6 +280,61 @@
           .catch(console.error);
       }
       checkSubscriptionStatus();
+
+      var cur = function(v) { return new Intl.NumberFormat('pt-MZ',{style:'currency',currency:'MZN'}).format(v||0); };
+
+      // Insights
+      fetch('/api/dashboard/insights').then(function(r){return r.json();}).then(function(d) {
+        if (!d.success || !d.insights.length) { document.getElementById('insightsList').innerHTML = '<p class="text-muted small">Sem insights por agora.</p>'; return; }
+        document.getElementById('insightsList').innerHTML = d.insights.map(function(i) {
+          return '<div class="d-flex align-items-start mb-2" style="gap:8px;"><i class="' + i.icon + ' text-' + i.color + ' mt-1"></i><span class="small">' + i.text + '</span></div>';
+        }).join('');
+      }).catch(function(){});
+
+      // Profit
+      fetch('/api/dashboard/profit').then(function(r){return r.json();}).then(function(d) {
+        if (!d.success) return;
+        document.getElementById('profitRevenue').textContent = cur(d.overview.revenue);
+        document.getElementById('profitExpenses').textContent = cur(d.overview.expenses);
+        var net = document.getElementById('profitNet');
+        net.textContent = cur(d.overview.profit);
+        net.style.color = d.overview.profit >= 0 ? '#1cc88a' : '#e74a3b';
+      }).catch(function(){});
+
+      // Savings
+      fetch('/api/dashboard/savings').then(function(r){return r.json();}).then(function(d) {
+        if (!d.success) return;
+        document.getElementById('savingsHours').textContent = d.stats.hoursSaved;
+        document.getElementById('savingsDetails').innerHTML =
+          '<div>' + d.stats.invoicesThisMonth + ' facturas emitidas</div>'
+          + '<div>' + d.stats.salesThisMonth + ' vendas registadas</div>'
+          + '<div>' + d.stats.totalProducts + ' produtos geridos</div>';
+      }).catch(function(){});
+
+      // Low Stock
+      fetch('/api/dashboard/low-stock').then(function(r){return r.json();}).then(function(d) {
+        var el = document.getElementById('lowStockList');
+        if (!d.success || !d.products.length) { el.innerHTML = '<p class="text-success text-center py-3 small"><i class="fas fa-check-circle mr-1"></i>Stock OK</p>'; return; }
+        el.innerHTML = '<div class="table-responsive"><table class="table table-sm mb-0"><tbody>'
+          + d.products.map(function(p) {
+            return '<tr><td class="font-weight-bold small">' + p.description + '</td>'
+              + '<td><span class="badge badge-danger">' + p.stock.quantity + ' ' + (p.unit||'un') + '</span></td>'
+              + '<td class="small text-muted">mín: ' + (p.stock.min||0) + '</td></tr>';
+          }).join('') + '</tbody></table></div>';
+      }).catch(function(){});
+
+      // Debts
+      fetch('/api/dashboard/client-debts').then(function(r){return r.json();}).then(function(d) {
+        var el = document.getElementById('debtsSummary');
+        if (!d.success || !d.debts.length) { el.innerHTML = '<p class="text-success text-center py-3 small"><i class="fas fa-check-circle mr-1"></i>Sem dívidas</p>'; return; }
+        el.innerHTML = '<div class="table-responsive"><table class="table table-sm mb-0"><tbody>'
+          + d.debts.slice(0,5).map(function(debt) {
+            return '<tr><td class="font-weight-bold small">' + debt._id + '</td>'
+              + '<td class="text-danger font-weight-bold small">' + cur(debt.totalDebt) + '</td>'
+              + '<td><span class="badge badge-secondary">' + debt.invoiceCount + ' doc' + (debt.invoiceCount>1?'s':'') + '</span></td></tr>';
+          }).join('') + '</tbody></table></div>'
+          + '<div class="text-center small py-1"><strong class="text-danger">Total: ' + cur(d.totalDebt) + '</strong></div>';
+      }).catch(function(){});
     </script>
 </body>
 

@@ -40,7 +40,11 @@ const companySchema = new mongoose.Schema({
             type: Boolean,
             default: false
         }
-    }
+    },
+
+    currency: { type: String, enum: ['MZN', 'USD', 'ZAR', 'EUR'], default: 'MZN' },
+
+    invoiceTemplate: { type: String, enum: ['classic', 'modern', 'minimal'], default: 'classic' }
 }, {
     timestamps: true,
 });

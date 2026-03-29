@@ -873,4 +873,24 @@ document.addEventListener("DOMContentLoaded", function () {
       text: error.message || "Não foi possível carregar os dados da empresa."
     });
   });
+
+  // Preferences: currency & invoice template
+  fetch('/api/company/company').then(r => r.json()).then(data => {
+    const c = data.company || data;
+    if (c.currency) document.getElementById('prefCurrency').value = c.currency;
+    if (c.invoiceTemplate) document.getElementById('prefTemplate').value = c.invoiceTemplate;
+  }).catch(() => {});
+
+  document.getElementById('btnSavePrefs')?.addEventListener('click', async function() {
+    const body = {
+      currency: document.getElementById('prefCurrency').value,
+      invoiceTemplate: document.getElementById('prefTemplate').value,
+    };
+    const res = await fetch('/api/company/preferences', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+    const data = await res.json();
+    const msg = document.getElementById('prefMsg');
+    msg.style.color = data.success ? '#1cc88a' : '#e74a3b';
+    msg.textContent = data.message || (data.success ? 'Guardado!' : 'Erro');
+    setTimeout(() => { msg.textContent = ''; }, 3000);
+  });
 });

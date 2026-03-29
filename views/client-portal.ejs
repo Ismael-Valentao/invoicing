@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"/>
+  <title>Documento — <%- invoice.invoiceNumber %></title>
+  <link rel="icon" type="image/png" href="/images/invoicing-logo-simple.png"/>
+  <link href="https://fonts.googleapis.com/css?family=Nunito:400,600,700" rel="stylesheet"/>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Nunito', sans-serif; background: #f4f6f9; color: #333; }
+    .portal-header { background: linear-gradient(135deg, #228CDF, #1cc88a); padding: 30px 20px; text-align: center; color: #fff; }
+    .portal-header h2 { font-weight: 800; margin-bottom: 5px; }
+    .portal-card { max-width: 700px; margin: -30px auto 40px; background: #fff; border-radius: 12px; box-shadow: 0 8px 30px rgba(0,0,0,0.1); overflow: hidden; }
+    .portal-body { padding: 30px; }
+    .info-row { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 20px; margin-bottom: 20px; }
+    .info-block h6 { font-size: .75rem; text-transform: uppercase; color: #858796; margin-bottom: 4px; font-weight: 700; }
+    .info-block p { font-weight: 600; margin: 0; }
+    table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+    th { background: #f8f9fc; text-align: left; padding: 10px 12px; font-size: .8rem; text-transform: uppercase; color: #858796; border-bottom: 2px solid #e3e6f0; }
+    td { padding: 10px 12px; border-bottom: 1px solid #eee; }
+    .total-row { font-weight: 800; font-size: 1.1rem; color: #228CDF; }
+    .status-badge { display: inline-block; padding: 4px 14px; border-radius: 20px; font-size: .8rem; font-weight: 700; }
+    .status-paid { background: #d4edda; color: #155724; }
+    .status-unpaid { background: #fff3cd; color: #856404; }
+    .status-overdue { background: #f8d7da; color: #721c24; }
+    .portal-footer { text-align: center; padding: 20px; color: #858796; font-size: .8rem; }
+    .btn-download { display: inline-block; background: #228CDF; color: #fff; padding: 10px 24px; border-radius: 25px; text-decoration: none; font-weight: 700; margin: 10px 5px; }
+    .btn-download:hover { background: #1a6fb0; color: #fff; }
+    .btn-whatsapp { background: #25d366; }
+    .btn-whatsapp:hover { background: #1da851; }
+  </style>
+</head>
+<body>
+  <div class="portal-header">
+    <h2><%= invoice.companyName %></h2>
+    <p>Documento <%= invoice.invoiceNumber %></p>
+  </div>
+
+  <div class="portal-card">
+    <div class="portal-body">
+      <div class="info-row">
+        <div class="info-block">
+          <h6>Cliente</h6>
+          <p><%= invoice.clientName %></p>
+          <% if (invoice.clientNUIT && invoice.clientNUIT !== 'N/A') { %>
+            <small style="color:#858796;">NUIT: <%= invoice.clientNUIT %></small>
+          <% } %>
+        </div>
+        <div class="info-block">
+          <h6>Data de Emissão</h6>
+          <p><%= new Date(invoice.date).toLocaleDateString('pt-PT') %></p>
+        </div>
+        <div class="info-block">
+          <h6>Estado</h6>
+          <% var statusClass = invoice.status === 'paid' ? 'status-paid' : invoice.status === 'overdue' ? 'status-overdue' : 'status-unpaid'; %>
+          <% var statusLabel = invoice.status === 'paid' ? 'Pago' : invoice.status === 'overdue' ? 'Vencido' : 'Pendente'; %>
+          <span class="status-badge <%= statusClass %>"><%= statusLabel %></span>
+        </div>
+      </div>
+
+      <% if (invoice.dueDate) { %>
+        <div class="info-row">
+          <div class="info-block">
+            <h6>Data de Vencimento</h6>
+            <p><%= new Date(invoice.dueDate).toLocaleDateString('pt-PT') %></p>
+          </div>
+        </div>
+      <% } %>
+
+      <table>
+        <thead>
+          <tr><th>Descrição</th><th>Qtd</th><th>Preço Unit.</th><th>Total</th></tr>
+        </thead>
+        <tbody>
+          <% (invoice.items || []).forEach(function(item) { %>
+            <tr>
+              <td><%= item.description %></td>
+              <td><%= item.quantity %></td>
+              <td><%= new Intl.NumberFormat('pt-MZ').format(item.unitPrice) %> MZN</td>
+              <td><%= new Intl.NumberFormat('pt-MZ').format(item.quantity * item.unitPrice) %> MZN</td>
+            </tr>
+          <% }); %>
+        </tbody>
+      </table>
+
+      <div style="text-align:right; margin-top:10px;">
+        <div style="color:#858796; font-size:.9rem;">Subtotal: <%= new Intl.NumberFormat('pt-MZ').format(invoice.subTotal) %> MZN</div>
+        <div style="color:#858796; font-size:.9rem;">IVA (<%= Math.round((invoice.appliedTax || 0.16) * 100) %>%): <%= new Intl.NumberFormat('pt-MZ').format(invoice.tax) %> MZN</div>
+        <div class="total-row" style="margin-top:5px;">Total: <%= new Intl.NumberFormat('pt-MZ').format(invoice.totalAmount) %> MZN</div>
+      </div>
+
+      <div style="text-align:center; margin-top:30px;">
+        <a href="/api/invoices/<%= invoice._id %>/pdf" class="btn-download"><i style="margin-right:6px;">&#128196;</i>Descarregar PDF</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="portal-footer">
+    Documento gerado pela plataforma <strong>Invoicing</strong> &bull; invoicing.bitiray.com
+  </div>
+</body>
+</html>

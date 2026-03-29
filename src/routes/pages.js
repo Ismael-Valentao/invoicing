@@ -195,6 +195,53 @@ router.get('/admin/users', authMiddleware2, requireSuperAdmin, (req, res) => {
     res.render('admin/users', buildViewData(req, 'Admin — Utilizadores'));
 });
 
+router.get('/admin/activities', authMiddleware2, requireSuperAdmin, (req, res) => {
+    res.render('admin/activities', buildViewData(req, 'Admin — Actividades'));
+});
+
+// Despesas
+router.get('/expenses', authMiddleware2, requirePermission('dashboard'), (req, res) => {
+    res.render('expenses', buildViewData(req, 'Despesas'));
+});
+
+// Fornecedores
+router.get('/suppliers', authMiddleware2, requirePermission('suppliers'), (req, res) => {
+    res.render('suppliers', buildViewData(req, 'Fornecedores'));
+});
+
+// POS (Venda rápida)
+router.get('/pos', authMiddleware2, requirePermission('sales'), (req, res) => {
+    res.render('pos', buildViewData(req, 'Venda Rápida'));
+});
+
+// Dívidas de clientes
+router.get('/debts', authMiddleware2, requirePermission('invoicing'), (req, res) => {
+    res.render('debts', buildViewData(req, 'Dívidas de Clientes'));
+});
+
+// Actividades
+router.get('/activities', authMiddleware2, (req, res) => {
+    res.render('activities', buildViewData(req, 'Actividades'));
+});
+
+// Notas de crédito e débito
+router.get('/notes', authMiddleware2, requirePermission('invoicing'), (req, res) => {
+    res.render('notes', buildViewData(req, 'Notas de Crédito & Débito'));
+});
+
+// Facturas recorrentes
+router.get('/recurring-invoices', authMiddleware2, requirePermission('invoicing'), (req, res) => {
+    res.render('recurring-invoices', buildViewData(req, 'Facturas Recorrentes'));
+});
+
+// Portal público do cliente
+router.get('/p/:token', async (req, res) => {
+    const Invoice = require('../models/invoice');
+    const invoice = await Invoice.findById(req.params.token).catch(() => null);
+    if (!invoice) return res.status(404).render('404', { title: '404', user: null, requestedUrl: req.originalUrl });
+    res.render('client-portal', { title: 'Documento', invoice });
+});
+
 // Logout
 router.get('/logout', (req, res) => {
     res.redirect('/login');

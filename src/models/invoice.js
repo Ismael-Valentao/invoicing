@@ -24,7 +24,9 @@ const invoiceSchema = new mongoose.Schema({
     companyId: { type: mongoose.Schema.Types.ObjectId, ref: 'Company' },
     userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
     clientId: { type: mongoose.Schema.Types.ObjectId, ref: 'Client', default:null },
-    status: { type: String, enum: ['paid', 'unpaid', 'overdue'], default: 'unpaid' }
+    status: { type: String, enum: ['paid', 'unpaid', 'overdue', 'cancelled'], default: 'unpaid' },
+    relatedInvoiceId: { type: mongoose.Schema.Types.ObjectId, ref: 'Invoice', default: null },
+    reason: { type: String, default: '' }
 }, { timestamps: true });
 
 module.exports = mongoose.model('Invoice', invoiceSchema);

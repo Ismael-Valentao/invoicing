@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"/>
+  <title>Invoicing — <%- title %></title>
+  <link rel="icon" type="image/png" href="/images/invoicing-logo-simple.png"/>
+  <link href="/assets/vendor/fontawesome-free/css/all.min.css" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css?family=Nunito:200,400,600,700,800" rel="stylesheet"/>
+  <link href="/assets/css/sb-admin-2.min.css" rel="stylesheet"/>
+  <link href="/assets/css/custom.css" rel="stylesheet"/>
+</head>
+<body id="page-top">
+<div id="wrapper">
+  <%- include('../partials/admin-sidebar') %>
+  <div id="content-wrapper" class="d-flex flex-column">
+    <div id="content">
+      <%- include('../partials/topbar') %>
+      <div class="container-fluid">
+
+        <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap" style="gap:12px;">
+          <h5 class="mb-0 text-gray-800">
+            <i class="fas fa-clock-rotate-left text-danger mr-2"></i><strong>Actividades da Plataforma</strong>
+          </h5>
+          <div class="d-flex" style="gap:8px;">
+            <select id="filterEntity" class="form-control form-control-sm" style="width:auto;">
+              <option value="">Todas entidades</option>
+              <option value="sale">Vendas</option>
+              <option value="invoice">Facturas</option>
+              <option value="quotation">Cotações</option>
+              <option value="product">Produtos</option>
+              <option value="client">Clientes</option>
+              <option value="expense">Despesas</option>
+              <option value="supplier">Fornecedores</option>
+              <option value="user">Utilizadores</option>
+            </select>
+            <select id="filterCompany" class="form-control form-control-sm" style="width:auto;">
+              <option value="">Todas empresas</option>
+            </select>
+            <button class="btn btn-sm btn-outline-primary" onclick="loadActivities()"><i class="fas fa-sync-alt"></i></button>
+          </div>
+        </div>
+
+        <!-- Stats -->
+        <div class="row mb-4">
+          <div class="col-md-3 mb-2">
+            <div class="card border-left-success shadow-sm py-2">
+              <div class="card-body py-2">
+                <div class="text-xs font-weight-bold text-success text-uppercase">Hoje</div>
+                <div class="h5 mb-0 font-weight-bold" id="statToday">—</div>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-3 mb-2">
+            <div class="card border-left-primary shadow-sm py-2">
+              <div class="card-body py-2">
+                <div class="text-xs font-weight-bold text-primary text-uppercase">Últimos 7 dias</div>
+                <div class="h5 mb-0 font-weight-bold" id="stat7d">—</div>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-3 mb-2">
+            <div class="card border-left-info shadow-sm py-2">
+              <div class="card-body py-2">
+                <div class="text-xs font-weight-bold text-info text-uppercase">Últimos 30 dias</div>
+                <div class="h5 mb-0 font-weight-bold" id="stat30d">—</div>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-3 mb-2">
+            <div class="card border-left-warning shadow-sm py-2">
+              <div class="card-body py-2">
+                <div class="text-xs font-weight-bold text-warning text-uppercase">Acção mais frequente</div>
+                <div class="h5 mb-0 font-weight-bold" id="statTopAction">—</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Activity list -->
+        <div class="card shadow">
+          <div class="card-body p-0">
+            <div id="activityList" class="p-3" style="max-height:70vh; overflow-y:auto;"></div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+    <%- include('../partials/footer') %>
+  </div>
+</div>
+
+<script>
+var actionIcons = {
+  created:'fas fa-plus-circle text-success', updated:'fas fa-edit text-primary',
+  deleted:'fas fa-trash text-danger', cancelled:'fas fa-ban text-warning',
+  paid:'fas fa-check-circle text-success', exported:'fas fa-file-export text-info',
+  duplicated:'fas fa-copy text-primary', converted:'fas fa-exchange-alt text-info',
+  login:'fas fa-sign-in-alt text-secondary'
+};
+var entityLabels = {
+  sale:'Venda', invoice:'Factura', quotation:'Cotação', product:'Produto',
+  client:'Cliente', expense:'Despesa', supplier:'Fornecedor', user:'Utilizador',
+  vd:'VD', receipt:'Recibo', settings:'Configurações', subscription:'Subscrição'
+};
+var actionLabels = {
+  created:'Criação', updated:'Actualização', deleted:'Eliminação',
+  cancelled:'Cancelamento', paid:'Pagamento', exported:'Exportação',
+  duplicated:'Duplicação', converted:'Conversão', login:'Login'
+};
+
+// Load companies for filter
+fetch('/api/admin/companies').then(r => r.json()).then(data => {
+  if (!data.success) return;
+  var sel = document.getElementById('filterCompany');
+  (data.companies || []).forEach(function(c) {
+    var opt = document.createElement('option');
+    opt.value = c._id;
+    opt.textContent = c.name;
+    sel.appendChild(opt);
+  });
+}).catch(function(){});
+
+document.getElementById('filterEntity').addEventListener('change', loadActivities);
+document.getElementById('filterCompany').addEventListener('change', loadActivities);
+
+function loadActivities() {
+  var entity = document.getElementById('filterEntity').value;
+  var company = document.getElementById('filterCompany').value;
+  var url = '/api/admin/activities?limit=100';
+  if (entity) url += '&entity=' + entity;
+  if (company) url += '&company=' + company;
+
+  fetch(url).then(function(r) { return r.json(); }).then(function(data) {
+    var el = document.getElementById('activityList');
+    if (!data.success || !data.activities.length) {
+      el.innerHTML = '<p class="text-center text-muted py-4">Sem actividades registadas.</p>';
+      updateStats([]);
+      return;
+    }
+    updateStats(data.activities);
+
+    el.innerHTML = data.activities.map(function(a) {
+      var icon = actionIcons[a.action] || 'fas fa-info-circle text-secondary';
+      var time = new Date(a.createdAt).toLocaleString('pt-PT');
+      var companyName = a.companyId?.name || '—';
+      var entityBadge = '<span class="badge badge-light border mr-1" style="font-size:.7rem;">' + (entityLabels[a.entity] || a.entity) + '</span>';
+      return '<div class="d-flex align-items-start py-2 border-bottom" style="gap:12px;">'
+        + '<i class="' + icon + ' mt-1" style="font-size:1.1rem; width:20px; flex-shrink:0;"></i>'
+        + '<div style="flex:1; min-width:0;">'
+        + '<div class="d-flex justify-content-between align-items-start flex-wrap" style="gap:4px;">'
+        + '<div class="small text-gray-500">' + time + '</div>'
+        + '<div>' + entityBadge + '<span class="badge badge-primary" style="font-size:.65rem;">' + companyName + '</span></div>'
+        + '</div>'
+        + '<div>' + a.description + '</div>'
+        + (a.userName ? '<small class="text-muted">por ' + a.userName + '</small>' : '')
+        + '</div></div>';
+    }).join('');
+  }).catch(function() {
+    document.getElementById('activityList').innerHTML = '<p class="text-center text-danger py-3">Erro ao carregar.</p>';
+  });
+}
+
+function updateStats(activities) {
+  var now = new Date();
+  var todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  var d7 = new Date(now.getTime() - 7 * 86400000);
+  var d30 = new Date(now.getTime() - 30 * 86400000);
+
+  var today = 0, week = 0, month = 0;
+  var actionCount = {};
+  activities.forEach(function(a) {
+    var t = new Date(a.createdAt).getTime();
+    if (t >= todayStart.getTime()) today++;
+    if (t >= d7.getTime()) week++;
+    if (t >= d30.getTime()) month++;
+    actionCount[a.action] = (actionCount[a.action] || 0) + 1;
+  });
+
+  document.getElementById('statToday').textContent = today;
+  document.getElementById('stat7d').textContent = week;
+  document.getElementById('stat30d').textContent = month;
+
+  var topAction = Object.entries(actionCount).sort(function(a,b) { return b[1]-a[1]; })[0];
+  document.getElementById('statTopAction').textContent = topAction ? (actionLabels[topAction[0]] || topAction[0]) + ' (' + topAction[1] + ')' : '—';
+}
+
+loadActivities();
+</script>
+</body>
+</html>

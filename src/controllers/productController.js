@@ -1,5 +1,6 @@
 const Product = require("../models/product");
 const StockMovement = require("../models/stockMovement");
+const { log: logActivity } = require('./activityLogController');
 
 // helper
 function toNumber(v, fallback = 0) {
@@ -41,6 +42,12 @@ exports.createProduct = async (req, res) => {
         min: toNumber(stockMin, 0),
       },
       active: active === undefined ? true : Boolean(active),
+    });
+
+    logActivity({
+      companyId: req.user.company._id, userId: req.user._id, userName: req.user.name,
+      action: 'created', entity: 'product', entityId: product._id,
+      description: `Criou produto "${product.description}".`
     });
 
     return res.status(201).json({ status: "success", product });

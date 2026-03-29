@@ -2,11 +2,13 @@ const ExcelJS = require("exceljs");
 const mongoose = require("mongoose")
 const Invoice = require("../models/invoice");
 const Recibo = require("../models/recibo");
-const { generateInvoicePDF } = require("../utils/pdfGenerator");
+const { generateInvoicePDF, generateCreditNotePDF, generateDebitNotePDF } = require("../utils/pdfGenerator");
 const { amounts, normalizeItems } = require("../utils/amountCalculator");
 const { normalizeInvoiceStatus } = require("../utils/normalizeStatus")
 const { buildInvoiceFilter } = require("../utils/invoiceFilter");
 const { generateStatementFileName } = require("../utils/extratoNameGenerator")
+const { log: logActivity } = require('./activityLogController');
+const { getNextReciboNumber } = require('../utils/numerationGenerator');
 
 exports.createInvoice = async (req, res) => {
   const { subTotal, tax, totalAmount } = amounts(req.body.items, req.body.iva * 1 * 0.01);
@@ -48,6 +50,12 @@ exports.createInvoice = async (req, res) => {
 
   await invoice.save();
 
+  logActivity({
+    companyId, userId, userName: req.user.name,
+    action: 'created', entity: 'invoice', entityId: invoice._id,
+    description: `Criou factura ${invoice.invoiceNumber} para ${invoice.clientName} no valor de ${totalAmount} MZN.`
+  });
+
   res.status(201).json({
     success: true,
     message: "Factura criada com sucesso.",
@@ -60,6 +68,7 @@ exports.getInvoices = async (req, res) => {
   const companyId = req.user.company._id;
   const invoices = await Invoice.find({
     companyId,
+    docType: 'invoice',
   });
   if (!invoices) {
     return res.status(404).json({
@@ -215,13 +224,7 @@ exports.updateInvoiceStatus = async (req, res) => {
       });
 
       if (!existingRecibo) {
-        const lastReciboNumber = await Recibo.findOne({ companyId }).sort({ createdAt: -1 });
-
-        let newNumber = "0001";
-        if (lastReciboNumber) {
-          const lastNumber = parseInt(lastReciboNumber.reciboNumber, 10);
-          newNumber = (lastNumber + 1).toString().padStart(4, "0");
-        }
+        const newNumber = await getNextReciboNumber(companyId);
 
         try {
           const recibo = new Recibo({
@@ -275,6 +278,14 @@ exports.updateInvoiceStatus = async (req, res) => {
         };
       }
     }
+
+    logActivity({
+      companyId, userId: req.user._id, userName: req.user.name,
+      action: nextStatus === 'paid' ? 'paid' : 'updated', entity: 'invoice', entityId: invoice._id,
+      description: nextStatus === 'paid'
+        ? `Marcou factura ${invoice.invoiceNumber} como paga.`
+        : `Actualizou estado da factura ${invoice.invoiceNumber} para ${nextStatus}.`
+    });
 
     return res.json({
       success: true,
@@ -333,10 +344,25 @@ exports.downloadInvoicePDF = async (req, res) => {
   }
 
   try {
-    const pdfBuffer = await generateInvoicePDF(companyInfo, invoice);
+    let pdfBuffer;
+    let filename;
+
+    if (invoice.docType === 'credit_note') {
+      const related = invoice.relatedInvoiceId ? await Invoice.findById(invoice.relatedInvoiceId) : null;
+      pdfBuffer = await generateCreditNotePDF(companyInfo, invoice, related?.invoiceNumber);
+      filename = `nota-credito-${invoice.invoiceNumber}.pdf`;
+    } else if (invoice.docType === 'debit_note') {
+      const related = invoice.relatedInvoiceId ? await Invoice.findById(invoice.relatedInvoiceId) : null;
+      pdfBuffer = await generateDebitNotePDF(companyInfo, invoice, related?.invoiceNumber);
+      filename = `nota-debito-${invoice.invoiceNumber}.pdf`;
+    } else {
+      pdfBuffer = await generateInvoicePDF(companyInfo, invoice);
+      filename = `factura-${invoice.invoiceNumber}.pdf`;
+    }
+
     res.set({
       "Content-Type": "application/pdf",
-      "Content-Disposition": `attachment; filename=factura-${invoice.invoiceNumber}.pdf`,
+      "Content-Disposition": `attachment; filename=${filename}`,
     });
     res.send(pdfBuffer);
   } catch (err) {

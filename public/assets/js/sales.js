@@ -73,6 +73,9 @@ document.addEventListener("DOMContentLoaded", function () {
             <a class="btn btn-outline-primary" target="_blank" href="${pdfUrl}">
               <i class="fa-solid fa-receipt mr-1"></i> Recibo
             </a>
+            <a class="btn btn-outline-success" target="_blank" href="https://wa.me/?text=${encodeURIComponent('Recibo de venda ' + receipt + ' — Total: ' + formatCurrency(sale.total) + '. Descarregue aqui: ')}${encodeURIComponent(window.location.origin + pdfUrl)}">
+              <i class="fab fa-whatsapp mr-1"></i> WhatsApp
+            </a>
             <button class="btn btn-outline-danger btn-cancel-sale"
               data-id="${sale._id}" data-receipt="${receipt}"
               ${canCancel ? "" : "disabled"}>
@@ -222,6 +225,9 @@ document.addEventListener("DOMContentLoaded", function () {
           <td class="text-center">
             <a class="btn btn-sm btn-outline-primary" target="_blank" href="${pdfUrl}">
               <i class="fa-solid fa-receipt mr-1"></i> Recibo
+            </a>
+            <a class="btn btn-sm btn-outline-success" target="_blank" href="https://wa.me/?text=${encodeURIComponent('Recibo de venda ' + receipt + ' — Total: ' + formatCurrency(sale.total) + '. Descarregue aqui: ')}${encodeURIComponent(window.location.origin + pdfUrl)}" title="Enviar por WhatsApp">
+              <i class="fab fa-whatsapp"></i>
             </a>
             <button class="btn btn-sm btn-outline-danger btn-cancel-sale"
               data-id="${sale._id}" data-receipt="${receipt}"

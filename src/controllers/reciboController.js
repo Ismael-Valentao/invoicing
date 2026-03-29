@@ -2,6 +2,7 @@ const Recibo = require("../models/recibo");
 const Invoice = require("../models/invoice");
 const { generateReciboPDF } = require("../utils/pdfGenerator");
 const { amounts } = require("../utils/amountCalculator");
+const { getNextReciboNumber } = require("../utils/numerationGenerator");
 
 exports.createRecibo = async (req, res) => {
   const { subTotal, tax, totalAmount } = amounts(req.body.items);
@@ -19,16 +20,7 @@ exports.createRecibo = async (req, res) => {
     });
   }
 
-  const lastReciboNumber = await Recibo.findOne({
-    companyId,
-  }).sort({ createdAt: -1 });
-  let newNumber = '0001';
-  if (lastReciboNumber) {
-    const lastNumber = parseInt(lastReciboNumber.reciboNumber);
-    newNumber = (lastNumber + 1).toString().padStart(4, "0"); // Ensure 6 digits
-  } else {
-    newNumber = "0001"; // Start with 0001 if no previous recibos exist
-  }
+  const newNumber = await getNextReciboNumber(companyId);
 
   const recibo = new Recibo({
     docType: "recibo",
@@ -150,13 +142,7 @@ exports.generateReciboFromInvoice = async (req, res) => {
 
     const { subTotal, tax, totalAmount } = amounts(invoice.items);
 
-    const lastRecibo = await Recibo.findOne({ companyId }).sort({ createdAt: -1 });
-
-    let newNumber = "0001";
-    if (lastRecibo) {
-      const lastNumber = parseInt(lastRecibo.reciboNumber, 10);
-      newNumber = (lastNumber + 1).toString().padStart(4, "0");
-    }
+    const newNumber = await getNextReciboNumber(companyId);
 
     const recibo = new Recibo({
       docType: "recibo",

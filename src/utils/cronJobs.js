@@ -8,6 +8,9 @@ const User = require('../models/user');
 const Invoice = require('../models/invoice');
 const Sale = require('../models/sale');
 const Client = require('../models/client');
+const RecurringInvoice = require('../models/recurringInvoice');
+const { getNextInvoiceNumber } = require('./numerationGenerator');
+const { generateNotifications } = require('../controllers/notificationController');
 const { getPlan } = require('./plans');
 const {
     sendExpiryWarningEmail,
@@ -177,20 +180,92 @@ async function runMonthlySummary() {
 }
 
 /**
+ * Gera notificações in-app (stock baixo, facturas vencidas) para todas as empresas.
+ */
+async function runNotificationGeneration() {
+    try {
+        const companies = await Company.find({}, '_id');
+        for (const c of companies) {
+            await generateNotifications(c._id);
+        }
+        console.log(`[Cron] Notificações geradas para ${companies.length} empresa(s).`);
+    } catch (err) {
+        console.error('[Cron] Erro na geração de notificações:', err.message);
+    }
+}
+
+/**
+ * Processa facturas recorrentes que atingiram a nextRunDate.
+ */
+async function runRecurringInvoices() {
+    try {
+        const now = new Date();
+        const due = await RecurringInvoice.find({ active: true, nextRunDate: { $lte: now } });
+
+        for (const ri of due) {
+            // Generate next invoice number
+            const invoiceNumber = await getNextInvoiceNumber(ri.companyId);
+
+            const company = await Company.findById(ri.companyId);
+            if (!company) continue;
+
+            await Invoice.create({
+                docType: 'invoice',
+                companyId: ri.companyId,
+                userId: ri.userId,
+                clientId: ri.clientId,
+                companyName: company.name,
+                clientName: ri.clientName,
+                clientNUIT: ri.clientNUIT || 'N/A',
+                invoiceNumber,
+                items: ri.items,
+                appliedTax: ri.appliedTax,
+                subTotal: ri.subTotal,
+                tax: ri.tax,
+                totalAmount: ri.totalAmount,
+                showBankDetails: ri.showBankDetails,
+                showNotes: ri.showNotes,
+                status: 'unpaid',
+                date: now,
+                dueDate: new Date(now.getTime() + 30 * MS_PER_DAY),
+            });
+
+            // Calculate next run date
+            const intervals = { weekly: 7, monthly: 30, quarterly: 90, yearly: 365 };
+            const daysToAdd = intervals[ri.interval] || 30;
+            ri.lastRunDate = now;
+            ri.nextRunDate = new Date(now.getTime() + daysToAdd * MS_PER_DAY);
+            ri.generatedCount += 1;
+            await ri.save();
+        }
+
+        if (due.length > 0) console.log(`[Cron] ${due.length} factura(s) recorrente(s) gerada(s).`);
+    } catch (err) {
+        console.error('[Cron] Erro nas facturas recorrentes:', err.message);
+    }
+}
+
+/**
  * Inicializa todos os jobs.
  * - Expiração: a cada 12 horas
  * - Limites: a cada 6 horas
  * - Resumo mensal: a cada 24 horas (verifica internamente se é dia 1)
+ * - Notificações: a cada 4 horas
+ * - Facturas recorrentes: a cada 6 horas
  */
 function startCronJobs() {
     // Executa imediatamente ao arrancar e depois em intervalos
     runExpiryCheck();
     runLimitCheck();
     runMonthlySummary();
+    runNotificationGeneration();
+    runRecurringInvoices();
 
     setInterval(runExpiryCheck, 12 * 60 * 60 * 1000);  // 12h
     setInterval(runLimitCheck, 6 * 60 * 60 * 1000);    // 6h
     setInterval(runMonthlySummary, 24 * 60 * 60 * 1000); // 24h
+    setInterval(runNotificationGeneration, 4 * 60 * 60 * 1000); // 4h
+    setInterval(runRecurringInvoices, 6 * 60 * 60 * 1000); // 6h
 
     console.log('[Cron] Jobs iniciados.');
 }

@@ -6,6 +6,7 @@ const { processSale, revertSale } = require('../services/sale');
 const { generateSaleReceiptPDFKit } = require('../utils/pdfGenerator');
 const { getNextReceiptNumber } = require('../utils/numerationGenerator');
 const Product = require('../models/product');
+const { log: logActivity } = require('./activityLogController');
 
 const isDev = process.env.NODE_ENV === 'Development';
 
@@ -103,6 +104,12 @@ exports.createSale = async (req, res) => {
             session.endSession();
         }
 
+        logActivity({
+            companyId: req.user.company._id, userId: req.user._id, userName: req.user.name,
+            action: 'created', entity: 'sale', entityId: sale._id,
+            description: `Registou venda ${sale.receiptNumber || ''} no valor de ${sale.total} MZN.`
+        });
+
         const pdfBuffer = await generateSaleReceiptPDFKit(req.user.company, sale);
 
         res.set({
@@ -196,6 +203,12 @@ exports.cancelSale = async (req, res) => {
             await session.commitTransaction();
             session.endSession();
         }
+
+        logActivity({
+            companyId: req.user.company._id, userId: req.user._id, userName: req.user.name,
+            action: 'cancelled', entity: 'sale', entityId: sale._id,
+            description: `Cancelou venda ${sale.receiptNumber || ''}.`
+        });
 
         res.json({ message: 'Venda cancelada com sucesso' });
 

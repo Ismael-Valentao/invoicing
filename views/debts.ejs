@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"/>
+  <title>Invoicing - <%- title %></title>
+  <link rel="icon" type="image/png" href="images/invoicing-logo-simple.png"/>
+  <link href="assets/vendor/fontawesome-free/css/all.min.css" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css?family=Nunito:200,400,600,700,800" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" crossorigin="anonymous"/>
+  <link href="assets/css/sb-admin-2.min.css" rel="stylesheet"/>
+  <link href="assets/css/custom.css" rel="stylesheet"/>
+</head>
+<body id="page-top">
+<div id="wrapper">
+  <%- include('partials/sidebar') %>
+  <div id="content-wrapper" class="d-flex flex-column">
+    <div id="content">
+      <%- include('partials/topbar') %>
+      <div class="container-fluid">
+        <div class="d-sm-flex align-items-center justify-content-between mb-4">
+          <h5 class="mb-0 text-gray-800"><strong><i class="fas fa-hand-holding-usd mr-2 text-danger"></i>Dívidas de Clientes</strong></h5>
+          <div class="h5 mb-0 text-danger font-weight-bold" id="totalDebt">—</div>
+        </div>
+
+        <div id="debtsList"></div>
+      </div>
+    </div>
+    <%- include('partials/copyright') %>
+  </div>
+</div>
+
+<%- include('partials/footer') %>
+
+<script>
+const currency = v => new Intl.NumberFormat('pt-MZ',{style:'currency',currency:'MZN'}).format(v||0);
+
+async function loadDebts() {
+  const res = await fetch('/api/dashboard/client-debts');
+  const data = await res.json();
+  if (!data.success) return;
+  document.getElementById('totalDebt').textContent = 'Total: ' + currency(data.totalDebt);
+  const el = document.getElementById('debtsList');
+  if (!data.debts.length) {
+    el.innerHTML = '<div class="card shadow p-4 text-center text-success"><i class="fas fa-check-circle fa-2x mb-2"></i><br>Sem dívidas pendentes!</div>';
+    return;
+  }
+  el.innerHTML = data.debts.map(d => {
+    var daysOverdue = d.oldestDueDate ? Math.max(0, Math.floor((Date.now() - new Date(d.oldestDueDate)) / 86400000)) : 0;
+    var badge = daysOverdue > 30 ? 'danger' : daysOverdue > 7 ? 'warning' : 'secondary';
+    return '<div class="card shadow mb-3"><div class="card-header py-2 d-flex justify-content-between align-items-center">'
+      + '<div><strong>' + d._id + '</strong> <span class="badge badge-' + badge + ' ml-2">' + d.invoiceCount + ' factura' + (d.invoiceCount>1?'s':'') + '</span></div>'
+      + '<div class="h5 mb-0 text-danger font-weight-bold">' + currency(d.totalDebt) + '</div></div>'
+      + '<div class="card-body p-0"><div class="table-responsive"><table class="table table-sm mb-0">'
+      + '<thead class="thead-light"><tr><th>Nº</th><th>Valor</th><th>Vencimento</th><th>Atraso</th><th></th></tr></thead>'
+      + '<tbody>' + d.invoices.map(inv => {
+        var days = inv.dueDate ? Math.max(0, Math.floor((Date.now() - new Date(inv.dueDate)) / 86400000)) : 0;
+        var whatsappUrl = 'https://wa.me/?text=' + encodeURIComponent('Olá, informamos que a factura ' + inv.invoiceNumber + ' no valor de ' + currency(inv.totalAmount) + ' encontra-se pendente. Agradecemos a regularização.');
+        return '<tr><td>' + inv.invoiceNumber + '</td><td class="font-weight-bold">' + currency(inv.totalAmount) + '</td>'
+          + '<td class="small">' + (inv.dueDate ? new Date(inv.dueDate).toLocaleDateString('pt-PT') : '—') + '</td>'
+          + '<td><span class="badge badge-' + (days>30?'danger':days>7?'warning':'secondary') + '">' + days + ' dias</span></td>'
+          + '<td><a href="' + whatsappUrl + '" target="_blank" class="btn btn-outline-success btn-sm" title="Cobrar via WhatsApp"><i class="fab fa-whatsapp"></i></a>'
+          + ' <a href="/invoices/' + inv._id + '/pdf" class="btn btn-outline-primary btn-sm" title="Ver PDF"><i class="fas fa-file-pdf"></i></a></td></tr>';
+      }).join('') + '</tbody></table></div></div></div>';
+  }).join('');
+}
+
+loadDebts();
+</script>
+</body>
+</html>

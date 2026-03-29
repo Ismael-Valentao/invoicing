@@ -25,11 +25,21 @@ function actionButtons(quotation) {
             <i class="fa-solid fa-download"></i>
         </a>
     `;
+    const whatsappBtn = `
+        <a href="https://wa.me/?text=${encodeURIComponent('Cotação ' + (quotation.quotationNumber||'') + ' — ' + formatAmount(quotation.totalAmount) + ' MZN. Ver: ' + window.location.origin + '/p/' + quotation._id)}" class="btn btn-success btn-sm" target="_blank" title="WhatsApp">
+            <i class="fab fa-whatsapp"></i>
+        </a>
+    `;
+    const duplicateBtn = `
+        <button class="btn btn-info btn-sm btn-duplicate-quotation" data-id="${quotation._id}" title="Duplicar">
+            <i class="fa-solid fa-copy"></i>
+        </button>
+    `;
 
     if (quotation.invoiceId) {
         return `
             <div class="d-flex justify-content-center align-items-center" style="gap:6px;">
-                ${downloadBtn}
+                ${downloadBtn}${whatsappBtn}${duplicateBtn}
                 <a href="/invoices" class="btn btn-success btn-sm" title="Ver facturas">
                     <i class="fa-solid fa-file-invoice"></i>
                 </a>
@@ -39,8 +49,8 @@ function actionButtons(quotation) {
 
     return `
         <div class="d-flex justify-content-center align-items-center" style="gap:6px;">
-            ${downloadBtn}
-            <button 
+            ${downloadBtn}${whatsappBtn}${duplicateBtn}
+            <button
                 type="button"
                 class="btn btn-success btn-sm btn-approve-quotation"
                 data-id="${quotation._id}"
@@ -197,6 +207,22 @@ $('#dataTable').on('click', '.btn-approve-quotation', async function () {
         btn.attr('disabled', false);
         btn.find('i').removeClass('fa-spinner fa-spin').addClass('fa-check');
     }
+});
+
+// Duplicate quotation
+$('#dataTable').on('click', '.btn-duplicate-quotation', async function () {
+    const id = $(this).data('id');
+    if (!confirm('Duplicar esta cotação?')) return;
+    try {
+        const res = await fetch(`/api/quotations/${id}/duplicate`, { method: 'POST' });
+        const data = await res.json();
+        if (data.success) {
+            Swal.fire({ icon: 'success', title: 'Cotação duplicada!', timer: 1500, showConfirmButton: false });
+            setTimeout(() => window.location.reload(), 1000);
+        } else {
+            Swal.fire({ icon: 'error', title: 'Erro', text: data.message });
+        }
+    } catch (e) { Swal.fire({ icon: 'error', title: 'Erro', text: 'Erro de ligação.' }); }
 });
 
 async function downloadFile(url, filename = 'documento.pdf') {

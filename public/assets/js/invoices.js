@@ -9,6 +9,8 @@ function statusBadge(status) {
             return '<span class="badge badge-warning p-1 w-100">Pendente</span>';
         case 'overdue':
             return '<span class="badge badge-danger p-1 w-100">Vencido</span>';
+        case 'cancelled':
+            return '<span class="badge badge-dark p-1 w-100">Anulada</span>';
         default:
             return '<span class="badge badge-secondary p-1 w-100">Desconhecido</span>';
     }
@@ -24,15 +26,39 @@ function formatAmount(value) {
 
 function actionButtons(invoice) {
     const downloadBtn = `
-        <a href="/api/invoices/${invoice._id}/pdf" class="btn btn-primary btn-sm text-center btn-download" title="Baixar factura">
+        <a href="/api/invoices/${invoice._id}/pdf" class="btn btn-primary btn-sm text-center btn-download" title="Baixar">
             <i class="fa-solid fa-download"></i>
         </a>
     `;
+    const whatsappBtn = `
+        <a href="https://wa.me/?text=${encodeURIComponent('Factura ' + (invoice.invoiceNumber||'') + ' — ' + formatAmount(invoice.totalAmount) + ' MZN. Ver: ' + window.location.origin + '/p/' + invoice._id)}" class="btn btn-success btn-sm" target="_blank" title="WhatsApp">
+            <i class="fab fa-whatsapp"></i>
+        </a>
+    `;
+    const duplicateBtn = `
+        <button class="btn btn-info btn-sm btn-duplicate-invoice" data-id="${invoice._id}" title="Duplicar">
+            <i class="fa-solid fa-copy"></i>
+        </button>
+    `;
+    const cancelBtn = `
+        <button class="btn btn-dark btn-sm btn-cancel-invoice" data-id="${invoice._id}" data-number="${invoice.invoiceNumber || ''}" title="Anular (Nota de Crédito)">
+            <i class="fa-solid fa-ban"></i>
+        </button>
+    `;
+
+    if (invoice.status === 'cancelled') {
+        return `
+            <div class="d-flex justify-content-center align-items-center" style="gap:6px;">
+                ${downloadBtn}
+                <span class="badge badge-dark">Anulada</span>
+            </div>
+        `;
+    }
 
     if (invoice.status === 'paid') {
         return `
             <div class="d-flex justify-content-center align-items-center" style="gap:6px;">
-                ${downloadBtn}
+                ${downloadBtn}${whatsappBtn}${duplicateBtn}${cancelBtn}
                 <span class="badge badge-success">Pago</span>
             </div>
         `;
@@ -40,8 +66,8 @@ function actionButtons(invoice) {
 
     return `
         <div class="d-flex justify-content-center align-items-center" style="gap:6px;">
-            ${downloadBtn}
-            <button 
+            ${downloadBtn}${whatsappBtn}${duplicateBtn}${cancelBtn}
+            <button
                 type="button"
                 class="btn btn-success btn-sm btn-mark-paid"
                 data-id="${invoice._id}"
@@ -281,6 +307,98 @@ document.getElementById("btn-export").addEventListener("click", async function (
             title: "Erro",
             text: "Não foi possível baixar o extrato"
         });
+    }
+});
+
+// Duplicate invoice
+$('#dataTable').on('click', '.btn-duplicate-invoice', async function () {
+    const id = $(this).data('id');
+    if (!confirm('Duplicar esta factura?')) return;
+    try {
+        const res = await fetch(`/api/invoices/${id}/duplicate`, { method: 'POST' });
+        const data = await res.json();
+        if (data.success) {
+            showToast('success', 'Factura duplicada!');
+            setTimeout(() => window.location.reload(), 1000);
+        } else {
+            showToast('error', data.message || 'Erro ao duplicar.');
+        }
+    } catch (e) { showToast('error', 'Erro de ligação.'); }
+});
+
+// Cancel invoice (emit credit note)
+$('#dataTable').on('click', '.btn-cancel-invoice', async function () {
+    const id = $(this).data('id');
+    const number = $(this).data('number') || '—';
+
+    const result = await Swal.fire({
+        icon: 'warning',
+        title: 'Anular factura',
+        html: `
+            <p>Vai emitir uma <strong>Nota de Crédito</strong> para anular a factura <strong>${number}</strong>.</p>
+            <p class="small text-muted">A factura não será eliminada — ficará com estado "Anulada" e a NC fica registada para efeitos fiscais.</p>
+            <div class="form-group text-left mt-3">
+                <label class="small font-weight-bold">Motivo da anulação *</label>
+                <select class="form-control form-control-sm" id="swalCancelReason">
+                    <option value="">Seleccione...</option>
+                    <option value="Erro nos dados do cliente">Erro nos dados do cliente</option>
+                    <option value="Erro nos itens/valores">Erro nos itens/valores</option>
+                    <option value="Devolução de mercadoria">Devolução de mercadoria</option>
+                    <option value="Factura duplicada">Factura duplicada</option>
+                    <option value="Desistência do cliente">Desistência do cliente</option>
+                    <option value="Outro">Outro</option>
+                </select>
+                <input type="text" class="form-control form-control-sm mt-2" id="swalCancelReasonCustom" placeholder="Especifique o motivo..." style="display:none;" />
+            </div>
+        `,
+        showCancelButton: true,
+        confirmButtonText: '<i class="fa-solid fa-file-circle-minus mr-1"></i> Emitir Nota de Crédito',
+        confirmButtonColor: '#333',
+        cancelButtonText: 'Cancelar',
+        didOpen: () => {
+            document.getElementById('swalCancelReason').addEventListener('change', function() {
+                document.getElementById('swalCancelReasonCustom').style.display = this.value === 'Outro' ? '' : 'none';
+            });
+        },
+        preConfirm: () => {
+            const sel = document.getElementById('swalCancelReason').value;
+            const custom = document.getElementById('swalCancelReasonCustom').value.trim();
+            const reason = sel === 'Outro' ? (custom || 'Outro') : sel;
+            if (!reason) {
+                Swal.showValidationMessage('Seleccione um motivo.');
+                return false;
+            }
+            return reason;
+        }
+    });
+
+    if (!result.isConfirmed) return;
+
+    try {
+        const res = await fetch('/api/invoices/credit-note', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ invoiceId: id, reason: result.value })
+        });
+        const data = await res.json();
+        if (data.success) {
+            const dlResult = await Swal.fire({
+                icon: 'success',
+                title: 'Factura anulada',
+                html: `<p>${data.message}</p>`,
+                showCancelButton: true,
+                confirmButtonText: '<i class="fa-solid fa-download mr-1"></i> Baixar NC',
+                cancelButtonText: 'Fechar'
+            });
+            if (dlResult.isConfirmed && data.downloadUrl) {
+                await downloadFile(data.downloadUrl, `nota-credito-${data.creditNote.invoiceNumber}.pdf`);
+            }
+            setTimeout(() => window.location.reload(), 500);
+        } else {
+            Swal.fire({ icon: 'error', title: 'Erro', text: data.message });
+        }
+    } catch (e) {
+        Swal.fire({ icon: 'error', title: 'Erro', text: 'Erro de ligação.' });
     }
 });
 

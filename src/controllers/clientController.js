@@ -1,4 +1,5 @@
 const Client = require('../models/client');
+const { log: logActivity } = require('./activityLogController');
 
 function normalizeOptionalField(value, fallback = undefined) {
     if (value === undefined || value === null) return fallback;
@@ -32,6 +33,11 @@ exports.createClient = async (req, res) => {
         const client = new Client(clientData);
 
         await client.save();
+        logActivity({
+            companyId: req.user.company._id, userId: req.user._id, userName: req.user.name,
+            action: 'created', entity: 'client', entityId: client._id,
+            description: `Adicionou cliente "${client.name}".`
+        });
         return res.status(201).json({ success: true, client });
     } catch (error) {
         if (error.code === 11000) {

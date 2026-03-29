@@ -28,6 +28,13 @@ router.get('/summary', authMiddleware, getInvoicesSummary);
 router.get('/total-amount', authMiddleware, getInvoicesTotalAmount);
 router.get('/total-invoices', authMiddleware, getTotalInvoices);
 router.get('/total/months', authMiddleware, getTotalAmountByMonth);
+
+// Notas de crédito e débito (ANTES das rotas /:id)
+const { createCreditNote, createDebitNote, getNotes } = require('../controllers/creditDebitNoteController');
+router.get('/notes', authMiddleware, getNotes);
+router.post('/credit-note', authMiddleware, checkSubscriptionActive, createCreditNote);
+router.post('/debit-note', authMiddleware, checkSubscriptionActive, createDebitNote);
+
 router.get('/:id',authMiddleware, getInvoiceById);
 router.get('/:id/pdf',authMiddleware, downloadInvoicePDF);
 router.get("/export/excel/:filter", authMiddleware, checkExcelExportAllowed,
@@ -35,5 +42,43 @@ router.get("/export/excel/:filter", authMiddleware, checkExcelExportAllowed,
 );
 router.patch('/:id',authMiddleware, updateInvoiceStatus);
 
+// Duplicar factura
+router.post('/:id/duplicate', authMiddleware, checkSubscriptionActive, async (req, res) => {
+    try {
+        const Invoice = require('../models/invoice');
+        const { getNextInvoiceNumber } = require('../utils/numerationGenerator');
+        const original = await Invoice.findOne({ _id: req.params.id, companyId: req.user.company._id });
+        if (!original) return res.status(404).json({ success: false, message: 'Factura não encontrada.' });
+        const invoiceNumber = await getNextInvoiceNumber(req.user.company._id);
+        const newDoc = await Invoice.create({
+            docType: original.docType,
+            companyId: original.companyId,
+            userId: req.user._id,
+            clientId: original.clientId,
+            companyName: original.companyName,
+            clientName: original.clientName,
+            clientNUIT: original.clientNUIT,
+            invoiceNumber,
+            items: original.items,
+            appliedTax: original.appliedTax,
+            subTotal: original.subTotal,
+            tax: original.tax,
+            totalAmount: original.totalAmount,
+            showBankDetails: original.showBankDetails,
+            showNotes: original.showNotes,
+            status: 'unpaid',
+            date: new Date(),
+        });
+        const { log: logActivity } = require('../controllers/activityLogController');
+        logActivity({
+            companyId: req.user.company._id, userId: req.user._id, userName: req.user.name,
+            action: 'duplicated', entity: 'invoice', entityId: newDoc._id,
+            description: `Duplicou factura ${original.invoiceNumber} → ${newDoc.invoiceNumber}.`
+        });
+        res.json({ success: true, message: 'Factura duplicada.', invoice: newDoc });
+    } catch (err) {
+        res.status(500).json({ success: false, message: err.message });
+    }
+});
 
 module.exports = router;

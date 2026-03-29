@@ -11,3 +11,57 @@
 
 <script src="assets/js/logout.js"></script>
 <script src="assets/js/datehandler.js"></script>
+
+<!-- Notifications -->
+<script>
+(function loadNotifications() {
+  fetch('/api/notifications').then(r => r.ok ? r.json() : null).then(data => {
+    if (!data || !data.success) return;
+    var badge = document.getElementById('notifBadge');
+    var list = document.getElementById('notifList');
+    if (!badge || !list) return;
+    if (data.unreadCount > 0) {
+      badge.style.display = '';
+      badge.textContent = data.unreadCount > 9 ? '9+' : data.unreadCount;
+    } else {
+      badge.style.display = 'none';
+    }
+    if (!data.notifications.length) {
+      list.innerHTML = '<div class="dropdown-item text-center text-muted small py-3">Sem notificações</div>';
+      return;
+    }
+    var colorMap = { primary:'#4e73df', success:'#1cc88a', warning:'#f6c23e', danger:'#e74a3b', info:'#36b9cc' };
+    list.innerHTML = data.notifications.slice(0, 8).map(function(n) {
+      var bg = colorMap[n.color] || '#4e73df';
+      var ago = timeAgo(n.createdAt);
+      var bold = n.read ? '' : 'font-weight:700;';
+      return '<a class="dropdown-item d-flex align-items-center" href="' + (n.link || '#') + '" style="' + bold + '">'
+        + '<div class="mr-3"><div class="icon-circle" style="background:' + bg + ';width:2.5rem;height:2.5rem;display:flex;align-items:center;justify-content:center;border-radius:50%;"><i class="' + n.icon + ' text-white" style="font-size:.8rem;"></i></div></div>'
+        + '<div><div class="small text-gray-500">' + ago + '</div>' + n.message + '</div></a>';
+    }).join('');
+  }).catch(function(){});
+
+  function timeAgo(d) {
+    var ms = Date.now() - new Date(d).getTime();
+    var m = Math.floor(ms / 60000);
+    if (m < 1) return 'agora';
+    if (m < 60) return m + ' min';
+    var h = Math.floor(m / 60);
+    if (h < 24) return h + 'h';
+    return Math.floor(h / 24) + 'd';
+  }
+
+  var markAll = document.getElementById('markAllRead');
+  if (markAll) {
+    markAll.addEventListener('click', function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      fetch('/api/notifications/all/read', { method: 'PATCH' }).then(function() {
+        var badge = document.getElementById('notifBadge');
+        if (badge) badge.style.display = 'none';
+        loadNotifications();
+      });
+    });
+  }
+})();
+</script>

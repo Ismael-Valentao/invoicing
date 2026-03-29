@@ -36,17 +36,18 @@
           <div class="sidebar-heading">Vendas</div>
 
           <% if (can('sales')) { %>
-            <li class="nav-item <%= ['Vendas','Nova Venda','Lista de Vendas'].includes(title) ? 'active' : '' %>">
+            <li class="nav-item <%= ['Vendas','Nova Venda','Lista de Vendas','Venda Rápida'].includes(title) ? 'active' : '' %>">
               <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseSales"
                 aria-expanded="true" aria-controls="collapseSales">
                 <i class="fa-solid fa-cart-shopping"></i>
                 <span>Vendas</span>
               </a>
               <div id="collapseSales"
-                class="collapse <%= ['Vendas','Nova Venda','Lista de Vendas'].includes(title) ? 'show' : '' %>"
+                class="collapse <%= ['Vendas','Nova Venda','Lista de Vendas','Venda Rápida'].includes(title) ? 'show' : '' %>"
                 aria-labelledby="headingSales" data-parent="#accordionSidebar">
                 <div class="bg-white py-2 collapse-inner rounded">
                   <h6 class="collapse-header">Opções:</h6>
+                  <a class="collapse-item <%= title === 'Venda Rápida' ? 'active' : '' %>" href="/pos">Venda rápida (POS)</a>
                   <a class="collapse-item <%= title === 'Nova Venda' ? 'active' : '' %>" href="/new-sale">Nova venda</a>
                   <a class="collapse-item <%= ['Vendas','Lista de Vendas'].includes(title) ? 'active' : '' %>"
                     href="/sales">Lista de vendas</a>
@@ -93,7 +94,7 @@
 
                       <% if (can('invoicing')) { %>
                         <li
-                          class="nav-item <%= ['Facturas', 'VD', 'Recibos', 'Cotações'].includes(title) ? 'active' : '' %>">
+                          class="nav-item <%= ['Facturas', 'VD', 'Recibos', 'Cotações', 'Facturas Recorrentes', 'Dívidas de Clientes', 'Notas de Crédito & Débito'].includes(title) ? 'active' : '' %>">
                           <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseDocuments"
                             aria-expanded="true" aria-controls="collapseDocuments">
                             <i class="fa-solid fa-file-invoice-dollar"></i>
@@ -101,7 +102,7 @@
                           </a>
 
                           <div id="collapseDocuments"
-                            class="collapse <%= ['Facturas', 'VD', 'Recibos', 'Cotações'].includes(title) ? 'show' : '' %>"
+                            class="collapse <%= ['Facturas', 'VD', 'Recibos', 'Cotações', 'Facturas Recorrentes', 'Dívidas de Clientes', 'Notas de Crédito & Débito'].includes(title) ? 'show' : '' %>"
                             aria-labelledby="headingDocuments" data-parent="#accordionSidebar">
                             <div class="bg-white py-2 collapse-inner rounded">
                               <h6 class="collapse-header">Opções:</h6>
@@ -121,6 +122,15 @@
                               <a class="collapse-item <%= title === 'Cotações' ? 'active' : '' %>" href="/quotations">
                                 Cotações
                               </a>
+                              <a class="collapse-item <%= title === 'Facturas Recorrentes' ? 'active' : '' %>" href="/recurring-invoices">
+                                Recorrentes
+                              </a>
+                              <a class="collapse-item <%= title === 'Notas de Crédito & Débito' ? 'active' : '' %>" href="/notes">
+                                NC / ND
+                              </a>
+                              <a class="collapse-item <%= title === 'Dívidas de Clientes' ? 'active' : '' %>" href="/debts">
+                                Dívidas
+                              </a>
                             </div>
                           </div>
                         </li>
@@ -134,6 +144,22 @@
                               </a>
                             </li>
                             <% } %>
+
+                          <% if (can('suppliers')) { %>
+                            <li class="nav-item <%= title === 'Fornecedores' ? 'active' : '' %>">
+                              <a class="nav-link" href="/suppliers">
+                                <i class="fa-solid fa-truck"></i>
+                                <span>Fornecedores</span>
+                              </a>
+                            </li>
+                          <% } %>
+
+                            <li class="nav-item <%= title === 'Despesas' ? 'active' : '' %>">
+                              <a class="nav-link" href="/expenses">
+                                <i class="fa-solid fa-wallet"></i>
+                                <span>Despesas</span>
+                              </a>
+                            </li>
 
                               <% if (can('reports')) { %>
                                 <li class="nav-item <%= title === 'Relatórios' ? 'active' : '' %>">
@@ -167,6 +193,13 @@
                                             <a class="nav-link" href="/users">
                                               <i class="fa-solid fa-users-gear"></i>
                                               <span>Utilizadores</span>
+                                            </a>
+                                          </li>
+
+                                          <li class="nav-item <%= title === 'Actividades' ? 'active' : '' %>">
+                                            <a class="nav-link" href="/activities">
+                                              <i class="fa-solid fa-clock-rotate-left"></i>
+                                              <span>Actividades</span>
                                             </a>
                                           </li>
 

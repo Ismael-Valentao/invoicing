@@ -307,6 +307,40 @@
                 </div>
               </div>
 
+              <!-- PREFERÊNCIAS -->
+              <div class="card shadow-sm mb-3">
+                <div class="card-header">
+                  <h6 class="m-0 font-weight-bold text-primary">
+                    <i class="fa-solid fa-sliders"></i> Preferências
+                  </h6>
+                </div>
+                <div class="card-body">
+                  <div class="row">
+                    <div class="col-md-6 mb-3">
+                      <label class="small font-weight-bold">Moeda</label>
+                      <select class="form-control form-control-sm" id="prefCurrency">
+                        <option value="MZN">MZN — Metical Moçambicano</option>
+                        <option value="USD">USD — Dólar Americano</option>
+                        <option value="ZAR">ZAR — Rand Sul-Africano</option>
+                        <option value="EUR">EUR — Euro</option>
+                      </select>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                      <label class="small font-weight-bold">Template de Factura</label>
+                      <select class="form-control form-control-sm" id="prefTemplate">
+                        <option value="classic">Clássico</option>
+                        <option value="modern">Moderno</option>
+                        <option value="minimal">Minimalista</option>
+                      </select>
+                    </div>
+                  </div>
+                  <button class="btn btn-primary btn-sm" id="btnSavePrefs">
+                    <i class="fas fa-save mr-1"></i>Guardar preferências
+                  </button>
+                  <span id="prefMsg" class="ml-2 small"></span>
+                </div>
+              </div>
+
               <!-- EMPRESA -->
               <div class="card shadow-sm mb-3">
                 <div class="card-header d-flex justify-content-between align-items-center">

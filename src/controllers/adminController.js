@@ -5,6 +5,7 @@ const User = require('../models/user');
 const Invoice = require('../models/invoice');
 const Sale = require('../models/sale');
 const PaymentSettings = require('../models/paymentSettings');
+const ActivityLog = require('../models/activityLog');
 const { PLANS, getPlan, getPaidPlanExpiration, getFreePlanExpiration } = require('../utils/plans');
 const { sendUpgradeConfirmationEmail } = require('../utils/mailSender');
 
@@ -342,6 +343,23 @@ exports.setupSuperAdmin = async (req, res) => {
         return res.json({ success: true, message: `${user.name} definido como SUPERADMIN da plataforma.` });
     } catch (err) {
         return res.status(500).json({ success: false, message: 'Erro.' });
+    }
+};
+
+// ─── ACTIVITIES (all companies) ───────────────────────────────────────────────
+exports.getAllActivities = async (req, res) => {
+    try {
+        const { entity, company, limit = 50 } = req.query;
+        const filter = {};
+        if (entity) filter.entity = entity;
+        if (company) filter.companyId = company;
+        const activities = await ActivityLog.find(filter)
+            .sort({ createdAt: -1 })
+            .limit(Number(limit))
+            .populate('companyId', 'name');
+        res.json({ success: true, activities });
+    } catch (err) {
+        res.status(500).json({ success: false, message: err.message });
     }
 };
 

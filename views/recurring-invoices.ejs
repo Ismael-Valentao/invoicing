@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"/>
+  <title>Invoicing - <%- title %></title>
+  <link rel="icon" type="image/png" href="images/invoicing-logo-simple.png"/>
+  <link href="assets/vendor/fontawesome-free/css/all.min.css" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css?family=Nunito:200,400,600,700,800" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" crossorigin="anonymous"/>
+  <link href="assets/css/sb-admin-2.min.css" rel="stylesheet"/>
+  <link href="assets/css/custom.css" rel="stylesheet"/>
+</head>
+<body id="page-top">
+<div id="wrapper">
+  <%- include('partials/sidebar') %>
+  <div id="content-wrapper" class="d-flex flex-column">
+    <div id="content">
+      <%- include('partials/topbar') %>
+      <div class="container-fluid">
+        <div class="d-sm-flex align-items-center justify-content-between mb-4">
+          <h5 class="mb-0 text-gray-800"><strong><i class="fas fa-redo mr-2 text-primary"></i>Facturas Recorrentes</strong></h5>
+          <button class="btn btn-primary btn-sm" data-toggle="modal" data-target="#newRecurringModal">
+            <i class="fas fa-plus mr-1"></i>Nova Recorrente
+          </button>
+        </div>
+
+        <div class="card shadow mb-4">
+          <div class="card-body p-0">
+            <div class="table-responsive">
+              <table class="table table-hover mb-0">
+                <thead class="thead-light">
+                  <tr><th>Cliente</th><th>Total</th><th>Intervalo</th><th>Próxima</th><th>Geradas</th><th>Estado</th><th></th></tr>
+                </thead>
+                <tbody id="recurringTbody">
+                  <tr><td colspan="7" class="text-center text-muted py-3">A carregar...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <div class="alert alert-info small">
+          <i class="fas fa-info-circle mr-1"></i>
+          Facturas recorrentes são geradas automaticamente pelo sistema na data programada. O sistema verifica de 6 em 6 horas.
+        </div>
+      </div>
+    </div>
+    <%- include('partials/copyright') %>
+  </div>
+</div>
+
+<!-- New Recurring Modal -->
+<div class="modal fade" id="newRecurringModal" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title"><i class="fas fa-redo mr-2 text-primary"></i>Nova Factura Recorrente</h5>
+        <button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
+      </div>
+      <div class="modal-body">
+        <div class="row">
+          <div class="col-md-6">
+            <div class="form-group"><label class="small font-weight-bold">Cliente *</label>
+              <select class="form-control form-control-sm" id="riClient"><option value="">Seleccione...</option></select></div>
+          </div>
+          <div class="col-md-3">
+            <div class="form-group"><label class="small font-weight-bold">Intervalo</label>
+              <select class="form-control form-control-sm" id="riInterval">
+                <option value="monthly">Mensal</option>
+                <option value="weekly">Semanal</option>
+                <option value="quarterly">Trimestral</option>
+                <option value="yearly">Anual</option>
+              </select></div>
+          </div>
+          <div class="col-md-3">
+            <div class="form-group"><label class="small font-weight-bold">Primeira emissão</label>
+              <input type="date" class="form-control form-control-sm" id="riStartDate"/></div>
+          </div>
+        </div>
+        <hr/>
+        <h6 class="font-weight-bold">Itens</h6>
+        <div id="riItems">
+          <div class="row mb-2 ri-item">
+            <div class="col-6"><input type="text" class="form-control form-control-sm" placeholder="Descrição" data-field="description"/></div>
+            <div class="col-2"><input type="number" class="form-control form-control-sm" placeholder="Qtd" data-field="quantity" value="1" min="1"/></div>
+            <div class="col-3"><input type="number" class="form-control form-control-sm" placeholder="Preço" data-field="unitPrice" step="0.01" min="0"/></div>
+            <div class="col-1"><button class="btn btn-sm btn-outline-danger" onclick="this.closest('.ri-item').remove()">&times;</button></div>
+          </div>
+        </div>
+        <button class="btn btn-sm btn-outline-primary mt-1" onclick="addRiItem()"><i class="fas fa-plus mr-1"></i>Adicionar item</button>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">Cancelar</button>
+        <button type="button" class="btn btn-primary btn-sm" onclick="saveRecurring()"><i class="fas fa-save mr-1"></i>Criar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<%- include('partials/footer') %>
+
+<script>
+const currency = v => new Intl.NumberFormat('pt-MZ',{style:'currency',currency:'MZN'}).format(v||0);
+const intervalLabels = {weekly:'Semanal',monthly:'Mensal',quarterly:'Trimestral',yearly:'Anual'};
+
+function addRiItem() {
+  var html = '<div class="row mb-2 ri-item">'
+    + '<div class="col-6"><input type="text" class="form-control form-control-sm" placeholder="Descrição" data-field="description"/></div>'
+    + '<div class="col-2"><input type="number" class="form-control form-control-sm" placeholder="Qtd" data-field="quantity" value="1" min="1"/></div>'
+    + '<div class="col-3"><input type="number" class="form-control form-control-sm" placeholder="Preço" data-field="unitPrice" step="0.01" min="0"/></div>'
+    + '<div class="col-1"><button class="btn btn-sm btn-outline-danger" onclick="this.closest(\'.ri-item\').remove()">&times;</button></div></div>';
+  document.getElementById('riItems').insertAdjacentHTML('beforeend', html);
+}
+
+async function loadClients() {
+  var res = await fetch('/api/clients');
+  var data = await res.json();
+  var sel = document.getElementById('riClient');
+  (data.clients || data || []).forEach(function(c) {
+    sel.innerHTML += '<option value="' + c._id + '" data-name="' + c.name + '" data-nuit="' + (c.nuit||'N/A') + '">' + c.name + '</option>';
+  });
+}
+
+async function loadRecurring() {
+  var res = await fetch('/api/subscriptions/recurring-invoices');
+  var data = await res.json();
+  var tbody = document.getElementById('recurringTbody');
+  if (!data.success || !data.items.length) {
+    tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted py-3">Sem facturas recorrentes.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = data.items.map(function(r) {
+    return '<tr><td class="font-weight-bold">' + r.clientName + '</td>'
+      + '<td>' + currency(r.totalAmount) + '</td>'
+      + '<td>' + (intervalLabels[r.interval]||r.interval) + '</td>'
+      + '<td class="small">' + new Date(r.nextRunDate).toLocaleDateString('pt-PT') + '</td>'
+      + '<td><span class="badge badge-primary">' + r.generatedCount + '</span></td>'
+      + '<td>' + (r.active ? '<span class="badge badge-success">Activa</span>' : '<span class="badge badge-secondary">Inactiva</span>') + '</td>'
+      + '<td><button class="btn btn-outline-' + (r.active?'warning':'success') + ' btn-sm" onclick="toggleRecurring(\'' + r._id + '\',' + !r.active + ')">'
+      + '<i class="fas fa-' + (r.active?'pause':'play') + '"></i></button></td></tr>';
+  }).join('');
+}
+
+async function saveRecurring() {
+  var clientSel = document.getElementById('riClient');
+  var opt = clientSel.options[clientSel.selectedIndex];
+  if (!opt || !opt.value) return alert('Seleccione um cliente.');
+  var items = [];
+  document.querySelectorAll('.ri-item').forEach(function(row) {
+    var desc = row.querySelector('[data-field="description"]').value;
+    var qty = parseFloat(row.querySelector('[data-field="quantity"]').value) || 1;
+    var price = parseFloat(row.querySelector('[data-field="unitPrice"]').value) || 0;
+    if (desc && price > 0) items.push({ description: desc, quantity: qty, unitPrice: price });
+  });
+  if (!items.length) return alert('Adicione pelo menos um item.');
+  var subTotal = items.reduce(function(s,i){ return s + i.quantity * i.unitPrice; }, 0);
+  var tax = subTotal * 0.16;
+  var body = {
+    clientId: opt.value, clientName: opt.dataset.name, clientNUIT: opt.dataset.nuit,
+    items: items, subTotal: subTotal, tax: tax, totalAmount: subTotal + tax,
+    interval: document.getElementById('riInterval').value,
+    nextRunDate: document.getElementById('riStartDate').value || new Date().toISOString()
+  };
+  var res = await fetch('/api/subscriptions/recurring-invoices', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) });
+  var data = await res.json();
+  if (data.success) { $('#newRecurringModal').modal('hide'); loadRecurring(); }
+  else alert(data.message);
+}
+
+async function toggleRecurring(id, active) {
+  await fetch('/api/subscriptions/recurring-invoices/' + id, { method:'PATCH', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ active: active }) });
+  loadRecurring();
+}
+
+loadClients(); loadRecurring();
+</script>
+</body>
+</html>

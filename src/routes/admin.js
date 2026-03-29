@@ -27,6 +27,9 @@ router.get('/companies/:id', admin.getCompanyDetail);
 router.get('/users', admin.listUsers);
 router.post('/users/promote', admin.promoteSuperAdmin);
 
+// Actividades (todas as empresas)
+router.get('/activities', admin.getAllActivities);
+
 // Dados de pagamento
 router.get('/payment-settings', admin.getPaymentSettings);
 router.post('/payment-settings', admin.updatePaymentSettings);

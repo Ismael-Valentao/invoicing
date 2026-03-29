@@ -2,6 +2,8 @@ const Quotation = require('../models/quotation');
 const Invoice = require('../models/invoice');
 const { generateQuotationPDF } = require('../utils/pdfGenerator');
 const { amounts, normalizeItems } = require('../utils/amountCalculator');
+const { log: logActivity } = require('./activityLogController');
+const { getNextInvoiceNumber } = require('../utils/numerationGenerator');
 
 exports.createQuotation = async (req, res) => {
     try {
@@ -44,6 +46,12 @@ exports.createQuotation = async (req, res) => {
         });
 
         await quotation.save();
+
+        logActivity({
+            companyId: req.user.company._id, userId: req.user._id, userName: req.user.name,
+            action: 'created', entity: 'quotation', entityId: quotation._id,
+            description: `Criou cotação ${quotation.quotationNumber} para ${quotation.clientName}.`
+        });
 
         return res.status(201).json({
             success: true,
@@ -223,10 +231,7 @@ exports.approveQuotation = async (req, res) => {
             });
         }
 
-        const lastInvoice = await Invoice.findOne({ companyId }).sort({ createdAt: -1 });
-        const nextInvoiceNumber = !lastInvoice
-            ? '0001'
-            : (parseInt(lastInvoice.invoiceNumber, 10) + 1).toString().padStart(4, '0');
+        const nextInvoiceNumber = await getNextInvoiceNumber(companyId);
 
         const invoice = new Invoice({
             docType: "invoice",
