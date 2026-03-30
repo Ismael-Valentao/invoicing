@@ -27,6 +27,10 @@ router.get('/companies/:id', admin.getCompanyDetail);
 router.get('/users', admin.listUsers);
 router.post('/users/promote', admin.promoteSuperAdmin);
 
+// Gestão de planos
+router.get('/plans', admin.getPlans);
+router.put('/plans/:name', admin.updatePlan);
+
 // Actividades (todas as empresas)
 router.get('/activities', admin.getAllActivities);
 

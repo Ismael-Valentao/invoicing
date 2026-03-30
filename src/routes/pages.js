@@ -199,6 +199,10 @@ router.get('/admin/activities', authMiddleware2, requireSuperAdmin, (req, res) =
     res.render('admin/activities', buildViewData(req, 'Admin — Actividades'));
 });
 
+router.get('/admin/plans', authMiddleware2, requireSuperAdmin, (req, res) => {
+    res.render('admin/plans', buildViewData(req, 'Admin — Planos'));
+});
+
 // Despesas
 router.get('/expenses', authMiddleware2, requirePermission('dashboard'), (req, res) => {
     res.render('expenses', buildViewData(req, 'Despesas'));

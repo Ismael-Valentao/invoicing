@@ -6,6 +6,8 @@ const Invoice = require('../models/invoice');
 const Sale = require('../models/sale');
 const PaymentSettings = require('../models/paymentSettings');
 const ActivityLog = require('../models/activityLog');
+const PlanConfig = require('../models/planConfig');
+const { DEFAULTS: PLAN_DEFAULTS, invalidateCache: invalidatePlanCache } = require('../utils/plans');
 const { PLANS, getPlan, getPaidPlanExpiration, getFreePlanExpiration } = require('../utils/plans');
 const { sendUpgradeConfirmationEmail } = require('../utils/mailSender');
 
@@ -343,6 +345,47 @@ exports.setupSuperAdmin = async (req, res) => {
         return res.json({ success: true, message: `${user.name} definido como SUPERADMIN da plataforma.` });
     } catch (err) {
         return res.status(500).json({ success: false, message: 'Erro.' });
+    }
+};
+
+// ─── PLAN MANAGEMENT ─────────────────────────────────────────────────────────
+exports.getPlans = async (req, res) => {
+    try {
+        const docs = await PlanConfig.find({}).sort({ priceMZN: 1 });
+        // If DB is empty, return defaults so the admin can see and edit them
+        if (!docs.length) {
+            const plans = Object.values(PLAN_DEFAULTS).map(p => ({ ...p, _id: null }));
+            return res.json({ success: true, plans, fromDefaults: true });
+        }
+        res.json({ success: true, plans: docs, fromDefaults: false });
+    } catch (err) {
+        res.status(500).json({ success: false, message: err.message });
+    }
+};
+
+exports.updatePlan = async (req, res) => {
+    try {
+        const { name } = req.params;
+        if (!['FREE', 'BASIC', 'PREMIUM'].includes(name)) {
+            return res.status(400).json({ success: false, message: 'Plano inválido.' });
+        }
+        const fields = ['label', 'maxInvoicesPerMonth', 'maxSalesPerMonth', 'maxClients',
+            'maxProducts', 'maxUsers', 'excelExport', 'advancedReports', 'trialDays', 'priceMZN', 'priceLabel'];
+        const update = {};
+        for (const f of fields) {
+            if (req.body[f] !== undefined) update[f] = req.body[f];
+        }
+
+        const plan = await PlanConfig.findOneAndUpdate(
+            { name },
+            { $set: { ...update, name } },
+            { new: true, upsert: true }
+        );
+
+        invalidatePlanCache();
+        res.json({ success: true, message: `Plano ${name} actualizado.`, plan });
+    } catch (err) {
+        res.status(500).json({ success: false, message: err.message });
     }
 };
 

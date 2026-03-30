@@ -3,6 +3,7 @@ const jwt = require('jsonwebtoken');
 require('dotenv').config();
 
 const User = require('../models/user');
+const { log: logActivity } = require('./activityLogController');
 
 const SECRET = process.env.JWT_SECRET;
 
@@ -56,8 +57,19 @@ exports.login = async (req, res) => {
   });
 
   if (user.role === 'SUPERADMIN') {
+    logActivity({
+      companyId: null, userId: user._id, userName: user.name,
+      action: 'login', entity: 'user', entityId: user._id,
+      description: `SUPERADMIN ${user.name} fez login.`
+    });
     return res.json({ success: true, message: 'Login bem-sucedido', redirect: '/admin' });
   }
+
+  logActivity({
+    companyId: user.companyId?._id, userId: user._id, userName: user.name,
+    action: 'login', entity: 'user', entityId: user._id,
+    description: `${user.name} fez login.`
+  });
 
   const activatedModule = user.companyId?.modules?.invoicing ? "invoices" : user.companyId?.modules?.sales ? "sales" : null;
 
@@ -65,6 +77,17 @@ exports.login = async (req, res) => {
 };
 
 exports.logout = (req, res) => {
+  try {
+    const token = req.cookies?.token;
+    if (token) {
+      const decoded = jwt.verify(token, SECRET);
+      logActivity({
+        companyId: decoded.company?._id || null, userId: decoded.id, userName: decoded.name,
+        action: 'logout', entity: 'user', entityId: decoded.id,
+        description: `${decoded.name} fez logout.`
+      });
+    }
+  } catch (e) { /* token expirado ou inválido — ignora */ }
   res.clearCookie('token');
   res.json({ message: 'Logout realizado com sucesso' });
 };

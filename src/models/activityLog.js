@@ -1,12 +1,12 @@
 const mongoose = require('mongoose');
 
 const activityLogSchema = new mongoose.Schema({
-    companyId: { type: mongoose.Schema.Types.ObjectId, ref: 'Company', required: true },
+    companyId: { type: mongoose.Schema.Types.ObjectId, ref: 'Company', default: null },
     userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
     userName: { type: String },
     action: {
         type: String,
-        enum: ['created', 'updated', 'deleted', 'cancelled', 'paid', 'exported', 'duplicated', 'converted', 'login'],
+        enum: ['created', 'updated', 'deleted', 'cancelled', 'paid', 'exported', 'duplicated', 'converted', 'login', 'logout'],
         required: true
     },
     entity: {

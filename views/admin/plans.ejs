@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"/>
+  <title>Invoicing — <%- title %></title>
+  <link rel="icon" type="image/png" href="/images/invoicing-logo-simple.png"/>
+  <link href="/assets/vendor/fontawesome-free/css/all.min.css" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css?family=Nunito:200,400,600,700,800" rel="stylesheet"/>
+  <link href="/assets/css/sb-admin-2.min.css" rel="stylesheet"/>
+  <link href="/assets/css/custom.css" rel="stylesheet"/>
+  <style>
+    .plan-editor { border-radius: 10px; }
+    .plan-editor .card-header { font-weight: 700; }
+    .plan-field label { font-size: .78rem; font-weight: 600; color: #5a5c69; margin-bottom: 2px; }
+    .plan-field input, .plan-field select { font-size: .85rem; }
+    .plan-free .card-header { background: #858796; color: #fff; }
+    .plan-basic .card-header { background: #4e73df; color: #fff; }
+    .plan-premium .card-header { background: #1cc88a; color: #fff; }
+    .infinity-hint { font-size: .7rem; color: #858796; }
+  </style>
+</head>
+<body id="page-top">
+<div id="wrapper">
+  <%- include('../partials/admin-sidebar') %>
+  <div id="content-wrapper" class="d-flex flex-column">
+    <div id="content">
+      <%- include('../partials/topbar') %>
+      <div class="container-fluid">
+
+        <div class="d-flex justify-content-between align-items-center mb-4">
+          <h5 class="mb-0 text-gray-800">
+            <i class="fas fa-layer-group text-danger mr-2"></i><strong>Gestão de Planos</strong>
+          </h5>
+          <span class="text-muted small" id="saveStatus"></span>
+        </div>
+
+        <div class="alert alert-info small mb-4">
+          <i class="fas fa-info-circle mr-1"></i>
+          As alterações entram em vigor imediatamente para novos limites. Use <strong>999999</strong> para representar "ilimitado".
+        </div>
+
+        <div class="row" id="plansContainer">
+          <div class="col-12 text-center text-muted py-4">A carregar planos...</div>
+        </div>
+
+      </div>
+    </div>
+    <%- include('../partials/footer') %>
+  </div>
+</div>
+
+<script>
+var planColors = { FREE: 'plan-free', BASIC: 'plan-basic', PREMIUM: 'plan-premium' };
+var planOrder = ['FREE', 'BASIC', 'PREMIUM'];
+
+function buildPlanCard(plan) {
+  var cls = planColors[plan.name] || '';
+  var isUnlimited = function(v) { return v >= 999999; };
+
+  return '<div class="col-lg-4 col-md-6 mb-4">'
+    + '<div class="card plan-editor shadow ' + cls + '">'
+    + '<div class="card-header d-flex justify-content-between align-items-center">'
+    + '<span><i class="fas fa-layer-group mr-2"></i>' + plan.name + '</span>'
+    + '<span class="badge badge-light text-dark">' + (plan.label || '') + '</span>'
+    + '</div>'
+    + '<div class="card-body" style="font-size:.88rem;">'
+
+    // Label & Price
+    + '<div class="row">'
+    + '<div class="col-6 plan-field mb-2"><label>Nome público</label>'
+    + '<input type="text" class="form-control form-control-sm" data-plan="' + plan.name + '" data-field="label" value="' + (plan.label||'') + '"/></div>'
+    + '<div class="col-6 plan-field mb-2"><label>Preço (MZN)</label>'
+    + '<input type="number" class="form-control form-control-sm" data-plan="' + plan.name + '" data-field="priceMZN" value="' + (plan.priceMZN||0) + '" min="0"/></div>'
+    + '</div>'
+
+    + '<div class="plan-field mb-2"><label>Label de preço</label>'
+    + '<input type="text" class="form-control form-control-sm" data-plan="' + plan.name + '" data-field="priceLabel" value="' + (plan.priceLabel||'') + '"/></div>'
+
+    + '<hr class="my-2"/>'
+    + '<h6 class="font-weight-bold small text-uppercase text-gray-600 mb-2">Limites</h6>'
+
+    // Limits
+    + '<div class="row">'
+    + limitField(plan, 'maxInvoicesPerMonth', 'Facturas/mês')
+    + limitField(plan, 'maxSalesPerMonth', 'Vendas/mês')
+    + limitField(plan, 'maxClients', 'Clientes')
+    + limitField(plan, 'maxProducts', 'Produtos')
+    + limitField(plan, 'maxUsers', 'Utilizadores')
+    + (plan.name === 'FREE' ? '<div class="col-6 plan-field mb-2"><label>Dias de trial</label>'
+      + '<input type="number" class="form-control form-control-sm" data-plan="' + plan.name + '" data-field="trialDays" value="' + (plan.trialDays||0) + '" min="0"/></div>' : '')
+    + '</div>'
+
+    + '<hr class="my-2"/>'
+    + '<h6 class="font-weight-bold small text-uppercase text-gray-600 mb-2">Funcionalidades</h6>'
+
+    + '<div class="d-flex flex-wrap" style="gap:12px;">'
+    + toggleField(plan, 'excelExport', 'Exportação Excel')
+    + toggleField(plan, 'advancedReports', 'Relatórios avançados')
+    + '</div>'
+
+    + '<hr class="my-2"/>'
+    + '<button class="btn btn-primary btn-sm btn-block btn-save-plan" data-plan="' + plan.name + '">'
+    + '<i class="fas fa-save mr-1"></i>Guardar ' + plan.name
+    + '</button>'
+
+    + '</div></div></div>';
+}
+
+function limitField(plan, field, label) {
+  var val = plan[field];
+  if (val === Infinity || val >= 999999) val = 999999;
+  return '<div class="col-6 plan-field mb-2"><label>' + label + '</label>'
+    + '<input type="number" class="form-control form-control-sm" data-plan="' + plan.name + '" data-field="' + field + '" value="' + val + '" min="0"/>'
+    + '<span class="infinity-hint">999999 = ilimitado</span></div>';
+}
+
+function toggleField(plan, field, label) {
+  var checked = plan[field] ? 'checked' : '';
+  return '<div class="custom-control custom-switch">'
+    + '<input type="checkbox" class="custom-control-input" id="sw_' + plan.name + '_' + field + '" data-plan="' + plan.name + '" data-field="' + field + '" ' + checked + '/>'
+    + '<label class="custom-control-label small" for="sw_' + plan.name + '_' + field + '">' + label + '</label></div>';
+}
+
+async function loadPlans() {
+  var res = await fetch('/api/admin/plans');
+  var data = await res.json();
+  if (!data.success) return;
+
+  var container = document.getElementById('plansContainer');
+  // Sort by planOrder
+  var sorted = planOrder.map(function(name) {
+    return data.plans.find(function(p) { return p.name === name; });
+  }).filter(Boolean);
+
+  container.innerHTML = sorted.map(buildPlanCard).join('');
+
+  // Bind save buttons
+  document.querySelectorAll('.btn-save-plan').forEach(function(btn) {
+    btn.addEventListener('click', function() { savePlan(this.dataset.plan); });
+  });
+}
+
+async function savePlan(planName) {
+  var body = {};
+  document.querySelectorAll('[data-plan="' + planName + '"]').forEach(function(el) {
+    var field = el.dataset.field;
+    if (!field) return;
+    if (el.type === 'checkbox') {
+      body[field] = el.checked;
+    } else if (el.type === 'number') {
+      body[field] = parseFloat(el.value) || 0;
+    } else {
+      body[field] = el.value;
+    }
+  });
+
+  var btn = document.querySelector('.btn-save-plan[data-plan="' + planName + '"]');
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i>A guardar...';
+
+  try {
+    var res = await fetch('/api/admin/plans/' + planName, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+    var data = await res.json();
+    var status = document.getElementById('saveStatus');
+    if (data.success) {
+      status.style.color = '#1cc88a';
+      status.textContent = planName + ' guardado!';
+    } else {
+      status.style.color = '#e74a3b';
+      status.textContent = data.message;
+    }
+    setTimeout(function() { status.textContent = ''; }, 3000);
+  } catch (e) {
+    alert('Erro de ligação.');
+  }
+
+  btn.disabled = false;
+  btn.innerHTML = '<i class="fas fa-save mr-1"></i>Guardar ' + planName;
+}
+
+loadPlans();
+</script>
+</body>
+</html>

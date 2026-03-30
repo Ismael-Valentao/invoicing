@@ -27,6 +27,7 @@ const supplierRoutes = require('./src/routes/suppliers');
 const notificationRoutes = require('./src/routes/notifications');
 const dashboardRoutes = require('./src/routes/dashboard');
 const { startCronJobs } = require('./src/utils/cronJobs');
+const { loadPlans } = require('./src/utils/plans');
 
 const app = express();
 const PORT = 3000;
@@ -81,4 +82,5 @@ mongoose.connect(mongodbURI)
 app.listen(PORT, () => {
   console.log(`Servidor rodando em http://localhost:${PORT}`);
   startCronJobs();
+  loadPlans().then(() => console.log('[Plans] Configuração de planos carregada.'));
 });
