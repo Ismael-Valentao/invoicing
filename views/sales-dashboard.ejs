@@ -6,13 +6,13 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
   <title>Invoicing - <%- title %></title>
-  <link rel="icon" type="image/png" href="images/invoicing-logo-simple.png" />
-  <link href="assets/vendor/fontawesome-free/css/all.min.css" rel="stylesheet" />
+  <link rel="icon" type="image/png" href="/images/invoicing-logo-simple.png" />
+  <link href="/assets/vendor/fontawesome-free/css/all.min.css" rel="stylesheet" />
   <link href="https://fonts.googleapis.com/css?family=Nunito:200,300,400,600,700,800,900" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css"
     crossorigin="anonymous" />
-  <link href="assets/css/sb-admin-2.min.css" rel="stylesheet" />
-  <link href="assets/css/custom.css" rel="stylesheet" />
+  <link href="/assets/css/sb-admin-2.min.css" rel="stylesheet" />
+  <link href="/assets/css/custom.css" rel="stylesheet" />
 </head>
 
 <body id="page-top">
@@ -249,8 +249,8 @@
 
   <%- include('partials/footer') %>
 
-    <script src="assets/vendor/chart.js/Chart.min.js"></script>
-    <script src="assets/js/sales-dashboard.js"></script>
+    <script src="/assets/vendor/chart.js/Chart.min.js"></script>
+    <script src="/assets/js/sales-dashboard.js"></script>
     <script>
       function checkSubscriptionStatus() {
         fetch('/api/subscriptions/my', { cache: 'no-store' })

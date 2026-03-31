@@ -351,13 +351,16 @@ exports.setupSuperAdmin = async (req, res) => {
 // ─── PLAN MANAGEMENT ─────────────────────────────────────────────────────────
 exports.getPlans = async (req, res) => {
     try {
-        const docs = await PlanConfig.find({}).sort({ priceMZN: 1 });
-        // If DB is empty, return defaults so the admin can see and edit them
-        if (!docs.length) {
-            const plans = Object.values(PLAN_DEFAULTS).map(p => ({ ...p, _id: null }));
-            return res.json({ success: true, plans, fromDefaults: true });
-        }
-        res.json({ success: true, plans: docs, fromDefaults: false });
+        const docs = await PlanConfig.find({});
+        const dbMap = {};
+        for (const doc of docs) dbMap[doc.name] = doc.toObject();
+
+        // Always return all 3 plans, merging DB values over defaults
+        const plans = ['FREE', 'BASIC', 'PREMIUM'].map(name => {
+            return dbMap[name] || { ...PLAN_DEFAULTS[name], _id: null };
+        });
+
+        res.json({ success: true, plans });
     } catch (err) {
         res.status(500).json({ success: false, message: err.message });
     }
