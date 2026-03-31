@@ -1,17 +1,22 @@
 const Invoice = require("../models/vd");
 const { generateVDPDF } = require("../utils/pdfGenerator");
 const { amounts } = require("../utils/amountCalculator");
+const { getNextVDNumber } = require("../utils/numerationGenerator");
 
 exports.createVD = async (req, res) => {
   const { subTotal, tax, totalAmount } = amounts(req.body.items, req.body.iva*1*0.1);
   const userId = req.user._id;
   const companyId = req.user.company._id;
+
+  // Gerar número real da VD
+  const invoiceNumber = await getNextVDNumber(companyId);
+
   const vd = new Invoice({
     docType: "vd",
     companyName: req.body.companyName,
     clientName: req.body.clientName,
     clientNUIT: req.body.clientNUIT || 'N/A',
-    invoiceNumber: req.body.invoiceNumber,
+    invoiceNumber,
     date: req.body.date,
     items: req.body.items,
     appliedTax:req.body.iva*1*0.01,
@@ -22,16 +27,6 @@ exports.createVD = async (req, res) => {
     companyId,
     userId,
   });
-
-  const existingVD = await Invoice.findOne({
-    invoiceNumber: req.body.invoiceNumber,
-    companyId,
-  });
-  if (existingVD) {
-    return res.status(400).json({
-      error: "VD já existe",
-    });
-  }
 
   await vd.save();
   res.status(201).json({

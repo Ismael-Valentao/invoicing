@@ -22,9 +22,7 @@ const Recibo = require('../src/models/recibo');
 const Sale = require('../src/models/sale');
 const Counter = require('../src/models/counter');
 
-const mongoURI = process.env.NODE_ENV?.toLowerCase() === 'production'
-    ? process.env.MONGODB_URI
-    : process.env.MONGODB_LOCAL_URI;
+const mongoURI = process.env.MONGODB_URI;
 
 function buildNumber(prefix, year, seq) {
     const y = String(year).slice(-2);

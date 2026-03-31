@@ -29,6 +29,20 @@ router.get('/total-amount', authMiddleware, getInvoicesTotalAmount);
 router.get('/total-invoices', authMiddleware, getTotalInvoices);
 router.get('/total/months', authMiddleware, getTotalAmountByMonth);
 
+// Preview do próximo número de factura (sem incrementar o counter)
+router.get('/next-number', authMiddleware, async (req, res) => {
+    try {
+        const Counter = require('../models/counter');
+        const { buildNumber } = require('../utils/numerationGenerator');
+        const year = new Date().getFullYear();
+        const counter = await Counter.findOne({ companyId: req.user.company._id, type: `invoice_${year}` });
+        const nextVal = (counter?.value || 0) + 1;
+        res.json({ success: true, number: buildNumber('FT', year, nextVal) });
+    } catch (err) {
+        res.status(500).json({ success: false, message: err.message });
+    }
+});
+
 // Notas de crédito e débito (ANTES das rotas /:id)
 const { createCreditNote, createDebitNote, getNotes } = require('../controllers/creditDebitNoteController');
 router.get('/notes', authMiddleware, getNotes);

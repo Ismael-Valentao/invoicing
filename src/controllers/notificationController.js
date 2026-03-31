@@ -4,6 +4,9 @@ const Invoice = require('../models/invoice');
 
 exports.getNotifications = async (req, res) => {
     try {
+        if (!req.user.company?._id) {
+            return res.json({ success: true, notifications: [], unreadCount: 0 });
+        }
         const notifications = await Notification.find({ companyId: req.user.company._id })
             .sort({ createdAt: -1 }).limit(20);
         const unreadCount = await Notification.countDocuments({ companyId: req.user.company._id, read: false });
@@ -15,6 +18,7 @@ exports.getNotifications = async (req, res) => {
 
 exports.markAsRead = async (req, res) => {
     try {
+        if (!req.user.company?._id) return res.json({ success: true });
         if (req.params.id === 'all') {
             await Notification.updateMany({ companyId: req.user.company._id }, { $set: { read: true } });
         } else {

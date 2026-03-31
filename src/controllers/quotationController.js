@@ -3,7 +3,7 @@ const Invoice = require('../models/invoice');
 const { generateQuotationPDF } = require('../utils/pdfGenerator');
 const { amounts, normalizeItems } = require('../utils/amountCalculator');
 const { log: logActivity } = require('./activityLogController');
-const { getNextInvoiceNumber } = require('../utils/numerationGenerator');
+const { getNextInvoiceNumber, getNextQuotationNumber } = require('../utils/numerationGenerator');
 
 exports.createQuotation = async (req, res) => {
     try {
@@ -17,23 +17,14 @@ exports.createQuotation = async (req, res) => {
         const userId = req.user._id;
         const companyId = req.user.company._id;
 
-        const existingQuotation = await Quotation.findOne({
-            quotationNumber: req.body.quotationNumber,
-            companyId,
-        });
-
-        if (existingQuotation) {
-            return res.status(400).json({
-                success: false,
-                message: 'Cotação já existe',
-            });
-        }
+        // Gerar número real da cotação
+        const quotationNumber = await getNextQuotationNumber(companyId);
 
         const quotation = new Quotation({
             companyName: req.body.companyName,
             clientName: req.body.clientName,
             clientNUIT: req.body.clientNUIT || 'N/A',
-            quotationNumber: req.body.quotationNumber,
+            quotationNumber,
             date: req.body.date,
             items: cleanedItems,
             appliedTax: req.body.iva * 1 * 0.01,

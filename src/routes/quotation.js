@@ -20,6 +20,20 @@ router.get('/total-amount', authMiddleware, getQuotationsTotalAmount);
 router.get('/total-Quotations', authMiddleware, getTotalQuotations);
 router.get('/:id', authMiddleware, getQuotationById);
 router.get('/:id/pdf', authMiddleware, downloadQuotationPDF);
+// Preview do próximo número de cotação (sem incrementar)
+router.get('/next-number', authMiddleware, async (req, res) => {
+    try {
+        const Counter = require('../models/counter');
+        const { buildNumber } = require('../utils/numerationGenerator');
+        const year = new Date().getFullYear();
+        const counter = await Counter.findOne({ companyId: req.user.company._id, type: `quotation_${year}` });
+        const nextVal = (counter?.value || 0) + 1;
+        res.json({ success: true, number: buildNumber('CT', year, nextVal) });
+    } catch (err) {
+        res.status(500).json({ success: false, message: err.message });
+    }
+});
+
 router.patch('/:id/approve', authMiddleware, approveQuotation);
 
 // Duplicar cotação

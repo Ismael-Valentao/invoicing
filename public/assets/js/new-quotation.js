@@ -159,21 +159,18 @@ $("#quotation-form").submit(async function (e) {
 });
 
 const updateNumeration = () => {
-    const inputNumeration = document.getElementById('quotationNumber');
-    const newNumeration = (inputNumeration.value * 1 + 1).toString().padStart(4, '0');
-    inputNumeration.value = newNumeration;
+    getLastQuotationNumber();
 };
 
 const getLastQuotationNumber = async () => {
-    const response = await fetch('/api/quotations/last-quotation');
-    const data = await response.json();
-
-    if (data.success) {
-        const lastQuotationNumber = data.lastQuotation;
-        const newQuotationNumber = (lastQuotationNumber * 1 + 1).toString().padStart(4, '0');
-        document.getElementById('quotationNumber').value = newQuotationNumber;
-    } else {
-        alert('Erro ao obter o número da última cotação: ' + data.message);
+    try {
+        const response = await fetch('/api/quotations/next-number');
+        const data = await response.json();
+        if (data.success) {
+            document.getElementById('quotationNumber').value = data.number;
+        }
+    } catch (e) {
+        console.error('Erro ao obter número da cotação:', e);
     }
 };
 

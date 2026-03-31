@@ -64,24 +64,18 @@ $("#invoice-form").submit(function (e) {
 })
 
 const updateNumeration = () => {
-    const inputNumeration = document.getElementById('invoiceNumber');
-    const newNumeration = (inputNumeration.value * 1 + 1).toString().padStart(6, '0');
-    inputNumeration.value = newNumeration;
+    getLastInvoiceNumber();
 }
 
 const getLastInvoiceNumber = async () => {
-    const response = await fetch('/api/vd/last-number');
-    const data = await response.json();
-    if (data.success) {
-        const lastInvoiceNumber = data.lastVDNumber;
-        const newInvoiceNumber = (lastInvoiceNumber * 1 + 1).toString().padStart(4, 0);
-        document.getElementById('invoiceNumber').value = newInvoiceNumber;
-    } 
-    else if (data.length == 0){
-        document.getElementById('invoiceNumber').value = '0001';
-    }
-    else {
-        alert('Erro ao obter o número da última vd: ' + data.error);
+    try {
+        const response = await fetch('/api/vd/next-number');
+        const data = await response.json();
+        if (data.success) {
+            document.getElementById('invoiceNumber').value = data.number;
+        }
+    } catch (e) {
+        console.error('Erro ao obter número da VD:', e);
     }
 }
 

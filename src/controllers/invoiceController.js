@@ -8,7 +8,7 @@ const { normalizeInvoiceStatus } = require("../utils/normalizeStatus")
 const { buildInvoiceFilter } = require("../utils/invoiceFilter");
 const { generateStatementFileName } = require("../utils/extratoNameGenerator")
 const { log: logActivity } = require('./activityLogController');
-const { getNextReciboNumber } = require('../utils/numerationGenerator');
+const { getNextReciboNumber, getNextInvoiceNumber } = require('../utils/numerationGenerator');
 
 exports.createInvoice = async (req, res) => {
   const { subTotal, tax, totalAmount } = amounts(req.body.items, req.body.iva * 1 * 0.01);
@@ -18,24 +18,15 @@ exports.createInvoice = async (req, res) => {
   const userId = req.user._id;
   const companyId = req.user.company._id;
 
-  const existingInvoice = await Invoice.findOne({
-    invoiceNumber: req.body.invoiceNumber,
-    companyId,
-  });
-
-  if (existingInvoice) {
-    return res.status(400).json({
-      success: false,
-      message: "Factura já existe",
-    });
-  }
+  // Gerar número real da factura (ignora o que vem do frontend)
+  const invoiceNumber = await getNextInvoiceNumber(companyId);
 
   const invoice = new Invoice({
     docType: "invoice",
     companyName: req.body.companyName,
     clientName: req.body.clientName,
     clientNUIT: req.body.clientNUIT || "N/A",
-    invoiceNumber: req.body.invoiceNumber,
+    invoiceNumber,
     date: req.body.date,
     items: cleanedItems,
     appliedTax: req.body.iva * 1 * 0.01,
