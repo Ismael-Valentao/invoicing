@@ -1,7 +1,7 @@
 const Subscription = require('../models/subscription');
 const Company = require('../models/company');
 const User = require('../models/user');
-const { PLANS, getPlan, getPaidPlanExpiration } = require('../utils/plans');
+const { PLANS, getPlan, getPaidPlanExpiration, loadPlans } = require('../utils/plans');
 const { sendUpgradeRequestEmail } = require('../utils/mailSender');
 
 /**
@@ -165,7 +165,8 @@ exports.adminListSubscriptions = async (req, res) => {
  * GET /api/subscriptions/plans
  * Lista pública dos planos disponíveis.
  */
-exports.getPlans = (req, res) => {
+exports.getPlans = async (req, res) => {
+    await loadPlans();
     const plans = Object.values(PLANS).map(p => ({
         name: p.name,
         label: p.label,

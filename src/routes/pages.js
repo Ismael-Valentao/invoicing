@@ -50,6 +50,14 @@ router.get('/contact', (req, res) => {
     res.render('contact', { title: 'Contato' });
 });
 
+router.get('/privacy', (req, res) => {
+    res.render('privacy', { title: 'Política de Privacidade' });
+});
+
+router.get('/terms', (req, res) => {
+    res.render('terms', { title: 'Termos e Condições' });
+});
+
 router.get('/dashboard', authMiddleware2, ensureHasActiveModule, (req, res) => {
     if (req.user.company.modules.sales) {
         return res.redirect("/sales-dashboard");

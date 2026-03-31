@@ -41,73 +41,9 @@
           <p class="text-muted">Sem contratos. Cancela quando quiseres.</p>
         </div>
 
-        <!-- Planos -->
+        <!-- Planos (carregados dinamicamente) -->
         <div class="row justify-content-center mb-5" id="planCards">
-
-          <!-- FREE -->
-          <div class="col-lg-3 col-md-6 mb-4">
-            <div class="plan-card card h-100 p-4" data-plan="FREE" data-price="0" data-label="Gratuito">
-              <div class="d-flex justify-content-between align-items-center mb-3">
-                <h5 class="font-weight-bold mb-0">Gratuito</h5>
-              </div>
-              <div class="price-big mb-1">0 <small style="font-size:1rem; color:#858796">MZN</small></div>
-              <p class="text-muted small mb-3">30 dias de trial</p>
-              <hr/>
-              <ul class="list-unstyled small mb-0">
-                <li class="mb-2"><i class="fas fa-check feature-check mr-2"></i>5 facturas/mês</li>
-                <li class="mb-2"><i class="fas fa-check feature-check mr-2"></i>10 vendas/mês</li>
-                <li class="mb-2"><i class="fas fa-check feature-check mr-2"></i>10 clientes</li>
-                <li class="mb-2"><i class="fas fa-check feature-check mr-2"></i>15 produtos</li>
-                <li class="mb-2"><i class="fas fa-check feature-check mr-2"></i>1 utilizador</li>
-                <li class="mb-2"><i class="fas fa-times feature-x mr-2"></i>Exportação Excel</li>
-                <li class="mb-2"><i class="fas fa-times feature-x mr-2"></i>Relatórios avançados</li>
-              </ul>
-            </div>
-          </div>
-
-          <!-- BASIC -->
-          <div class="col-lg-3 col-md-6 mb-4">
-            <div class="plan-card card h-100 p-4" data-plan="BASIC" data-price="799" data-label="Básico">
-              <div class="d-flex justify-content-between align-items-center mb-3">
-                <h5 class="font-weight-bold mb-0">Básico</h5>
-              </div>
-              <div class="price-big mb-1">799 <small style="font-size:1rem; color:#858796">MZN/mês</small></div>
-              <p class="text-muted small mb-3">Ideal para pequenas empresas</p>
-              <hr/>
-              <ul class="list-unstyled small mb-0">
-                <li class="mb-2"><i class="fas fa-check feature-check mr-2"></i>50 facturas/mês</li>
-                <li class="mb-2"><i class="fas fa-check feature-check mr-2"></i>150 vendas/mês</li>
-                <li class="mb-2"><i class="fas fa-check feature-check mr-2"></i>100 clientes</li>
-                <li class="mb-2"><i class="fas fa-check feature-check mr-2"></i>200 produtos</li>
-                <li class="mb-2"><i class="fas fa-check feature-check mr-2"></i>3 utilizadores</li>
-                <li class="mb-2"><i class="fas fa-check feature-check mr-2"></i>Exportação Excel</li>
-                <li class="mb-2"><i class="fas fa-times feature-x mr-2"></i>Relatórios avançados</li>
-              </ul>
-            </div>
-          </div>
-
-          <!-- PREMIUM -->
-          <div class="col-lg-3 col-md-6 mb-4">
-            <div class="plan-card recommended card h-100 p-4" data-plan="PREMIUM" data-price="1.299" data-label="Premium">
-              <div class="d-flex justify-content-between align-items-center mb-3">
-                <h5 class="font-weight-bold mb-0">Premium</h5>
-                <span class="plan-badge bg-success text-white">RECOMENDADO</span>
-              </div>
-              <div class="price-big mb-1">1.299 <small style="font-size:1rem; color:#858796">MZN/mês</small></div>
-              <p class="text-muted small mb-3">Para empresas em crescimento</p>
-              <hr/>
-              <ul class="list-unstyled small mb-0">
-                <li class="mb-2"><i class="fas fa-check feature-check mr-2"></i>Facturas ilimitadas</li>
-                <li class="mb-2"><i class="fas fa-check feature-check mr-2"></i>Vendas ilimitadas</li>
-                <li class="mb-2"><i class="fas fa-check feature-check mr-2"></i>Clientes ilimitados</li>
-                <li class="mb-2"><i class="fas fa-check feature-check mr-2"></i>Produtos ilimitados</li>
-                <li class="mb-2"><i class="fas fa-check feature-check mr-2"></i>Utilizadores ilimitados</li>
-                <li class="mb-2"><i class="fas fa-check feature-check mr-2"></i>Exportação Excel</li>
-                <li class="mb-2"><i class="fas fa-check feature-check mr-2"></i>Relatórios avançados</li>
-              </ul>
-            </div>
-          </div>
-
+          <div class="col-12 text-center text-muted py-3">A carregar planos...</div>
         </div>
 
         <!-- Formulário de pagamento (aparece ao seleccionar plano pago) -->
@@ -222,44 +158,73 @@
     })
     .catch(() => {});
 
-  // Marcar o plano actual dinamicamente
-  fetch('/api/subscriptions/my', { cache: 'no-store' })
-    .then(r => r.ok ? r.json() : null)
-    .then(data => {
-      if (!data || !data.success) return;
-      const currentPlan = data.subscription?.plan || 'FREE';
-      const card = document.querySelector(`.plan-card[data-plan="${currentPlan}"]`);
-      if (!card) return;
-      const header = card.querySelector('.d-flex.justify-content-between');
-      if (!header) return;
-      // Remove qualquer badge anterior
-      header.querySelectorAll('.plan-badge-current').forEach(b => b.remove());
-      const badge = document.createElement('span');
-      badge.className = 'plan-badge bg-secondary text-white plan-badge-current';
-      badge.textContent = 'ACTUAL';
-      header.appendChild(badge);
-    })
-    .catch(() => {});
-
   let selectedPlan = null;
+  let currentPlan = 'FREE';
 
-  // Seleccionar plano ao clicar no card
-  document.querySelectorAll('.plan-card[data-plan]').forEach(card => {
-    card.addEventListener('click', function () {
-      const plan = this.dataset.plan;
-      if (plan === 'FREE') return; // Não permite seleccionar FREE
+  function isUnlimited(v) { return v === 'Ilimitado' || v >= 999999; }
+  function limitText(v, unit) {
+    if (isUnlimited(v)) return '<i class="fas fa-check feature-check mr-2"></i>' + unit + ' ilimitados';
+    return '<i class="fas fa-check feature-check mr-2"></i>' + v + ' ' + unit;
+  }
+  function featureText(enabled, label) {
+    return enabled
+      ? '<i class="fas fa-check feature-check mr-2"></i>' + label
+      : '<i class="fas fa-times feature-x mr-2"></i>' + label;
+  }
 
-      document.querySelectorAll('.plan-card').forEach(c => c.classList.remove('selected'));
-      this.classList.add('selected');
-      selectedPlan = plan;
+  // Carregar planos da API + plano actual
+  Promise.all([
+    fetch('/api/subscriptions/plans').then(r => r.json()),
+    fetch('/api/subscriptions/my', { cache: 'no-store' }).then(r => r.ok ? r.json() : null)
+  ]).then(([plansData, subData]) => {
+    if (!plansData.success) return;
+    currentPlan = subData?.subscription?.plan || 'FREE';
 
-      document.getElementById('selectedPlanLabel').textContent = this.dataset.label;
-      document.getElementById('selectedPlanPrice').textContent = Number(this.dataset.price).toLocaleString('pt-MZ');
-      document.getElementById('paymentSection').style.display = '';
-      document.getElementById('paymentSection').style.removeProperty('display');
-      document.getElementById('upgradeMsg').style.display = 'none';
+    var order = ['FREE', 'BASIC', 'PREMIUM'];
+    var sorted = order.map(n => plansData.plans.find(p => p.name === n)).filter(Boolean);
+
+    document.getElementById('planCards').innerHTML = sorted.map(p => {
+      var isCurrent = p.name === currentPlan;
+      var isRecommended = p.name === 'PREMIUM';
+      var price = p.priceMZN || 0;
+      var l = p.limits;
+
+      return '<div class="col-lg-3 col-md-6 mb-4">'
+        + '<div class="plan-card' + (isRecommended ? ' recommended' : '') + ' card h-100 p-4" data-plan="' + p.name + '" data-price="' + price + '" data-label="' + p.label + '">'
+        + '<div class="d-flex justify-content-between align-items-center mb-3">'
+        + '<h5 class="font-weight-bold mb-0">' + p.label + '</h5>'
+        + (isCurrent ? '<span class="plan-badge bg-secondary text-white">ACTUAL</span>' : '')
+        + (isRecommended && !isCurrent ? '<span class="plan-badge bg-success text-white">RECOMENDADO</span>' : '')
+        + '</div>'
+        + '<div class="price-big mb-1">' + (price === 0 ? '0' : price.toLocaleString('pt-MZ')) + ' <small style="font-size:1rem; color:#858796">' + (p.name === 'FREE' ? 'MZN' : 'MZN/mês') + '</small></div>'
+        + '<p class="text-muted small mb-3">' + (p.priceLabel || '') + '</p><hr/>'
+        + '<ul class="list-unstyled small mb-0">'
+        + '<li class="mb-2">' + limitText(l.maxInvoicesPerMonth, 'facturas/mês') + '</li>'
+        + '<li class="mb-2">' + limitText(l.maxSalesPerMonth, 'vendas/mês') + '</li>'
+        + '<li class="mb-2">' + limitText(l.maxClients, 'clientes') + '</li>'
+        + '<li class="mb-2">' + limitText(l.maxProducts, 'produtos') + '</li>'
+        + '<li class="mb-2">' + limitText(l.maxUsers, 'utilizadores') + '</li>'
+        + '<li class="mb-2">' + featureText(l.excelExport, 'Exportação Excel') + '</li>'
+        + '<li class="mb-2">' + featureText(l.advancedReports, 'Relatórios avançados') + '</li>'
+        + '</ul></div></div>';
+    }).join('');
+
+    // Bind card click events
+    document.querySelectorAll('.plan-card[data-plan]').forEach(card => {
+      card.addEventListener('click', function () {
+        const plan = this.dataset.plan;
+        if (plan === 'FREE') return;
+        document.querySelectorAll('.plan-card').forEach(c => c.classList.remove('selected'));
+        this.classList.add('selected');
+        selectedPlan = plan;
+        document.getElementById('selectedPlanLabel').textContent = this.dataset.label;
+        document.getElementById('selectedPlanPrice').textContent = Number(this.dataset.price).toLocaleString('pt-MZ');
+        document.getElementById('paymentSection').style.display = '';
+        document.getElementById('paymentSection').style.removeProperty('display');
+        document.getElementById('upgradeMsg').style.display = 'none';
+      });
     });
-  });
+  }).catch(() => {});
 
   // Troca detalhes de pagamento
   document.querySelectorAll('input[name="paymentMethod"]').forEach(radio => {

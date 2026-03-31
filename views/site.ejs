@@ -453,75 +453,8 @@
       </div>
 
       <div class="container">
-        <div class="row gy-4">
-
-          <div class="col-lg-4" data-aos="zoom-in" data-aos-delay="100">
-            <div class="pricing-item">
-              <h3>Plano Gratuito</h3>
-              <p class="description">
-                Ideal para quem está a começar e quer experimentar a plataforma.
-              </p>
-              <h4><sup>MT</sup>0<span> / 30 dias</span></h4>
-              <a href="/register" class="cta-btn">Começar agora</a>
-              <p class="text-center small">Sem cartão de crédito</p>
-              <ul>
-                <li><i class="bi bi-check"></i> <span><strong>10</strong> facturas por mês</span></li>
-                <li><i class="bi bi-check"></i> <span><strong>50</strong> vendas por mês</span></li>
-                <li><i class="bi bi-check"></i> <span><strong>30</strong> clientes</span></li>
-                <li><i class="bi bi-check"></i> <span><strong>50</strong> produtos</span></li>
-                <li><i class="bi bi-check"></i> <span><strong>1</strong> utilizador</span></li>
-                <li><i class="bi bi-check"></i> <span>Exportação em PDF</span></li>
-                <li class="na"><i class="bi bi-x"></i> <span>Exportação Excel</span></li>
-                <li class="na"><i class="bi bi-x"></i> <span>Relatórios avançados</span></li>
-              </ul>
-            </div>
-          </div>
-
-          <div class="col-lg-4" data-aos="zoom-in" data-aos-delay="200">
-            <div class="pricing-item featured">
-              <p class="popular">Mais Popular</p>
-              <h3>Plano Profissional</h3>
-              <p class="description">
-                Para negócios que já vendem regularmente e precisam de mais capacidade.
-              </p>
-              <h4><sup>MT</sup>799<span> / mês</span></h4>
-              <a href="/register" class="cta-btn">Experimentar 30 dias grátis</a>
-              <p class="text-center small">Começa grátis, paga depois</p>
-              <ul>
-                <li><i class="bi bi-check"></i> <span><strong>50</strong> facturas por mês</span></li>
-                <li><i class="bi bi-check"></i> <span><strong>1500</strong> vendas por mês</span></li>
-                <li><i class="bi bi-check"></i> <span><strong>100</strong> clientes</span></li>
-                <li><i class="bi bi-check"></i> <span><strong>500</strong> produtos</span></li>
-                <li><i class="bi bi-check"></i> <span><strong>3</strong> utilizadores</span></li>
-                <li><i class="bi bi-check"></i> <span>Exportação Excel</span></li>
-                <li><i class="bi bi-check"></i> <span>Relatórios de vendas</span></li>
-                <li><i class="bi bi-check"></i> <span>Suporte prioritário</span></li>
-              </ul>
-            </div>
-          </div>
-
-          <div class="col-lg-4" data-aos="zoom-in" data-aos-delay="300">
-            <div class="pricing-item">
-              <h3>Plano Empresarial</h3>
-              <p class="description">
-                Para empresas com maior volume de operações e equipas maiores.
-              </p>
-              <h4><sup>MT</sup>1.299<span> / mês</span></h4>
-              <a href="/register" class="cta-btn">Experimentar 30 dias grátis</a>
-              <p class="text-center small">Tudo ilimitado</p>
-              <ul>
-                <li><i class="bi bi-check"></i> <span>Facturas <strong>ilimitadas</strong></span></li>
-                <li><i class="bi bi-check"></i> <span>Vendas <strong>ilimitadas</strong></span></li>
-                <li><i class="bi bi-check"></i> <span>Clientes <strong>ilimitados</strong></span></li>
-                <li><i class="bi bi-check"></i> <span>Produtos <strong>ilimitados</strong></span></li>
-                <li><i class="bi bi-check"></i> <span>Utilizadores <strong>ilimitados</strong></span></li>
-                <li><i class="bi bi-check"></i> <span>Exportação Excel</span></li>
-                <li><i class="bi bi-check"></i> <span>Relatórios avançados</span></li>
-                <li><i class="bi bi-check"></i> <span>Suporte técnico dedicado</span></li>
-              </ul>
-            </div>
-          </div>
-
+        <div class="row gy-4" id="pricingCards">
+          <div class="col-12 text-center py-4"><p class="text-muted">A carregar planos...</p></div>
         </div>
       </div>
     </section>
@@ -733,7 +666,7 @@
           </div>
         </div>
 
-        <div class="col-lg-4 col-md-3 footer-links">
+        <div class="col-lg-2 col-md-3 footer-links">
           <h4>Links Úteis</h4>
           <ul>
             <li><a href="#hero">Início</a></li>
@@ -741,6 +674,14 @@
             <li><a href="#features">Funcionalidades</a></li>
             <li><a href="#pricing">Planos</a></li>
             <li><a href="#faq">Ajuda</a></li>
+          </ul>
+        </div>
+
+        <div class="col-lg-2 col-md-3 footer-links">
+          <h4>Legal</h4>
+          <ul>
+            <li><a href="/terms">Termos e Condições</a></li>
+            <li><a href="/privacy">Política de Privacidade</a></li>
           </ul>
         </div>
 
@@ -767,8 +708,13 @@
     <div class="container copyright text-center mt-4">
       <p>
         <strong class="px-1 sitename">Invoicing</strong>
-        © <span id="copyright-year">2026</span>.
+        &copy; <span id="copyright-year">2026</span>.
         <span>Todos os direitos reservados</span>
+      </p>
+      <p style="font-size:.8rem; margin-top: -8px;">
+        <a href="/terms" style="color: rgba(255,255,255,0.5);">Termos e Condições</a>
+        &nbsp;&bull;&nbsp;
+        <a href="/privacy" style="color: rgba(255,255,255,0.5);">Política de Privacidade</a>
       </p>
     </div>
   </footer>
@@ -998,6 +944,70 @@
   <script src="site-assets/js/main.js"></script>
   <script src="assets/js/datehandler.js"></script>
 
+  <!-- Dynamic Pricing -->
+  <script>
+  (function() {
+    var descriptions = {
+      FREE: { title: 'Plano Gratuito', desc: 'Ideal para quem está a começar e quer experimentar a plataforma.', cta: 'Começar agora', sub: 'Sem cartão de crédito' },
+      BASIC: { title: 'Plano Profissional', desc: 'Para negócios que já vendem regularmente e precisam de mais capacidade.', cta: 'Experimentar 30 dias grátis', sub: 'Começa grátis, paga depois', featured: true, popular: 'Mais Popular' },
+      PREMIUM: { title: 'Plano Empresarial', desc: 'Para empresas com maior volume de operações e equipas maiores.', cta: 'Experimentar 30 dias grátis', sub: 'Tudo ilimitado' }
+    };
+    var delays = { FREE: 100, BASIC: 200, PREMIUM: 300 };
+
+    function fmt(v) { return v === 'Ilimitado' ? v : v; }
+    function isUnlimited(v) { return v === 'Ilimitado' || v >= 999999; }
+
+    function limitLine(val, singular, plural) {
+      if (isUnlimited(val)) return '<li><i class="bi bi-check"></i> <span>' + (plural || singular) + ' <strong>ilimitados</strong></span></li>';
+      return '<li><i class="bi bi-check"></i> <span><strong>' + val + '</strong> ' + (plural || singular) + '</span></li>';
+    }
+
+    function featureLine(enabled, label) {
+      if (enabled) return '<li><i class="bi bi-check"></i> <span>' + label + '</span></li>';
+      return '<li class="na"><i class="bi bi-x"></i> <span>' + label + '</span></li>';
+    }
+
+    function buildCard(plan) {
+      var info = descriptions[plan.name] || { title: plan.label, desc: '', cta: 'Registar', sub: '' };
+      var delay = delays[plan.name] || 100;
+      var price = plan.priceMZN || 0;
+      var period = plan.name === 'FREE' ? ' / 30 dias' : ' / mês';
+      var priceFormatted = price === 0 ? '0' : price.toLocaleString('pt-MZ');
+
+      var l = plan.limits;
+
+      return '<div class="col-lg-4" data-aos="zoom-in" data-aos-delay="' + delay + '">'
+        + '<div class="pricing-item' + (info.featured ? ' featured' : '') + '">'
+        + (info.popular ? '<p class="popular">' + info.popular + '</p>' : '')
+        + '<h3>' + info.title + '</h3>'
+        + '<p class="description">' + info.desc + '</p>'
+        + '<h4><sup>MT</sup>' + priceFormatted + '<span>' + period + '</span></h4>'
+        + '<a href="/register" class="cta-btn">' + info.cta + '</a>'
+        + '<p class="text-center small">' + info.sub + '</p>'
+        + '<ul>'
+        + limitLine(l.maxInvoicesPerMonth, 'factura por mês', 'facturas por mês')
+        + limitLine(l.maxSalesPerMonth, 'venda por mês', 'vendas por mês')
+        + limitLine(l.maxClients, 'cliente', 'clientes')
+        + limitLine(l.maxProducts, 'produto', 'produtos')
+        + limitLine(l.maxUsers, 'utilizador', 'utilizadores')
+        + featureLine(true, 'Exportação em PDF')
+        + featureLine(l.excelExport, 'Exportação Excel')
+        + featureLine(l.advancedReports, 'Relatórios avançados')
+        + '</ul></div></div>';
+    }
+
+    fetch('/api/subscriptions/plans')
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        if (!data.success || !data.plans.length) return;
+        var order = ['FREE', 'BASIC', 'PREMIUM'];
+        var sorted = order.map(function(n) { return data.plans.find(function(p) { return p.name === n; }); }).filter(Boolean);
+        document.getElementById('pricingCards').innerHTML = sorted.map(buildCard).join('');
+      })
+      .catch(function() {});
+  })();
+  </script>
+
   <!-- Funnel Wizard JS -->
   <script>
   (function() {
@@ -1033,12 +1043,20 @@
       }
     };
 
-    // Plan recommendations based on size
+    // Plan recommendations based on size (loaded from API, with fallbacks)
     var plansBySize = {
       starting: { name: 'Plano Gratuito',      price: '0',     unit: '30 dias',  badge: 'IDEAL PARA COMEÇAR' },
       small:    { name: 'Plano Profissional',   price: '799',   unit: 'MZN/mês',  badge: 'RECOMENDADO' },
       growing:  { name: 'Plano Empresarial',    price: '1.299', unit: 'MZN/mês',  badge: 'MAIS COMPLETO' }
     };
+    // Update with real prices from API
+    fetch('/api/subscriptions/plans').then(function(r){return r.json();}).then(function(d) {
+      if (!d.success) return;
+      var map = {}; d.plans.forEach(function(p){map[p.name]=p;});
+      if (map.FREE) plansBySize.starting = { name: map.FREE.label, price: String(map.FREE.priceMZN||0), unit: map.FREE.priceLabel||'30 dias', badge: 'IDEAL PARA COMEÇAR' };
+      if (map.BASIC) plansBySize.small = { name: map.BASIC.label, price: String(map.BASIC.priceMZN||799), unit: 'MZN/mês', badge: 'RECOMENDADO' };
+      if (map.PREMIUM) plansBySize.growing = { name: map.PREMIUM.label, price: String(map.PREMIUM.priceMZN||1299), unit: 'MZN/mês', badge: 'MAIS COMPLETO' };
+    }).catch(function(){});
 
     // Enable/disable next buttons on selection
     document.querySelectorAll('#needsGrid .funnel-option input').forEach(function(cb) {
