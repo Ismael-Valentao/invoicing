@@ -162,11 +162,22 @@
                             </li>
 
                               <% if (can('reports')) { %>
-                                <li class="nav-item <%= title === 'Relatórios' ? 'active' : '' %>">
-                                  <a class="nav-link" href="/reports">
-                                    <i class="fa fa-file-excel"></i>
+                                <li class="nav-item <%= ['Relatórios','Relatório de IVA','Lucro por Produto','Análise de Clientes'].includes(title) ? 'active' : '' %>">
+                                  <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseReports"
+                                    aria-expanded="true" aria-controls="collapseReports">
+                                    <i class="fa-solid fa-chart-bar"></i>
                                     <span>Relatórios</span>
                                   </a>
+                                  <div id="collapseReports"
+                                    class="collapse <%= ['Relatórios','Relatório de IVA','Lucro por Produto','Análise de Clientes'].includes(title) ? 'show' : '' %>"
+                                    data-parent="#accordionSidebar">
+                                    <div class="bg-white py-2 collapse-inner rounded">
+                                      <a class="collapse-item <%= title === 'Relatórios' ? 'active' : '' %>" href="/reports">Exportações</a>
+                                      <a class="collapse-item <%= title === 'Lucro por Produto' ? 'active' : '' %>" href="/product-profits">Lucro por produto</a>
+                                      <a class="collapse-item <%= title === 'Relatório de IVA' ? 'active' : '' %>" href="/iva-report">Relatório de IVA</a>
+                                      <a class="collapse-item <%= title === 'Análise de Clientes' ? 'active' : '' %>" href="/client-analysis">Análise de clientes</a>
+                                    </div>
+                                  </div>
                                 </li>
                                 <% } %>
 

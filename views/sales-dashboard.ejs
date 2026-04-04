@@ -54,6 +54,47 @@
                   </div>
                 </div>
 
+                <!-- Sales Goal -->
+                <div class="card shadow mb-4" id="salesGoalCard" style="display:none;">
+                  <div class="card-body py-3">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                      <h6 class="font-weight-bold text-primary mb-0"><i class="fas fa-bullseye mr-1"></i>Meta do mês</h6>
+                      <div>
+                        <span class="small text-muted" id="goalText"></span>
+                        <button class="btn btn-sm btn-outline-primary ml-2" data-toggle="modal" data-target="#setGoalModal" title="Definir meta"><i class="fas fa-edit"></i></button>
+                      </div>
+                    </div>
+                    <div class="progress" style="height:22px; border-radius:12px;">
+                      <div class="progress-bar" id="goalBar" role="progressbar" style="width:0%; border-radius:12px; font-weight:700;"></div>
+                    </div>
+                    <div class="d-flex justify-content-between mt-1 small text-muted">
+                      <span id="goalCurrent"></span>
+                      <span id="goalRemaining"></span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Set Goal Modal -->
+                <div class="modal fade" id="setGoalModal" tabindex="-1">
+                  <div class="modal-dialog modal-sm">
+                    <div class="modal-content">
+                      <div class="modal-header py-2">
+                        <h6 class="modal-title font-weight-bold"><i class="fas fa-bullseye mr-1 text-primary"></i>Definir meta mensal</h6>
+                        <button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
+                      </div>
+                      <div class="modal-body">
+                        <div class="form-group">
+                          <label class="small font-weight-bold">Valor da meta (MZN)</label>
+                          <input type="number" class="form-control" id="goalAmountInput" min="0" step="1000" placeholder="Ex: 200000"/>
+                        </div>
+                      </div>
+                      <div class="modal-footer py-2">
+                        <button class="btn btn-primary btn-sm" onclick="saveGoal()"><i class="fas fa-save mr-1"></i>Guardar</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
                 <div class="row">
                   <div class="col-xl-3 col-md-6 mb-4">
                     <div class="card border-left-primary shadow h-100 py-2">
@@ -280,6 +321,39 @@
           .catch(console.error);
       }
       checkSubscriptionStatus();
+
+      // Sales Goal
+      fetch('/api/features/sales-goal').then(function(r){return r.json();}).then(function(d) {
+        if (!d.success) return;
+        var card = document.getElementById('salesGoalCard');
+        if (d.goal) {
+          card.style.display = '';
+          var pct = d.percentage;
+          var bar = document.getElementById('goalBar');
+          bar.style.width = pct + '%';
+          bar.textContent = pct + '%';
+          bar.className = 'progress-bar' + (pct >= 100 ? ' bg-success' : pct >= 60 ? ' bg-primary' : ' bg-warning');
+          document.getElementById('goalText').textContent = cur(d.goal.targetAmount) + ' — ' + d.daysLeft + ' dias restantes';
+          document.getElementById('goalCurrent').textContent = 'Actual: ' + cur(d.current);
+          document.getElementById('goalRemaining').textContent = pct >= 100 ? 'Meta atingida!' : 'Faltam: ' + cur(d.remaining);
+          document.getElementById('goalAmountInput').value = d.goal.targetAmount;
+        } else {
+          card.style.display = '';
+          document.getElementById('goalText').textContent = 'Nenhuma meta definida';
+          document.getElementById('goalBar').style.width = '0%';
+          document.getElementById('goalCurrent').textContent = '';
+          document.getElementById('goalRemaining').textContent = '';
+        }
+      }).catch(function(){});
+
+      async function saveGoal() {
+        var amount = parseFloat(document.getElementById('goalAmountInput').value);
+        if (!amount || amount <= 0) return alert('Valor inválido.');
+        await fetch('/api/features/sales-goal', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({targetAmount:amount}) });
+        $('#setGoalModal').modal('hide');
+        window.location.reload();
+      }
+      window.saveGoal = saveGoal;
 
       var cur = function(v) { return new Intl.NumberFormat('pt-MZ',{style:'currency',currency:'MZN'}).format(v||0); };
 

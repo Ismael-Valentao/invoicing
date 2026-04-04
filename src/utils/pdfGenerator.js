@@ -152,6 +152,7 @@ function buildA4DocumentHtml({
   footerNotes = [],
   bankBlock = "",
   qrCodeDataUrl = "",
+  extraTotalsHtml = "",
 }) {
   const logoSrc = companyInfo.logoUrl
     ? logoPath + companyInfo.logoUrl
@@ -469,6 +470,8 @@ function buildA4DocumentHtml({
       <div class="totals-wrap">
         ${renderTotalsTable(totals)}
       </div>
+
+      ${extraTotalsHtml}
 
       ${bankBlock}
 
@@ -973,6 +976,79 @@ async function generateDebitNotePDF(companyInfo, note, relatedInvoiceNumber) {
   return await renderA4Pdf(html);
 }
 
+/**
+ * Recibo de pagamento parcial.
+ * Mostra os itens da factura, o total da dívida, o valor pago nesta prestação,
+ * o total acumulado e o saldo devedor.
+ */
+async function generatePartialPaymentReceiptPDF(companyInfo, {
+  receiptNumber, date, invoice, payment, totalPaidSoFar, remaining
+}) {
+  const payMethodLabels = { cash: 'Dinheiro', mpesa: 'M-Pesa', emola: 'E-mola', card: 'Cartão', bank: 'Transferência' };
+
+  const extraHtml = `
+    <table style="width:100%; border-collapse:collapse; margin-top:12px; font-size:9px;">
+      <tbody>
+        <tr style="border-top:1px solid #dee2e6;">
+          <td style="padding:6px 8px; color:#555;">Valor total da factura</td>
+          <td style="padding:6px 8px; text-align:right; font-weight:700;">${formatCurrency(invoice.totalAmount, true)}</td>
+        </tr>
+        <tr style="background:#d4edda;">
+          <td style="padding:6px 8px; font-weight:700; color:#155724;">Valor pago nesta prestação</td>
+          <td style="padding:6px 8px; text-align:right; font-weight:700; color:#155724;">${formatCurrency(payment.amount, true)}</td>
+        </tr>
+        <tr>
+          <td style="padding:6px 8px; color:#555;">Método de pagamento</td>
+          <td style="padding:6px 8px; text-align:right;">${payMethodLabels[payment.paymentMethod] || payment.paymentMethod}</td>
+        </tr>
+        ${payment.reference ? `<tr>
+          <td style="padding:6px 8px; color:#555;">Referência</td>
+          <td style="padding:6px 8px; text-align:right;">${escapeHtml(payment.reference)}</td>
+        </tr>` : ''}
+        <tr style="border-top:1px solid #dee2e6;">
+          <td style="padding:6px 8px; color:#555;">Total pago até agora</td>
+          <td style="padding:6px 8px; text-align:right; font-weight:700;">${formatCurrency(totalPaidSoFar, true)}</td>
+        </tr>
+        <tr style="background:${remaining > 0 ? '#fff3cd' : '#d4edda'};">
+          <td style="padding:6px 8px; font-weight:700; color:${remaining > 0 ? '#856404' : '#155724'};">
+            ${remaining > 0 ? 'Saldo devedor' : 'DÍVIDA LIQUIDADA'}
+          </td>
+          <td style="padding:6px 8px; text-align:right; font-weight:700; font-size:11px; color:${remaining > 0 ? '#856404' : '#155724'};">
+            ${formatCurrency(remaining, true)}
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  `;
+
+  const html = buildA4DocumentHtml({
+    companyInfo,
+    title: "RECIBO DE PAGAMENTO",
+    docNumberLabel: "Recibo Nº",
+    docNumber: receiptNumber,
+    date,
+    clientName: invoice.clientName,
+    clientNUIT: invoice.clientNUIT,
+    items: invoice.items || [],
+    totals: {
+      subTotal: invoice.subTotal,
+      appliedTax: invoice.appliedTax,
+      tax: invoice.tax,
+      totalAmount: invoice.totalAmount,
+    },
+    extraTotalsHtml: extraHtml,
+    bankBlock: "",
+    footerNotes: [
+      `Referente à Factura: ${invoice.invoiceNumber}`,
+      "Este recibo confirma o pagamento parcial referente aos bens ou serviços descritos acima.",
+      `Data do pagamento: ${formatedDate(date?.toISOString ? date.toISOString() : new Date().toISOString())}`,
+      `Emitido por: ${companyInfo.name || "-"} | Contacto: ${companyInfo.contact || "-"}`,
+    ],
+  });
+
+  return await renderA4Pdf(html);
+}
+
 module.exports = {
   generateQuotationPDF,
   generateInvoicePDF,
@@ -980,6 +1056,7 @@ module.exports = {
   generateReciboPDF,
   generateCreditNotePDF,
   generateDebitNotePDF,
+  generatePartialPaymentReceiptPDF,
   generateSaleReceiptPDF,
   generateSaleReceiptPDFKit,
 };

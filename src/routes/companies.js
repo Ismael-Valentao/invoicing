@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 require('dotenv').config();
-const { createCompany, getCompanies, getCompanyById, updateCompany, deleteCompany, upload, registCompanyLogo, registCompanyLogoProdVersion, getCompany, updateCompanyBank, addCompanyBank,updateBankDetailsVisibility, getBankDetailsVisibility, deleteCompanyBank, setPrimaryCompanyBank } = require('../controllers/companyController');
+const { createCompany, quickRegister, getCompanies, getCompanyById, updateCompany, deleteCompany, upload, registCompanyLogo, registCompanyLogoProdVersion, getCompany, updateCompanyBank, addCompanyBank,updateBankDetailsVisibility, getBankDetailsVisibility, deleteCompanyBank, setPrimaryCompanyBank } = require('../controllers/companyController');
 const { authMiddleware } = require('../middlewares/authMiddleware');
 const { nextMiddleware } = require('../middlewares/nextMiddleware');
 const { updateModules } = require("../controllers/companyModulesController");
@@ -10,6 +10,17 @@ const logoUploadMiddleware = process.env.NODE_ENV.toLowerCase() === 'production'
 const logoHandler = process.env.NODE_ENV.toLowerCase() === 'production' ? registCompanyLogoProdVersion : registCompanyLogo;
 
 router.post('/', createCompany);
+router.post('/quick-register', quickRegister);
+
+// Public: count of recent signups (no auth)
+router.get('/recent-count', async (req, res) => {
+    try {
+        const Company = require('../models/company');
+        const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+        const count = await Company.countDocuments({ createdAt: { $gte: weekAgo } });
+        res.json({ success: true, count: Math.max(count, 3) }); // minimum 3 for social proof
+    } catch (e) { res.json({ success: true, count: 3 }); }
+});
 router.post('/logo', authMiddleware, logoUploadMiddleware, logoHandler);
 router.get('/', authMiddleware, getCompanies);
 router.get('/company', authMiddleware, getCompany);

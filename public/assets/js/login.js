@@ -133,7 +133,9 @@ async function login() {
         }
 
         if (response.ok && data.success) {
-            window.location.href = data.redirect || '/dashboard';
+            const params = new URLSearchParams(window.location.search);
+            const returnTo = params.get('returnTo');
+            window.location.href = returnTo || data.redirect || '/dashboard';
         } else {
             showError(data.message || 'Credenciais inválidas');
         }

@@ -9,6 +9,8 @@ function statusBadge(status) {
             return '<span class="badge badge-warning p-1 w-100">Pendente</span>';
         case 'overdue':
             return '<span class="badge badge-danger p-1 w-100">Vencido</span>';
+        case 'partial':
+            return '<span class="badge badge-info p-1 w-100">Parcial</span>';
         case 'cancelled':
             return '<span class="badge badge-dark p-1 w-100">Anulada</span>';
         default:
@@ -46,6 +48,12 @@ function actionButtons(invoice) {
         </button>
     `;
 
+    const payPartialBtn = (invoice.status === 'unpaid' || invoice.status === 'partial' || invoice.status === 'overdue') ? `
+        <button class="btn btn-warning btn-sm btn-partial-payment" data-id="${invoice._id}" data-number="${invoice.invoiceNumber || ''}" data-total="${invoice.totalAmount}" data-paid="${invoice.paidAmount || 0}" title="Registar pagamento parcial">
+            <i class="fa-solid fa-money-bill-wave"></i>
+        </button>
+    ` : '';
+
     if (invoice.status === 'cancelled') {
         return `
             <div class="d-flex justify-content-center align-items-center" style="gap:6px;">
@@ -66,14 +74,14 @@ function actionButtons(invoice) {
 
     return `
         <div class="d-flex justify-content-center align-items-center" style="gap:6px;">
-            ${downloadBtn}${whatsappBtn}${duplicateBtn}${cancelBtn}
+            ${downloadBtn}${whatsappBtn}${duplicateBtn}${payPartialBtn}${cancelBtn}
             <button
                 type="button"
                 class="btn btn-success btn-sm btn-mark-paid"
                 data-id="${invoice._id}"
                 data-number="${invoice.invoiceNumber || ''}"
                 data-status="${invoice.status}"
-                title="Marcar como pago"
+                title="Marcar como pago (total)"
             >
                 <i class="fa-solid fa-circle-check"></i>
             </button>
@@ -324,6 +332,83 @@ $('#dataTable').on('click', '.btn-duplicate-invoice', async function () {
             showToast('error', data.message || 'Erro ao duplicar.');
         }
     } catch (e) { showToast('error', 'Erro de ligação.'); }
+});
+
+// Partial payment
+$('#dataTable').on('click', '.btn-partial-payment', async function () {
+    const id = $(this).data('id');
+    const number = $(this).data('number');
+    const total = parseFloat($(this).data('total')) || 0;
+    const paid = parseFloat($(this).data('paid')) || 0;
+    const remaining = (total - paid).toFixed(2);
+
+    const result = await Swal.fire({
+        title: 'Registar pagamento',
+        html: `
+            <p class="small">Factura <strong>${number}</strong></p>
+            <p class="small text-muted">Total: ${formatAmount(total)} MZN | Pago: ${formatAmount(paid)} MZN | <strong>Faltam: ${formatAmount(remaining)} MZN</strong></p>
+            <div class="form-group text-left">
+                <label class="small font-weight-bold">Valor do pagamento (MZN)</label>
+                <input type="number" id="swalPayAmount" class="form-control" step="0.01" min="0.01" max="${remaining}" value="${remaining}" />
+            </div>
+            <div class="form-group text-left">
+                <label class="small font-weight-bold">Método</label>
+                <select id="swalPayMethod" class="form-control form-control-sm">
+                    <option value="cash">Dinheiro</option>
+                    <option value="mpesa">M-Pesa</option>
+                    <option value="emola">E-mola</option>
+                    <option value="bank">Transferência</option>
+                    <option value="card">Cartão</option>
+                </select>
+            </div>
+            <div class="form-group text-left">
+                <label class="small font-weight-bold">Referência (opcional)</label>
+                <input type="text" id="swalPayRef" class="form-control form-control-sm" placeholder="Nº transacção..." />
+            </div>
+        `,
+        showCancelButton: true,
+        confirmButtonText: '<i class="fa-solid fa-money-bill-wave mr-1"></i> Registar',
+        cancelButtonText: 'Cancelar',
+        preConfirm: () => {
+            const amount = parseFloat(document.getElementById('swalPayAmount').value);
+            if (!amount || amount <= 0) { Swal.showValidationMessage('Valor inválido.'); return false; }
+            if (amount > parseFloat(remaining) + 0.01) { Swal.showValidationMessage('Excede o saldo devedor.'); return false; }
+            return {
+                amount,
+                paymentMethod: document.getElementById('swalPayMethod').value,
+                reference: document.getElementById('swalPayRef').value
+            };
+        }
+    });
+
+    if (!result.isConfirmed) return;
+
+    try {
+        const res = await fetch('/api/features/payments', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ invoiceId: id, ...result.value })
+        });
+        const data = await res.json();
+        if (data.success) {
+            const dlResult = await Swal.fire({
+                icon: 'success',
+                title: 'Pagamento registado',
+                html: `<p>${data.message}</p><p class="small text-muted">Recibo: <strong>${data.receiptNumber || ''}</strong></p>`,
+                showCancelButton: true,
+                confirmButtonText: '<i class="fa-solid fa-download mr-1"></i> Baixar recibo',
+                cancelButtonText: 'Fechar'
+            });
+            if (dlResult.isConfirmed && data.downloadUrl) {
+                await downloadFile(data.downloadUrl, `recibo-${data.receiptNumber || 'pagamento'}.pdf`);
+            }
+            window.location.reload();
+        } else {
+            Swal.fire({ icon: 'error', title: 'Erro', text: data.message });
+        }
+    } catch (e) {
+        Swal.fire({ icon: 'error', title: 'Erro', text: 'Erro de ligação.' });
+    }
 });
 
 // Cancel invoice (emit credit note)

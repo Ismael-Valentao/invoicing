@@ -21,8 +21,10 @@ function authMiddleware(req, res, next) {
 function authMiddleware2(req, res, next) {
   const token = req.cookies.token;
 
+  const returnTo = req.originalUrl && req.originalUrl !== '/' ? `?returnTo=${encodeURIComponent(req.originalUrl)}` : '';
+
   if (!token) {
-    return res.redirect('/login'); // Redireciona para a página de login se o token não estiver presente
+    return res.redirect('/login' + returnTo);
   }
 
   try {
@@ -30,7 +32,7 @@ function authMiddleware2(req, res, next) {
     req.user = decoded;
     next();
   } catch (err) {
-    return res.redirect('/login');
+    return res.redirect('/login' + returnTo);
   }
 }
 module.exports = {authMiddleware, authMiddleware2};

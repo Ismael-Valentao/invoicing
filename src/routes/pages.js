@@ -58,7 +58,17 @@ router.get('/terms', (req, res) => {
     res.render('terms', { title: 'Termos e Condições' });
 });
 
+router.get('/setup-company', authMiddleware2, (req, res) => {
+    res.render('setup-company', buildViewData(req, 'Configurar Empresa'));
+});
+
 router.get('/dashboard', authMiddleware2, ensureHasActiveModule, (req, res) => {
+    // Redirect to setup wizard if company still has ALL placeholder data (never configured)
+    const c = req.user.company;
+    if (c && c.nuit === '000000000' && c.address === 'A definir' && c.contact === 'A definir') {
+        return res.redirect('/setup-company');
+    }
+
     if (req.user.company.modules.sales) {
         return res.redirect("/sales-dashboard");
     }
@@ -147,11 +157,51 @@ router.get('/stock-movements', authMiddleware2, requirePermission('stock'), (req
     res.render('stock-movements', buildViewData(req, 'Movimentos de Stock'));
 });
 
+router.get('/demo', async (req, res) => {
+    // Create or find demo account, auto-login, redirect to dashboard
+    const jwt = require('jsonwebtoken');
+    const User = require('../models/user');
+    const SECRET = process.env.JWT_SECRET;
+    const DEMO_EMAIL = 'demo@invoicing.bitiray.com';
+
+    try {
+        let user = await User.findOne({ email: DEMO_EMAIL }).populate('companyId');
+        if (!user) {
+            // Create demo account via quick register
+            const { quickRegister } = require('../controllers/companyController');
+            const mockReq = { body: { name: 'Conta Demo', email: DEMO_EMAIL, password: 'Demo12345!' } };
+            const mockRes = { status: () => ({ json: () => {} }), json: () => {} };
+            await quickRegister(mockReq, mockRes);
+            user = await User.findOne({ email: DEMO_EMAIL }).populate('companyId');
+        }
+        if (!user) return res.redirect('/register');
+
+        const token = jwt.sign(
+            { id: user._id, name: user.name, email: user.email, permissions: user.permissions, role: user.role, company: user.companyId },
+            SECRET, { expiresIn: '1h' }
+        );
+        res.cookie('token', token, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
+            maxAge: 3600000
+        });
+        return res.redirect('/dashboard');
+    } catch (e) {
+        console.error('Demo login error:', e);
+        return res.redirect('/register');
+    }
+});
+
 router.get('/login', (req, res) => {
     res.render('login', { title: 'Login' });
 });
 
 router.get('/register', (req, res) => {
+    res.render('register-simple', { title: 'Criar Conta' });
+});
+
+router.get('/register-full', (req, res) => {
     res.render('register', { title: 'Registrar' });
 });
 
@@ -239,6 +289,21 @@ router.get('/activities', authMiddleware2, (req, res) => {
 // Notas de crédito e débito
 router.get('/notes', authMiddleware2, requirePermission('invoicing'), (req, res) => {
     res.render('notes', buildViewData(req, 'Notas de Crédito & Débito'));
+});
+
+// Relatório de IVA
+router.get('/iva-report', authMiddleware2, requirePermission('reports'), (req, res) => {
+    res.render('iva-report', buildViewData(req, 'Relatório de IVA'));
+});
+
+// Análise de clientes
+router.get('/client-analysis', authMiddleware2, requirePermission('customers'), (req, res) => {
+    res.render('client-analysis', buildViewData(req, 'Análise de Clientes'));
+});
+
+// Lucro por produto
+router.get('/product-profits', authMiddleware2, requirePermission('reports'), (req, res) => {
+    res.render('product-profits', buildViewData(req, 'Lucro por Produto'));
 });
 
 // Facturas recorrentes

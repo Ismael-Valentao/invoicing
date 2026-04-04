@@ -21,6 +21,21 @@ const productSchema = new mongoose.Schema({
         required: true
     },
 
+    costPrice: {
+        type: Number,
+        default: 0
+    },
+
+    barcode: {
+        type: String,
+        default: ''
+    },
+
+    category: {
+        type: String,
+        default: ''
+    },
+
     stock: {
         quantity: {
             type: Number,

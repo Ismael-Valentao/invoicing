@@ -252,7 +252,112 @@ async function runRecurringInvoices() {
  * - Resumo mensal: a cada 24 horas (verifica internamente se é dia 1)
  * - Notificações: a cada 4 horas
  * - Facturas recorrentes: a cada 6 horas
+ * - Lembretes de cobrança: a cada 24 horas
+ * - Resumo diário: a cada 24 horas (às 18h)
  */
+
+const Notification = require('../models/notification');
+
+/**
+ * Envia lembretes de cobrança para facturas vencidas (cria notificações).
+ */
+async function runPaymentReminders() {
+    try {
+        const now = new Date();
+        const overdueInvoices = await Invoice.find({
+            docType: 'invoice',
+            status: { $in: ['unpaid', 'partial', 'overdue'] },
+            dueDate: { $lt: now }
+        }).populate('companyId');
+
+        let count = 0;
+        for (const inv of overdueInvoices) {
+            if (!inv.companyId) continue;
+            const daysOverdue = Math.floor((now - inv.dueDate) / MS_PER_DAY);
+
+            // Only remind at 1, 7, 14, 30 days overdue
+            if (![1, 7, 14, 30].includes(daysOverdue)) continue;
+
+            const existing = await Notification.findOne({
+                companyId: inv.companyId._id,
+                type: 'client_debt',
+                'metadata.invoiceId': inv._id,
+                createdAt: { $gte: new Date(now.getTime() - 24 * 60 * 60 * 1000) }
+            });
+            if (existing) continue;
+
+            const remaining = inv.totalAmount - (inv.paidAmount || 0);
+            await Notification.create({
+                companyId: inv.companyId._id,
+                type: 'client_debt',
+                title: 'Lembrete de cobrança',
+                message: `Factura ${inv.invoiceNumber} de ${inv.clientName} está vencida há ${daysOverdue} dia${daysOverdue > 1 ? 's' : ''}. Valor pendente: ${remaining.toFixed(2)} MZN.`,
+                icon: 'fas fa-exclamation-circle',
+                color: daysOverdue >= 14 ? 'danger' : 'warning',
+                link: '/debts',
+                metadata: { invoiceId: inv._id }
+            });
+            count++;
+
+            // Mark as overdue if still unpaid
+            if (inv.status === 'unpaid') {
+                inv.status = 'overdue';
+                await inv.save();
+            }
+        }
+
+        if (count > 0) console.log(`[Cron] ${count} lembrete(s) de cobrança gerado(s).`);
+    } catch (err) {
+        console.error('[Cron] Erro nos lembretes de cobrança:', err.message);
+    }
+}
+
+/**
+ * Gera resumo diário para cada empresa (notificação in-app).
+ */
+async function runDailySummary() {
+    try {
+        const now = new Date();
+        const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+        const companies = await Company.find({}, '_id name');
+        let count = 0;
+
+        for (const company of companies) {
+            const cid = company._id;
+
+            const [salesCount, salesTotalAgg, invoiceCount] = await Promise.all([
+                Sale.countDocuments({ companyId: cid, status: 'confirmed', createdAt: { $gte: startOfDay } }),
+                Sale.aggregate([
+                    { $match: { companyId: cid, status: 'confirmed', createdAt: { $gte: startOfDay } } },
+                    { $group: { _id: null, total: { $sum: '$total' } } }
+                ]),
+                Invoice.countDocuments({ companyId: cid, docType: 'invoice', createdAt: { $gte: startOfDay } })
+            ]);
+
+            const salesTotal = salesTotalAgg[0]?.total || 0;
+            if (salesCount === 0 && invoiceCount === 0) continue;
+
+            const currency = new Intl.NumberFormat('pt-MZ', { style: 'currency', currency: 'MZN' }).format(salesTotal);
+
+            await Notification.create({
+                companyId: cid,
+                type: 'general',
+                title: 'Resumo do dia',
+                message: `Hoje: ${salesCount} venda${salesCount !== 1 ? 's' : ''} (${currency}), ${invoiceCount} factura${invoiceCount !== 1 ? 's' : ''} emitida${invoiceCount !== 1 ? 's' : ''}.`,
+                icon: 'fas fa-chart-bar',
+                color: 'info',
+                link: '/dashboard'
+            });
+            count++;
+        }
+
+        if (count > 0) console.log(`[Cron] Resumo diário gerado para ${count} empresa(s).`);
+    } catch (err) {
+        console.error('[Cron] Erro no resumo diário:', err.message);
+    }
+}
+
 function startCronJobs() {
     // Executa imediatamente ao arrancar e depois em intervalos
     runExpiryCheck();
@@ -266,6 +371,8 @@ function startCronJobs() {
     setInterval(runMonthlySummary, 24 * 60 * 60 * 1000); // 24h
     setInterval(runNotificationGeneration, 4 * 60 * 60 * 1000); // 4h
     setInterval(runRecurringInvoices, 6 * 60 * 60 * 1000); // 6h
+    setInterval(runPaymentReminders, 24 * 60 * 60 * 1000); // 24h
+    setInterval(runDailySummary, 24 * 60 * 60 * 1000); // 24h
 
     console.log('[Cron] Jobs iniciados.');
 }

@@ -50,6 +50,9 @@
           <li><a href="#pricing">Planos & Preços</a></li>
           <li><a href="#faq">Ajuda</a></li>
           <li>
+            <a href="/demo" class="btn btn-outline-primary mr-2" style="padding: 8px 16px; border-radius: 25px;">Ver demo</a>
+          </li>
+          <li>
             <a href="/login" class="btn btn-primary" style="padding: 10px 18px; border-radius: 25px;">Área do
               Cliente</a>
           </li>
@@ -122,6 +125,17 @@
       </svg>
     </section>
     <!-- /Hero Section -->
+
+    <!-- Social Proof Bar (recent signups) -->
+    <section class="section" style="padding: 16px 0; background: #f8f9fc; border-bottom: 1px solid #e3e6f0;">
+      <div class="container">
+        <div class="d-flex justify-content-center align-items-center flex-wrap" style="gap: 24px; font-size: .88rem; color: #555;" id="socialProofBar">
+          <span><i class="bi bi-people-fill" style="color:#228CDF; margin-right:4px;"></i> <strong id="recentSignups">—</strong> empresas registaram-se esta semana</span>
+          <span><i class="bi bi-shield-lock-fill" style="color:#1cc88a; margin-right:4px;"></i> Dados encriptados e seguros</span>
+          <span><i class="bi bi-clock-fill" style="color:#f6c23e; margin-right:4px;"></i> Registo em menos de 1 minuto</span>
+        </div>
+      </div>
+    </section>
 
     <!-- About Section -->
     <section id="about" class="about section">
@@ -943,6 +957,13 @@
   <!-- Main JS File -->
   <script src="site-assets/js/main.js"></script>
   <script src="/assets/js/datehandler.js"></script>
+
+  <!-- Recent signups counter -->
+  <script>
+  fetch('/api/company/recent-count').then(function(r){return r.json();}).then(function(d) {
+    if (d.success) document.getElementById('recentSignups').textContent = d.count;
+  }).catch(function(){});
+  </script>
 
   <!-- Dynamic Pricing -->
   <script>

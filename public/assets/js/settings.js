@@ -454,6 +454,9 @@ document.addEventListener("DOMContentLoaded", function () {
         renderCompany(companyCache);
       }
 
+      // Renovar token para reflectir o novo nome da empresa no topbar
+      fetch('/api/auth/refresh-token', { method: 'POST' }).catch(() => {});
+
       $("#companyModal").modal("hide");
       Swal.fire({
         icon: "success",

@@ -65,3 +65,33 @@
   }
 })();
 </script>
+
+<!-- Guided tour (first visit only) -->
+<script>
+(function() {
+  if (typeof Swal === 'undefined') return;
+  var tourKey = 'invoicing_tour_done';
+  if (localStorage.getItem(tourKey)) return;
+  // Only show on dashboard pages
+  if (!window.location.pathname.includes('dashboard')) return;
+
+  setTimeout(function() {
+    Swal.fire({
+      title: 'Bem-vindo ao Invoicing!',
+      html: '<div style="text-align:left; font-size:.9rem;">'
+        + '<p>Aqui está um guia rápido para começar:</p>'
+        + '<div style="display:flex; align-items:flex-start; gap:10px; margin-bottom:10px;"><span style="background:#228CDF; color:#fff; border-radius:50%; width:24px; height:24px; display:flex; align-items:center; justify-content:center; flex-shrink:0; font-weight:700;">1</span><div><strong>Venda Rápida (POS)</strong><br><small class="text-muted">Menu Vendas → Venda rápida. Seleccione produtos e confirme.</small></div></div>'
+        + '<div style="display:flex; align-items:flex-start; gap:10px; margin-bottom:10px;"><span style="background:#1cc88a; color:#fff; border-radius:50%; width:24px; height:24px; display:flex; align-items:center; justify-content:center; flex-shrink:0; font-weight:700;">2</span><div><strong>Emitir Factura</strong><br><small class="text-muted">Menu Documentos → Facturas. Crie, envie por WhatsApp ou PDF.</small></div></div>'
+        + '<div style="display:flex; align-items:flex-start; gap:10px; margin-bottom:10px;"><span style="background:#f6c23e; color:#fff; border-radius:50%; width:24px; height:24px; display:flex; align-items:center; justify-content:center; flex-shrink:0; font-weight:700;">3</span><div><strong>Configurar Empresa</strong><br><small class="text-muted">Vá a Configurações para adicionar logotipo e dados bancários.</small></div></div>'
+        + '<div style="display:flex; align-items:flex-start; gap:10px;"><span style="background:#e74a3b; color:#fff; border-radius:50%; width:24px; height:24px; display:flex; align-items:center; justify-content:center; flex-shrink:0; font-weight:700;">4</span><div><strong>Explore o Dashboard</strong><br><small class="text-muted">Veja vendas, metas, insights, stock e dívidas — tudo nesta página.</small></div></div>'
+        + '</div>',
+      confirmButtonText: 'Entendido!',
+      confirmButtonColor: '#228CDF',
+      width: 480,
+      customClass: { popup: 'animated fadeInDown' }
+    }).then(function() {
+      localStorage.setItem(tourKey, '1');
+    });
+  }, 1500);
+})();
+</script>

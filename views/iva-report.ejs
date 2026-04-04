@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"/>
+  <title>Invoicing - <%- title %></title>
+  <link rel="icon" type="image/png" href="/images/invoicing-logo-simple.png"/>
+  <link href="/assets/vendor/fontawesome-free/css/all.min.css" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css?family=Nunito:200,400,600,700,800" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" crossorigin="anonymous"/>
+  <link href="/assets/css/sb-admin-2.min.css" rel="stylesheet"/>
+  <link href="/assets/css/custom.css" rel="stylesheet"/>
+</head>
+<body id="page-top">
+<div id="wrapper">
+  <%- include('partials/sidebar') %>
+  <div id="content-wrapper" class="d-flex flex-column">
+    <div id="content">
+      <%- include('partials/topbar') %>
+      <div class="container-fluid">
+        <div class="d-sm-flex align-items-center justify-content-between mb-4">
+          <h5 class="mb-0 text-gray-800"><strong><i class="fas fa-file-invoice-dollar mr-2 text-primary"></i>Relatório de IVA</strong></h5>
+          <div class="d-flex" style="gap:8px;">
+            <input type="date" id="ivaFrom" class="form-control form-control-sm"/>
+            <input type="date" id="ivaTo" class="form-control form-control-sm"/>
+            <button class="btn btn-primary btn-sm" onclick="loadIVA()"><i class="fas fa-filter mr-1"></i>Filtrar</button>
+          </div>
+        </div>
+
+        <div class="row mb-4">
+          <div class="col-md-4 mb-3">
+            <div class="card border-left-success shadow-sm h-100 py-2">
+              <div class="card-body">
+                <div class="text-xs font-weight-bold text-success text-uppercase mb-1">IVA Cobrado (Output)</div>
+                <div class="h4 mb-0 font-weight-bold" id="ivaCobrado">—</div>
+                <small class="text-muted" id="ivaInvoiceCount"></small>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-4 mb-3">
+            <div class="card border-left-danger shadow-sm h-100 py-2">
+              <div class="card-body">
+                <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">IVA Suportado (Input) *</div>
+                <div class="h4 mb-0 font-weight-bold" id="ivaSuportado">—</div>
+                <small class="text-muted" id="ivaExpenseTotal"></small>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-4 mb-3">
+            <div class="card border-left-primary shadow-sm h-100 py-2">
+              <div class="card-body">
+                <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">IVA a Pagar ao Estado</div>
+                <div class="h4 mb-0 font-weight-bold text-primary" id="ivaAPagar">—</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card shadow mb-4">
+          <div class="card-body">
+            <h6 class="font-weight-bold mb-3">Detalhe</h6>
+            <table class="table table-sm">
+              <tbody>
+                <tr><td>Subtotal das facturas</td><td class="text-right font-weight-bold" id="detSubtotal">—</td></tr>
+                <tr><td>IVA cobrado (16%)</td><td class="text-right font-weight-bold text-success" id="detIVACobrado">—</td></tr>
+                <tr><td>Total facturado</td><td class="text-right font-weight-bold" id="detTotal">—</td></tr>
+                <tr><td colspan="2"><hr/></td></tr>
+                <tr><td>Total de despesas</td><td class="text-right font-weight-bold" id="detExpenses">—</td></tr>
+                <tr><td>IVA suportado estimado (16%)</td><td class="text-right font-weight-bold text-danger" id="detIVASuportado">—</td></tr>
+                <tr><td colspan="2"><hr/></td></tr>
+                <tr><td><strong>IVA a entregar</strong></td><td class="text-right font-weight-bold text-primary" style="font-size:1.2rem;" id="detIVAPagar">—</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="alert alert-warning small">
+          <i class="fas fa-exclamation-triangle mr-1"></i>
+          * O IVA suportado é estimado como 16% do total de despesas registadas. Para um cálculo exacto, consulte o seu contabilista.
+        </div>
+      </div>
+    </div>
+    <%- include('partials/copyright') %>
+  </div>
+</div>
+<%- include('partials/footer') %>
+<script>
+var cur = function(v) { return new Intl.NumberFormat('pt-MZ',{style:'currency',currency:'MZN'}).format(v||0); };
+
+async function loadIVA() {
+  var from = document.getElementById('ivaFrom').value;
+  var to = document.getElementById('ivaTo').value;
+  var url = '/api/features/iva-report?' + (from ? 'from=' + from + '&' : '') + (to ? 'to=' + to : '');
+  var res = await fetch(url);
+  var data = await res.json();
+  if (!data.success) return;
+  var r = data.report;
+  document.getElementById('ivaCobrado').textContent = cur(r.ivaCobrado);
+  document.getElementById('ivaSuportado').textContent = cur(r.ivaSuportado);
+  document.getElementById('ivaAPagar').textContent = cur(r.ivaAPagar);
+  document.getElementById('ivaInvoiceCount').textContent = r.invoices.count + ' facturas emitidas';
+  document.getElementById('ivaExpenseTotal').textContent = 'Despesas: ' + cur(r.expenses.total);
+  document.getElementById('detSubtotal').textContent = cur(r.invoices.subtotal);
+  document.getElementById('detIVACobrado').textContent = cur(r.ivaCobrado);
+  document.getElementById('detTotal').textContent = cur(r.invoices.total);
+  document.getElementById('detExpenses').textContent = cur(r.expenses.total);
+  document.getElementById('detIVASuportado').textContent = cur(r.ivaSuportado);
+  document.getElementById('detIVAPagar').textContent = cur(r.ivaAPagar);
+}
+
+loadIVA();
+</script>
+</body>
+</html>

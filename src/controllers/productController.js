@@ -1,5 +1,6 @@
 const Product = require("../models/product");
 const StockMovement = require("../models/stockMovement");
+const PriceHistory = require("../models/priceHistory");
 const { log: logActivity } = require('./activityLogController');
 
 // helper
@@ -136,9 +137,28 @@ exports.updateProduct = async (req, res) => {
     if (unit !== undefined) update.unit = unit;
     if (active !== undefined) update.active = Boolean(active);
 
+    // costPrice
+    const { costPrice, barcode, category: prodCategory } = req.body;
+    if (costPrice !== undefined) update.costPrice = toNumber(costPrice, 0);
+    if (barcode !== undefined) update.barcode = String(barcode).trim();
+    if (prodCategory !== undefined) update.category = String(prodCategory).trim();
+
     // stock (se vier)
     if (stockQuantity !== undefined) update["stock.quantity"] = toNumber(stockQuantity, 0);
     if (stockMin !== undefined) update["stock.min"] = toNumber(stockMin, 0);
+
+    // Track price changes before updating
+    if (update.unitPrice !== undefined || update.costPrice !== undefined) {
+      const oldProduct = await Product.findOne({ _id: req.params.id, companyId }).lean();
+      if (oldProduct && (oldProduct.unitPrice !== update.unitPrice || oldProduct.costPrice !== update.costPrice)) {
+        PriceHistory.create({
+          companyId, productId: req.params.id,
+          oldPrice: oldProduct.unitPrice, newPrice: update.unitPrice ?? oldProduct.unitPrice,
+          oldCostPrice: oldProduct.costPrice || 0, newCostPrice: update.costPrice ?? oldProduct.costPrice ?? 0,
+          changedBy: req.user._id
+        }).catch(() => {});
+      }
+    }
 
     const product = await Product.findOneAndUpdate(
       { _id: req.params.id, companyId },

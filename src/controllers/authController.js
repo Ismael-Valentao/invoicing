@@ -91,3 +91,31 @@ exports.logout = (req, res) => {
   res.clearCookie('token');
   res.json({ message: 'Logout realizado com sucesso' });
 };
+
+/**
+ * Refresh token — renova o JWT com dados frescos da DB.
+ * Usado após actualizar dados da empresa/utilizador.
+ */
+exports.refreshToken = async (req, res) => {
+  try {
+    const User = require('../models/user');
+    const user = await User.findById(req.user.id).populate('companyId');
+    if (!user) return res.status(401).json({ success: false, message: 'Utilizador não encontrado.' });
+
+    const token = jwt.sign(
+      { id: user._id, name: user.name, email: user.email, permissions: user.permissions, role: user.role, company: user.companyId },
+      SECRET, { expiresIn: '1h' }
+    );
+
+    res.cookie('token', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
+      maxAge: 3600000
+    });
+
+    res.json({ success: true, message: 'Token renovado.' });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};

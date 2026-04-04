@@ -252,6 +252,109 @@ exports.createCompany = async (req, res) => {
     }
 };
 
+/**
+ * Quick Register — registo simplificado (nome, email, password).
+ * Cria empresa placeholder, utilizador admin, subscrição FREE,
+ * ambos módulos activos, dados de demonstração.
+ */
+exports.quickRegister = async (req, res) => {
+    const Product = require('../models/product');
+    const Client = require('../models/client');
+    const { log: logActivity } = require('./activityLogController');
+
+    try {
+        const { name, email, password } = req.body;
+        if (!name || !email || !password) {
+            return res.status(400).json({ success: false, message: 'Nome, email e password são obrigatórios.' });
+        }
+        if (password.length < 8) {
+            return res.status(400).json({ success: false, message: 'Password deve ter pelo menos 8 caracteres.' });
+        }
+
+        const existingUser = await User.findOne({ email });
+        if (existingUser) {
+            return res.status(400).json({ success: false, message: 'Já existe uma conta com este email.' });
+        }
+
+        const verificationToken = crypto.randomBytes(32).toString('hex');
+        const hashedToken = crypto.createHash('sha256').update(verificationToken).digest('hex');
+
+        // Create company with placeholder data + both modules active
+        const newCompany = await company.create({
+            name: `Empresa de ${name.split(' ')[0]}`,
+            address: 'A definir',
+            contact: 'A definir',
+            email: email,
+            nuit: '000000000',
+            showBankDetails: {},
+            bankDetails: [],
+            modules: { sales: true, invoicing: true }
+        });
+
+        const hashedPassword = bcrypt.hashSync(password, 10);
+
+        const user = await User.create({
+            name,
+            email,
+            contact: '',
+            password: hashedPassword,
+            companyId: newCompany._id,
+            role: 'ADMIN',
+            permissions: {
+                dashboard: true, sales: true, stock: true, invoicing: true,
+                products: true, customers: true, suppliers: true,
+                reports: true, settings: true, users: true
+            },
+            emailVerified: true,
+            emailVerificationToken: hashedToken,
+            emailVerificationExpires: Date.now() + 24 * 60 * 60 * 1000
+        });
+
+        await Subscription.create({
+            companyId: newCompany._id,
+            plan: 'FREE',
+            startDate: new Date(),
+            expiresAt: getFreePlanExpiration(),
+            status: 'active'
+        });
+
+        // Demo data
+        await Product.insertMany([
+            { companyId: newCompany._id, description: 'Produto Exemplo A', unitPrice: 500, costPrice: 300, stock: { quantity: 50, min: 5 }, unit: 'un', active: true },
+            { companyId: newCompany._id, description: 'Produto Exemplo B', unitPrice: 1200, costPrice: 800, stock: { quantity: 20, min: 3 }, unit: 'un', active: true },
+            { companyId: newCompany._id, description: 'Serviço Exemplo', unitPrice: 2500, costPrice: 0, stock: { quantity: 0, min: 0 }, unit: 'un', active: true },
+        ]);
+        await Client.insertMany([
+            { companyId: newCompany._id, name: 'Cliente Exemplo', email: 'cliente@exemplo.com', phone: '841234567', nuit: '123456789', category: 'final' },
+            { companyId: newCompany._id, name: 'Revendedor Exemplo', phone: '851234567', nuit: '987654321', category: 'revendedor' },
+        ]);
+
+        logActivity({
+            companyId: newCompany._id, userId: user._id, userName: name,
+            action: 'created', entity: 'user', entityId: user._id,
+            description: `Nova conta criada: ${name} (${email}).`
+        });
+
+        // Send verification email (best-effort)
+        if (process.env.MAIL_VERIFICATION_API_URL) {
+            const verifyUrl = `${process.env.NODE_ENV?.toLowerCase() === "development" ? process.env.APP_URL_LOCAL : process.env.APP_URL}/api/users/verify-email/${verificationToken}`;
+            fetch(process.env.MAIL_VERIFICATION_API_URL, {
+                method: "POST",
+                headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                body: new URLSearchParams({ user_email: email, user_name: name, verify_url: verifyUrl })
+            }).catch(console.error);
+        }
+
+        return res.status(201).json({
+            success: true,
+            message: 'Conta criada com sucesso! Pode fazer login imediatamente.'
+        });
+    } catch (err) {
+        console.error(err);
+        return res.status(500).json({ success: false, message: 'Erro ao criar conta. Tente novamente.' });
+    }
+};
+
 exports.getCompany = async (req, res) => {
     const companyId = req.user.company._id;
     try {
@@ -313,13 +416,13 @@ exports.getCompanyById = async (req, res) => {
 exports.updateCompany = async (req, res) => {
     try {
         const companyId = req.user.company._id;
-        const { companyNUIT, companyContact, companyEmail, companyAddress } = req.body;
-        const data = {
-            address: companyAddress,
-            contact: companyContact,
-            email: companyEmail,
-            nuit: companyNUIT,
-        }
+        const { companyName, companyNUIT, companyContact, companyEmail, companyAddress } = req.body;
+        const data = {};
+        if (companyName) data.name = companyName;
+        if (companyAddress) data.address = companyAddress;
+        if (companyContact) data.contact = companyContact;
+        if (companyEmail) data.email = companyEmail;
+        if (companyNUIT) data.nuit = companyNUIT;
         const updatedCompany = await company.findByIdAndUpdate({ _id: companyId }, data, {
             new: true
         });

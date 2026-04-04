@@ -33,7 +33,10 @@
           <div class="col-lg-8">
             <div class="d-flex align-items-center justify-content-between mb-3">
               <h5 class="mb-0 text-gray-800"><strong><i class="fas fa-cash-register mr-2"></i>Venda Rápida</strong></h5>
-              <input type="text" id="posSearch" class="form-control form-control-sm" placeholder="Pesquisar produto..." style="width:250px;" oninput="filterProducts()"/>
+              <div class="d-flex" style="gap:6px;">
+                <input type="text" id="barcodeInput" class="form-control form-control-sm" placeholder="Código de barras..." style="width:160px;" />
+                <input type="text" id="posSearch" class="form-control form-control-sm" placeholder="Pesquisar produto..." style="width:200px;" oninput="filterProducts()"/>
+              </div>
             </div>
             <div class="row" id="productsGrid">
               <div class="col-12 text-center text-muted py-4">A carregar produtos...</div>
@@ -206,6 +209,27 @@ async function confirmSale() {
   } catch(e) { alert('Erro de ligação.'); }
   btn.disabled = false; btn.innerHTML = '<i class="fas fa-check mr-1"></i>Confirmar Venda';
 }
+
+// Barcode scanning
+var barcodeInput = document.getElementById('barcodeInput');
+barcodeInput.addEventListener('keydown', function(e) {
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    var code = this.value.trim();
+    if (!code) return;
+    var found = allProducts.find(function(p) { return p.barcode === code || p.sku === code; });
+    if (found) {
+      addToCart(found._id);
+      this.value = '';
+    } else {
+      alert('Produto não encontrado para o código: ' + code);
+    }
+    this.value = '';
+    this.focus();
+  }
+});
+// Auto-focus barcode on load
+barcodeInput.focus();
 
 loadProducts();
 </script>
