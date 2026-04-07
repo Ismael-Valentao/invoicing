@@ -8,6 +8,7 @@ router.get('/low-stock', authMiddleware, dashboard.getLowStock);
 router.get('/client-debts', authMiddleware, dashboard.getClientDebts);
 router.get('/savings', authMiddleware, dashboard.getSavingsStats);
 router.get('/insights', authMiddleware, dashboard.getInsights);
+router.get('/greeting', authMiddleware, dashboard.getGreeting);
 router.get('/profit', authMiddleware, dashboard.getProfitOverview);
 router.get('/activities', authMiddleware, getActivities);
 

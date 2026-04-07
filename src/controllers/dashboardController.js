@@ -188,6 +188,105 @@ exports.getInsights = async (req, res) => {
     }
 };
 
+// Saudação contextual ao chegar ao dashboard
+exports.getGreeting = async (req, res) => {
+    try {
+        const companyId = toObjectId(req.user.company._id);
+        const companyIdRaw = req.user.company._id;
+        const fullName = req.user.name || '';
+        const firstName = fullName.trim().split(/\s+/)[0] || 'Olá';
+
+        const now = new Date();
+        const hour = now.getHours();
+        let period;
+        if (hour < 12) period = 'Bom dia';
+        else if (hour < 18) period = 'Boa tarde';
+        else period = 'Boa noite';
+
+        // Janela de "ontem"
+        const startToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        const startYesterday = new Date(startToday); startYesterday.setDate(startToday.getDate() - 1);
+
+        const [overdueCount, lowStockCount, ySales, yInvoices, lastSale] = await Promise.all([
+            Invoice.countDocuments({
+                companyId: companyIdRaw, docType: 'invoice', status: 'unpaid',
+                dueDate: { $lt: now }
+            }),
+            Product.countDocuments({
+                companyId: companyIdRaw, active: true, 'stock.min': { $gt: 0 },
+                $expr: { $lte: ['$stock.quantity', '$stock.min'] }
+            }),
+            Sale.aggregate([
+                { $match: { companyId, status: 'confirmed', createdAt: { $gte: startYesterday, $lt: startToday } } },
+                { $group: { _id: null, total: { $sum: '$total' }, count: { $sum: 1 } } }
+            ]),
+            Invoice.aggregate([
+                { $match: { companyId, docType: 'invoice', createdAt: { $gte: startYesterday, $lt: startToday } } },
+                { $group: { _id: null, total: { $sum: '$totalAmount' }, count: { $sum: 1 } } }
+            ]),
+            Sale.findOne({ companyId, status: 'confirmed' }).sort({ createdAt: -1 }).select('createdAt').lean()
+        ]);
+
+        const fmtMZN = (v) => new Intl.NumberFormat('pt-MZ', { style: 'currency', currency: 'MZN', maximumFractionDigits: 0 }).format(v);
+        const dayName = ['Domingo', 'Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sábado'][now.getDay()];
+        const monthName = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'][now.getMonth()];
+        const dateLabel = `${dayName}, ${now.getDate()} de ${monthName}`;
+
+        // Escolhe a mensagem mais relevante (prioridade: alertas → bons resultados → genérico)
+        const yesterdayTotal = (ySales[0]?.total || 0) + (yInvoices[0]?.total || 0);
+        const yesterdayCount = (ySales[0]?.count || 0) + (yInvoices[0]?.count || 0);
+
+        let message;
+        let icon = 'fa-hand-sparkles';
+        let tone = 'primary';
+
+        if (overdueCount > 0) {
+            message = `Tens ${overdueCount} factura${overdueCount > 1 ? 's' : ''} vencida${overdueCount > 1 ? 's' : ''} a precisar${overdueCount > 1 ? 'em' : ''} de atenção.`;
+            icon = 'fa-file-invoice-dollar';
+            tone = 'danger';
+        } else if (lowStockCount > 0) {
+            message = `${lowStockCount} produto${lowStockCount > 1 ? 's estão' : ' está'} com stock abaixo do mínimo.`;
+            icon = 'fa-boxes';
+            tone = 'warning';
+        } else if (yesterdayTotal > 0) {
+            message = `Ontem facturaste ${fmtMZN(yesterdayTotal)} em ${yesterdayCount} documento${yesterdayCount > 1 ? 's' : ''}. Bom trabalho!`;
+            icon = 'fa-trophy';
+            tone = 'success';
+        } else if (lastSale && (now - new Date(lastSale.createdAt)) > 1000 * 60 * 60 * 24 * 5) {
+            message = 'Que bom ver-te de volta! Pronto para retomar o ritmo?';
+            icon = 'fa-hand-sparkles';
+            tone = 'info';
+        } else {
+            // Mensagens genéricas variadas por dia da semana
+            const genericByDay = {
+                0: 'Espero que estejas a ter um bom domingo.',
+                1: 'Mais uma semana a começar — vamos a isto!',
+                2: 'Bom dia de produtividade pela frente.',
+                3: 'A meio da semana — continua o bom trabalho!',
+                4: 'Quase lá, o fim-de-semana aproxima-se.',
+                5: 'Sexta-feira! Bom fim-de-semana à vista.',
+                6: 'Bom sábado de trabalho!'
+            };
+            message = genericByDay[now.getDay()];
+            icon = 'fa-sun';
+            tone = 'primary';
+        }
+
+        return res.json({
+            success: true,
+            greeting: {
+                title: `${period}, ${firstName}!`,
+                date: dateLabel,
+                message,
+                icon,
+                tone
+            }
+        });
+    } catch (err) {
+        return res.status(500).json({ success: false, message: err.message });
+    }
+};
+
 // Profit overview (revenue - expenses)
 exports.getProfitOverview = async (req, res) => {
     try {
