@@ -351,7 +351,7 @@ document.addEventListener("DOMContentLoaded", function () {
         <input type="number" value="1" min="1" class="form-control form-control-sm quantity" required />
       </td>
       <td>
-        <input type="number" min="0" class="form-control form-control-sm unitPrice" required />
+        <input type="number" min="0" class="form-control form-control-sm unitPrice" required readonly title="Definido pelo Administrador no cadastro do produto" />
       </td>
       <td>
         <input type="text" class="form-control form-control-sm subtotal" readonly />

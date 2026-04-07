@@ -14,6 +14,11 @@ async function processSale({ items, companyId, saleId, userId, session, referenc
             throw new Error('Produto não encontrado');
         }
 
+        // Serviços não têm stock
+        if (product.type === 'service') {
+            continue;
+        }
+
         if (product.stock.quantity < item.quantity) {
             throw new Error(`Stock insuficiente: ${product.description}`);
         }
@@ -39,7 +44,7 @@ async function processSale({ items, companyId, saleId, userId, session, referenc
 }
 
 
-async function revertSale({ items, companyId, saleId, userId, session }) {
+async function revertSale({ items, companyId, saleId, userId, session, referenceModel = 'Sale', reason = 'Cancelamento de venda' }) {
 
     for (const item of items) {
 
@@ -52,6 +57,11 @@ async function revertSale({ items, companyId, saleId, userId, session }) {
             throw new Error('Produto não encontrado');
         }
 
+        // Serviços não têm stock — nada a reverter
+        if (product.type === 'service') {
+            continue;
+        }
+
         // Devolve stock
         product.stock.quantity += item.quantity;
         await product.save({ session });
@@ -62,9 +72,9 @@ async function revertSale({ items, companyId, saleId, userId, session }) {
             companyId,
             type: 'IN',
             quantity: item.quantity,
-            reason: 'Cancelamento de venda',
+            reason,
             reference: {
-                model: 'Sale',
+                model: referenceModel,
                 id: saleId
             },
             createdBy: userId

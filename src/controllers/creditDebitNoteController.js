@@ -1,6 +1,7 @@
 const Invoice = require('../models/invoice');
 const { getNextCreditNoteNumber, getNextDebitNoteNumber } = require('../utils/numerationGenerator');
 const { log: logActivity } = require('./activityLogController');
+const { revertSale } = require('../services/sale');
 
 /**
  * Nota de Crédito — anula total ou parcialmente uma factura.
@@ -67,6 +68,28 @@ exports.createCreditNote = async (req, res) => {
         // Mark original invoice as cancelled
         invoice.status = 'cancelled';
         await invoice.save();
+
+        // 📦 Devolver stock dos itens da factura original que estavam ligados a produtos
+        const productItemsToRevert = (invoice.items || [])
+            .filter(i => i.productId)
+            .map(i => ({ productId: i.productId, quantity: Number(i.quantity) }));
+
+        if (productItemsToRevert.length) {
+            try {
+                await revertSale({
+                    items: productItemsToRevert,
+                    companyId,
+                    saleId: creditNote._id,
+                    userId: req.user._id,
+                    session: null,
+                    referenceModel: 'Invoice',
+                    reason: `Nota de Crédito ${creditNote.invoiceNumber}`,
+                });
+            } catch (revertErr) {
+                console.error('Falha ao reverter stock da nota de crédito:', revertErr);
+                // não bloqueamos a emissão da NC, apenas registamos
+            }
+        }
 
         logActivity({
             companyId, userId: req.user._id, userName: req.user.name,

@@ -3,7 +3,7 @@ let selectedRow = null;
 $('#addRow').click(function () {
     $('#itemsTable tbody').append(`
          <tr>
-            <td class="d-flex"><input type="text" name="items[${rowIndex}][description]" class="form-control form-control-sm description" required> <button type="button" class="btn btn-primary btn-sm ml-3 d-flex align-items-center btn-open-products-list"><i class="fa-solid fa-table-list mr-2"></i> Selecionar</button></td>
+            <td class="d-flex"><input type="text" name="items[${rowIndex}][description]" class="form-control form-control-sm description" required><input type="hidden" name="items[${rowIndex}][productId]" class="productId"> <button type="button" class="btn btn-primary btn-sm ml-3 d-flex align-items-center btn-open-products-list"><i class="fa-solid fa-table-list mr-2"></i> Selecionar</button></td>
             <td><input type="number" name="items[${rowIndex}][quantity]" value="1" min="1" class="form-control form-control-sm quantity" required></td>
             <td><input type="text" name="items[${rowIndex}][unitPrice]" min="1" placeholder="0" class="form-control form-control-sm unitPrice" required></td>
             <td><button type="button" class="btn btn-danger btn-sm remove-row"><i class="fas fa-trash"></i></button></td>
@@ -126,6 +126,7 @@ $("#invoice-form").submit(async function (e) {
             <tr>
                 <td class="d-flex">
                     <input type="text" name="items[0][description]" class="form-control form-control-sm description" required>
+                    <input type="hidden" name="items[0][productId]" class="productId">
                     <button type="button" class="btn btn-primary btn-sm ml-3 d-flex align-items-center btn-open-products-list">
                         <i class="fa-solid fa-table-list mr-2"></i> Selecionar
                     </button>
@@ -195,7 +196,7 @@ async function getProducts() {
                 const products = data.products;
                 const productSelect = document.createElement('select');
                 productSelect.className = 'form-control form-control-sm';
-                productSelect.innerHTML = `<option value="0">Selecionar</option>` + products.map(product => `<option value="${product.unitPrice}">${product.description}</option>`).join('');
+                productSelect.innerHTML = `<option value="0">Selecionar</option>` + products.map(product => `<option value="${product._id}" data-price="${product.unitPrice}" data-description="${product.description}">${product.description}</option>`).join('');
                 $('#productSelectModal .modal-body').empty().html(productSelect);
             }
         })
@@ -226,14 +227,26 @@ $('#productSelectModal').on('change', 'select', function () {
         return
     }
     const selectedOption = $(this).find('option:selected');
-    const unitPrice = selectedOption.val();
-    const description = selectedOption.text();
+    const productId = selectedOption.val();
+    const unitPrice = selectedOption.attr('data-price');
+    const description = selectedOption.attr('data-description') || selectedOption.text();
     const quantity = 1; // Default quantity
 
-    selectedRow.find('input.description').val(description);
-    selectedRow.find('input.unitPrice').val(unitPrice);
+    selectedRow.find('input.description').val(description).prop('readonly', true);
+    selectedRow.find('input.productId').val(productId);
+    selectedRow.find('input.unitPrice').val(unitPrice).prop('readonly', true).attr('title', 'Definido pelo Administrador no cadastro do produto');
     selectedRow.find('input.quantity').val(quantity);
     $('#productSelectModal').modal('hide');
+});
+
+// Se o utilizador limpar a descrição manualmente, liberta o preço (item livre)
+$('#itemsTable').on('input', 'input.description', function () {
+    const row = $(this).closest('tr');
+    if (!$(this).val().trim()) {
+        row.find('input.productId').val('');
+        row.find('input.unitPrice').prop('readonly', false).removeAttr('title');
+        $(this).prop('readonly', false);
+    }
 });
 
 $("#client-select").on("change", function (e) {

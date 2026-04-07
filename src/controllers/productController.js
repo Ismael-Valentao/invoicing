@@ -24,7 +24,10 @@ exports.createProduct = async (req, res) => {
       stockQuantity,
       stockMin,
       active,
+      type,
     } = req.body;
+
+    const itemType = type === 'service' ? 'service' : 'product';
 
     if (!description || !String(description).trim()) {
       return res.status(400).json({ status: "error", message: "Informe o nome do produto." });
@@ -43,16 +46,16 @@ exports.createProduct = async (req, res) => {
     const product = await Product.create({
       companyId,
       description: String(description).trim(),
+      type: itemType,
       sku: sku ? String(sku).trim() : undefined,
       unitPrice: price,
       costPrice: cost,
       barcode: barcode ? String(barcode).trim() : "",
       category: category ? String(category).trim() : "",
       unit: unit || "un",
-      stock: {
-        quantity: toNumber(stockQuantity, 0),
-        min: toNumber(stockMin, 0),
-      },
+      stock: itemType === 'service'
+        ? { quantity: 0, min: 0 }
+        : { quantity: toNumber(stockQuantity, 0), min: toNumber(stockMin, 0) },
       active: active === undefined ? true : Boolean(active),
     });
 
@@ -153,6 +156,9 @@ exports.updateProduct = async (req, res) => {
 
     if (unit !== undefined) update.unit = unit;
     if (active !== undefined) update.active = Boolean(active);
+    if (req.body.type !== undefined) {
+      update.type = req.body.type === 'service' ? 'service' : 'product';
+    }
 
     if (costPrice !== undefined) {
       if (!isAdmin) {

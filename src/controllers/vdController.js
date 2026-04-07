@@ -4,7 +4,7 @@ const { amounts } = require("../utils/amountCalculator");
 const { getNextVDNumber } = require("../utils/numerationGenerator");
 
 exports.createVD = async (req, res) => {
-  const { subTotal, tax, totalAmount } = amounts(req.body.items, req.body.iva*1*0.1);
+  const { subTotal, tax, totalAmount } = amounts(req.body.items, req.body.iva * 1 * 0.01);
   const userId = req.user._id;
   const companyId = req.user.company._id;
 

@@ -172,6 +172,8 @@ document.addEventListener("DOMContentLoaded", function () {
   document.getElementById("btn-add-product")?.addEventListener("click", async () => {
     const description = document.getElementById("add-product-name").value.trim();
     const unitPrice = document.getElementById("add-product-price").value;
+    const costPrice = document.getElementById("add-product-cost")?.value || 0;
+    const type = document.getElementById("add-product-type")?.value || "product";
 
     const sku = document.getElementById("add-product-sku")?.value?.trim() || "";
     const unit = document.getElementById("add-product-unit")?.value || "un";
@@ -186,7 +188,7 @@ document.addEventListener("DOMContentLoaded", function () {
       });
     }
 
-    const payload = { description, unitPrice, sku, unit, stockQuantity, stockMin };
+    const payload = { description, unitPrice, costPrice, sku, unit, stockQuantity, stockMin, type };
 
     const resp = await fetch("/api/products", {
       method: "POST",
@@ -235,6 +237,12 @@ document.addEventListener("DOMContentLoaded", function () {
       const p = data.product;
       document.getElementById("update-product-name").value = p.description || "";
       document.getElementById("update-product-price").value = p.unitPrice ?? "";
+      document.getElementById("update-product-cost") && (document.getElementById("update-product-cost").value = p.costPrice ?? "");
+      const updType = document.getElementById("update-product-type");
+      if (updType) {
+        updType.value = p.type === 'service' ? 'service' : 'product';
+        toggleUpdateStockFields(updType.value);
+      }
 
       document.getElementById("update-product-sku") && (document.getElementById("update-product-sku").value = p.sku || "");
       document.getElementById("update-product-unit") && (document.getElementById("update-product-unit").value = p.unit || "un");
@@ -291,6 +299,10 @@ document.addEventListener("DOMContentLoaded", function () {
 
       document.getElementById("stock-type").value = "IN";
       document.getElementById("stock-qty").value = "";
+      const stockCostEl = document.getElementById("stock-cost");
+      if (stockCostEl) stockCostEl.value = "";
+      const stockCostWrap = document.getElementById("stock-cost-wrapper");
+      if (stockCostWrap) stockCostWrap.style.display = ""; // visível por defeito (Entrada)
       document.getElementById("stock-reason").value = "";
       document.getElementById("stock-note").value = "";
 
@@ -304,6 +316,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     const description = document.getElementById("update-product-name").value.trim();
     const unitPrice = document.getElementById("update-product-price").value;
+    const costPrice = document.getElementById("update-product-cost")?.value;
 
     const sku = document.getElementById("update-product-sku")?.value?.trim() || "";
     const unit = document.getElementById("update-product-unit")?.value || "un";
@@ -314,7 +327,10 @@ document.addEventListener("DOMContentLoaded", function () {
       return Swal.fire({ icon: "warning", title: "Campos obrigatórios", text: "Preencha nome e preço." });
     }
 
+    const type = document.getElementById("update-product-type")?.value;
     const payload = { description, unitPrice, sku, unit };
+    if (costPrice !== undefined && costPrice !== "") payload.costPrice = costPrice;
+    if (type) payload.type = type;
     if (stockMin !== undefined) payload.stockMin = stockMin;
     if (active !== undefined) payload.active = active === "true";
 
@@ -338,6 +354,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const productId = document.getElementById("stock-product-id").value;
     const type = document.getElementById("stock-type").value;
     const quantity = document.getElementById("stock-qty").value;
+    const unitCost = document.getElementById("stock-cost")?.value;
     const reason = document.getElementById("stock-reason").value.trim();
     const note = document.getElementById("stock-note").value.trim();
 
@@ -350,10 +367,15 @@ document.addEventListener("DOMContentLoaded", function () {
       return Swal.fire({ icon: "warning", title: "Motivo obrigatório", text: "Informe o motivo do movimento." });
     }
 
+    const payload = { type, quantity, reason, note };
+    if (type === "IN" && unitCost !== undefined && unitCost !== "") {
+      payload.unitCost = unitCost;
+    }
+
     const resp = await fetch(`/api/products/${productId}/stock`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ type, quantity, reason, note }),
+      body: JSON.stringify(payload),
     });
 
     const json = await resp.json().catch(() => ({}));
@@ -379,6 +401,8 @@ document.addEventListener("DOMContentLoaded", function () {
     document.getElementById("add-product-sku").value = "";
     document.getElementById("add-product-unit").value = "un";
     document.getElementById("add-product-price").value = "";
+    const addCostEl = document.getElementById("add-product-cost");
+    if (addCostEl) addCostEl.value = "";
     document.getElementById("add-product-stock").value = 0;
     document.getElementById("add-product-min").value = 0;
   }
@@ -394,6 +418,10 @@ document.addEventListener("DOMContentLoaded", function () {
     if (!typeEl || !reasonEl) return;
 
     const type = typeEl.value;
+
+    // Mostra o preço de compra apenas em entradas
+    const costWrap = document.getElementById("stock-cost-wrapper");
+    if (costWrap) costWrap.style.display = type === "IN" ? "" : "none";
 
     if (type === "IN") {
       reasonEl.innerHTML = `
@@ -416,6 +444,32 @@ document.addEventListener("DOMContentLoaded", function () {
 
   document.getElementById("stock-type")?.addEventListener("change", updateStockReasonOptions);
   updateStockReasonOptions()
+
+  // ===== Toggle de campos de stock consoante tipo (produto vs serviço) =====
+  function toggleAddStockFields(t) {
+    const show = t !== 'service';
+    document.querySelectorAll('.add-product-stock-field').forEach(el => {
+      el.style.display = show ? '' : 'none';
+    });
+  }
+  function toggleUpdateStockFields(t) {
+    const show = t !== 'service';
+    document.querySelectorAll('.update-product-stock-field').forEach(el => {
+      el.style.display = show ? '' : 'none';
+    });
+  }
+  // expor para uso no handler de edit
+  window.toggleUpdateStockFields = toggleUpdateStockFields;
+
+  document.getElementById("add-product-type")?.addEventListener("change", function () {
+    toggleAddStockFields(this.value);
+  });
+  document.getElementById("update-product-type")?.addEventListener("change", function () {
+    toggleUpdateStockFields(this.value);
+  });
+  // estado inicial
+  toggleAddStockFields(document.getElementById("add-product-type")?.value || 'product');
+
   // init
   loadProducts().catch(console.error);
 });

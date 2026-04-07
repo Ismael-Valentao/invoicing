@@ -475,15 +475,17 @@ function buildA4DocumentHtml({
 
       ${bankBlock}
 
-      ${qrCodeDataUrl ? `
-      <div style="text-align:center; margin-top:14px;">
-        <img src="${qrCodeDataUrl}" style="width:80px; height:80px;" />
-        <p style="font-size:7px; color:#858796; margin-top:2px;">Digitalize para ver este documento online</p>
-      </div>
-      ` : ''}
         </div>
-      <div class="footer-notes">
-        ${footerNotes.map((note) => `<p>${escapeHtml(note)}</p>`).join("")}
+      <div class="footer-notes" style="display:flex; align-items:flex-end; justify-content:space-between; gap:12px;">
+        <div style="flex:1;">
+          ${footerNotes.map((note) => `<p>${escapeHtml(note)}</p>`).join("")}
+        </div>
+        ${qrCodeDataUrl ? `
+        <div style="text-align:center; flex-shrink:0;">
+          <img src="${qrCodeDataUrl}" style="width:60px; height:60px; display:block;" />
+          <p style="font-size:6px; color:#858796; margin:2px 0 0 0; line-height:1.1;">Verificar online</p>
+        </div>
+        ` : ''}
       </div>
     </div>
   </body>
@@ -520,13 +522,15 @@ async function renderA4Pdf(html) {
   return pdfBuffer;
 }
 
-async function generateInvoicePDF(companyInfo, invoice) {
+async function generateInvoicePDF(companyInfo, invoice, baseUrl) {
   // Generate QR code linking to the client portal
   let qrCodeDataUrl = "";
   try {
-    const baseUrl = process.env.BASE_URL || "https://invoicing.bitiray.com";
-    const portalUrl = `${baseUrl}/p/${invoice._id}`;
-    qrCodeDataUrl = await QRCode.toDataURL(portalUrl, { width: 120, margin: 1 });
+    const resolvedBase = baseUrl || process.env.BASE_URL || "";
+    if (resolvedBase) {
+      const portalUrl = `${resolvedBase.replace(/\/$/, '')}/p/${invoice._id}`;
+      qrCodeDataUrl = await QRCode.toDataURL(portalUrl, { width: 120, margin: 1 });
+    }
   } catch (e) { /* QR code is optional */ }
 
   const html = buildA4DocumentHtml({
@@ -920,7 +924,7 @@ async function generateSaleReceiptPDF(companyInfo, sale) {
   return pdfBuffer;
 }
 
-async function generateCreditNotePDF(companyInfo, note, relatedInvoiceNumber) {
+async function generateCreditNotePDF(companyInfo, note, relatedInvoiceNumber, _baseUrl) {
   const html = buildA4DocumentHtml({
     companyInfo,
     title: "NOTA DE CRÉDITO",
@@ -948,7 +952,7 @@ async function generateCreditNotePDF(companyInfo, note, relatedInvoiceNumber) {
   return await renderA4Pdf(html);
 }
 
-async function generateDebitNotePDF(companyInfo, note, relatedInvoiceNumber) {
+async function generateDebitNotePDF(companyInfo, note, relatedInvoiceNumber, _baseUrl) {
   const html = buildA4DocumentHtml({
     companyInfo,
     title: "NOTA DE DÉBITO",

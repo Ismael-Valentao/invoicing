@@ -68,7 +68,8 @@ exports.createSale = async (req, res) => {
             (sum, i) => sum + (i.quantity * i.price),
             0
         );
-        const paid = Number(paidAmount || total);
+        const paidNum = Number(paidAmount);
+        const paid = Number.isFinite(paidNum) && paidNum > 0 ? paidNum : total;
 
         if (paid < total) {
             throw new Error('Valor pago insuficiente');

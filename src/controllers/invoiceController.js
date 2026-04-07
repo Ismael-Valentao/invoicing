@@ -13,15 +13,38 @@ const { log: logActivity } = require('./activityLogController');
 const { getNextReciboNumber, getNextInvoiceNumber } = require('../utils/numerationGenerator');
 
 exports.createInvoice = async (req, res) => {
+  try {
   const userId = req.user._id;
   const companyId = req.user.company._id;
 
   let cleanedItems = normalizeItems(req.body.items);
 
+  // 🔍 Auto-resolver productId por descrição (caso o utilizador tenha escrito o item à mão
+  // em vez de o seleccionar do modal). Match exacto e case-insensitive.
+  const itemsSemProductId = cleanedItems.filter(i => !i.productId && i.description);
+  if (itemsSemProductId.length) {
+    const descricoes = itemsSemProductId.map(i => String(i.description).trim());
+    const regexes = descricoes.map(d => new RegExp(`^${d.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i'));
+    const matched = await Product.find({
+      companyId,
+      active: true,
+      description: { $in: regexes }
+    }).select('_id description').lean();
+
+    if (matched.length) {
+      const byDesc = new Map(matched.map(p => [String(p.description).trim().toLowerCase(), p]));
+      cleanedItems = cleanedItems.map(item => {
+        if (item.productId) return item;
+        const found = byDesc.get(String(item.description || '').trim().toLowerCase());
+        return found ? { ...item, productId: String(found._id) } : item;
+      });
+    }
+  }
+
   // 🔒 Revalidar preços e existência de stock para itens ligados a produtos
   const productIds = cleanedItems
     .map(i => i.productId)
-    .filter(Boolean);
+    .filter(id => id && mongoose.Types.ObjectId.isValid(id));
 
   let productsMap = new Map();
   if (productIds.length) {
@@ -31,14 +54,14 @@ exports.createInvoice = async (req, res) => {
     });
     productsMap = new Map(products.map(p => [String(p._id), p]));
 
-    // força preço da BD (vendedor não pode alterar) e valida stock
+    // força preço da BD (vendedor não pode alterar) e valida stock (apenas produtos físicos)
     cleanedItems = cleanedItems.map(item => {
       if (!item.productId) return item;
       const product = productsMap.get(String(item.productId));
       if (!product) {
         throw new Error(`Produto não encontrado: ${item.description || item.productId}`);
       }
-      if (Number(product.stock?.quantity || 0) < Number(item.quantity)) {
+      if (product.type !== 'service' && Number(product.stock?.quantity || 0) < Number(item.quantity)) {
         throw new Error(`Stock insuficiente: ${product.description}`);
       }
       return {
@@ -109,6 +132,10 @@ exports.createInvoice = async (req, res) => {
     invoice,
     downloadUrl: `/api/invoices/${invoice._id}/pdf`
   });
+  } catch (error) {
+    console.error("Erro ao criar factura:", error);
+    return res.status(400).json({ success: false, message: error.message || "Erro ao criar factura." });
+  }
 };
 
 exports.getInvoices = async (req, res) => {
@@ -393,17 +420,18 @@ exports.downloadInvoicePDF = async (req, res) => {
   try {
     let pdfBuffer;
     let filename;
+    const baseUrl = `${req.protocol}://${req.get('host')}`;
 
     if (invoice.docType === 'credit_note') {
       const related = invoice.relatedInvoiceId ? await Invoice.findById(invoice.relatedInvoiceId) : null;
-      pdfBuffer = await generateCreditNotePDF(companyInfo, invoice, related?.invoiceNumber);
+      pdfBuffer = await generateCreditNotePDF(companyInfo, invoice, related?.invoiceNumber, baseUrl);
       filename = `nota-credito-${invoice.invoiceNumber}.pdf`;
     } else if (invoice.docType === 'debit_note') {
       const related = invoice.relatedInvoiceId ? await Invoice.findById(invoice.relatedInvoiceId) : null;
-      pdfBuffer = await generateDebitNotePDF(companyInfo, invoice, related?.invoiceNumber);
+      pdfBuffer = await generateDebitNotePDF(companyInfo, invoice, related?.invoiceNumber, baseUrl);
       filename = `nota-debito-${invoice.invoiceNumber}.pdf`;
     } else {
-      pdfBuffer = await generateInvoicePDF(companyInfo, invoice);
+      pdfBuffer = await generateInvoicePDF(companyInfo, invoice, baseUrl);
       filename = `factura-${invoice.invoiceNumber}.pdf`;
     }
 
