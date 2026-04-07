@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"/>
+  <title>Invoicing — <%- title %></title>
+  <link rel="icon" type="image/png" href="/images/invoicing-logo-simple.png"/>
+  <link href="/assets/vendor/fontawesome-free/css/all.min.css" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css?family=Nunito:400,600,700,800" rel="stylesheet"/>
+  <link href="/assets/css/sb-admin-2.min.css" rel="stylesheet"/>
+  <link href="/assets/css/custom.css" rel="stylesheet"/>
+</head>
+<body id="page-top">
+<div id="wrapper">
+  <%- include('../partials/admin-sidebar') %>
+  <div id="content-wrapper" class="d-flex flex-column">
+    <div id="content">
+      <%- include('../partials/topbar') %>
+      <div class="container-fluid py-4">
+
+        <h4 class="font-weight-bold text-gray-800 mb-4">
+          <i class="fas fa-cogs text-primary mr-2"></i>Sistema
+        </h4>
+
+        <ul class="nav nav-tabs" role="tablist">
+          <li class="nav-item"><a class="nav-link active" data-toggle="tab" href="#tab-banner"><i class="fas fa-bullhorn mr-1"></i>Banner</a></li>
+          <li class="nav-item"><a class="nav-link" data-toggle="tab" href="#tab-maintenance"><i class="fas fa-tools mr-1"></i>Manutenção</a></li>
+          <li class="nav-item"><a class="nav-link" data-toggle="tab" href="#tab-broadcast"><i class="fas fa-envelope mr-1"></i>Email Broadcast</a></li>
+          <li class="nav-item"><a class="nav-link" data-toggle="tab" href="#tab-audit"><i class="fas fa-user-shield mr-1"></i>Logins</a></li>
+          <li class="nav-item"><a class="nav-link" data-toggle="tab" href="#tab-errors"><i class="fas fa-bug mr-1"></i>Erros</a></li>
+          <li class="nav-item"><a class="nav-link" data-toggle="tab" href="#tab-db"><i class="fas fa-database mr-1"></i>BD & Backup</a></li>
+        </ul>
+
+        <div class="tab-content card shadow border-top-0 p-4">
+
+          <!-- BANNER -->
+          <div class="tab-pane fade show active" id="tab-banner">
+            <h5>Banner Global</h5>
+            <p class="text-muted small">Mostra uma mensagem no topo de todas as contas (excepto SUPERADMIN).</p>
+            <div class="form-group form-check">
+              <input type="checkbox" class="form-check-input" id="bannerEnabled"/>
+              <label class="form-check-label" for="bannerEnabled">Activo</label>
+            </div>
+            <div class="form-row">
+              <div class="form-group col-md-9">
+                <label class="small">Mensagem</label>
+                <textarea class="form-control" id="bannerMessage" rows="2"></textarea>
+              </div>
+              <div class="form-group col-md-3">
+                <label class="small">Tipo</label>
+                <select class="form-control" id="bannerType">
+                  <option value="info">Info (azul)</option>
+                  <option value="success">Sucesso (verde)</option>
+                  <option value="warning">Aviso (amarelo)</option>
+                  <option value="danger">Perigo (vermelho)</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group col-md-6">
+                <label class="small">Início (opcional)</label>
+                <input type="datetime-local" class="form-control" id="bannerStarts"/>
+              </div>
+              <div class="form-group col-md-6">
+                <label class="small">Fim (opcional)</label>
+                <input type="datetime-local" class="form-control" id="bannerEnds"/>
+              </div>
+            </div>
+            <button class="btn btn-primary" onclick="saveBanner()"><i class="fas fa-save mr-1"></i>Guardar</button>
+          </div>
+
+          <!-- MAINTENANCE -->
+          <div class="tab-pane fade" id="tab-maintenance">
+            <h5>Modo Manutenção</h5>
+            <p class="text-muted small">Quando activo, todos os utilizadores (excepto SUPERADMIN) recebem um erro 503. Útil para manutenção planeada.</p>
+            <div class="form-group form-check">
+              <input type="checkbox" class="form-check-input" id="maintEnabled"/>
+              <label class="form-check-label" for="maintEnabled">Activar modo manutenção</label>
+            </div>
+            <div class="form-group">
+              <label class="small">Mensagem</label>
+              <textarea class="form-control" id="maintMsg" rows="2"></textarea>
+            </div>
+            <button class="btn btn-warning" onclick="saveMaintenance()"><i class="fas fa-save mr-1"></i>Guardar</button>
+          </div>
+
+          <!-- BROADCAST -->
+          <div class="tab-pane fade" id="tab-broadcast">
+            <h5>Email Broadcast</h5>
+            <p class="text-muted small">Envia um email a uma audiência seleccionada. Suporta o token <code>{{name}}</code>.</p>
+            <div class="form-row">
+              <div class="form-group col-md-4">
+                <label class="small">Audiência</label>
+                <select id="brAudience" class="form-control">
+                  <option value="all">Todos os utilizadores</option>
+                  <option value="active">Empresas activas</option>
+                  <option value="expired">Empresas expiradas</option>
+                  <option value="free">Plano FREE</option>
+                  <option value="paid">Plano BASIC/PREMIUM</option>
+                </select>
+              </div>
+              <div class="form-group col-md-8">
+                <label class="small">Assunto</label>
+                <input type="text" id="brSubject" class="form-control"/>
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="small">HTML</label>
+              <textarea class="form-control" id="brHtml" rows="8" placeholder="<h2>Olá {{name}}!</h2>..."></textarea>
+            </div>
+            <button class="btn btn-primary" onclick="sendBroadcast()"><i class="fas fa-paper-plane mr-1"></i>Enviar</button>
+            <span id="brResult" class="ml-3 small"></span>
+          </div>
+
+          <!-- LOGIN AUDIT -->
+          <div class="tab-pane fade" id="tab-audit">
+            <h5>Auditoria de Logins</h5>
+            <div class="form-row mb-2">
+              <div class="form-group col-md-4"><input type="text" id="auditEmail" class="form-control form-control-sm" placeholder="Filtrar por email..."/></div>
+              <div class="form-group col-md-2">
+                <select id="auditSuccess" class="form-control form-control-sm">
+                  <option value="">Todos</option>
+                  <option value="true">Só sucesso</option>
+                  <option value="false">Só falhas</option>
+                </select>
+              </div>
+              <div class="form-group col-md-2"><button class="btn btn-primary btn-sm btn-block" onclick="loadAudit()">Filtrar</button></div>
+            </div>
+            <div class="table-responsive" style="max-height:500px;">
+              <table class="table table-sm">
+                <thead class="thead-light"><tr><th>Quando</th><th>Email</th><th>OK</th><th>Razão</th><th>IP</th><th>User-Agent</th></tr></thead>
+                <tbody id="auditTbody"><tr><td colspan="6" class="text-muted text-center">A carregar...</td></tr></tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- ERROR LOGS -->
+          <div class="tab-pane fade" id="tab-errors">
+            <div class="d-flex justify-content-between align-items-center">
+              <h5 class="mb-0">Logs de Erro</h5>
+              <button class="btn btn-outline-danger btn-sm" onclick="clearErrors()"><i class="fas fa-trash mr-1"></i>Limpar tudo</button>
+            </div>
+            <div class="table-responsive mt-3" style="max-height:500px;">
+              <table class="table table-sm">
+                <thead class="thead-light"><tr><th>Quando</th><th>Status</th><th>Método</th><th>URL</th><th>Mensagem</th></tr></thead>
+                <tbody id="errorsTbody"><tr><td colspan="5" class="text-muted text-center">A carregar...</td></tr></tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- DB -->
+          <div class="tab-pane fade" id="tab-db">
+            <h5>Saúde da BD</h5>
+            <div id="dbBox" class="text-muted">A carregar...</div>
+            <hr/>
+            <h5>Backup Manual</h5>
+            <p class="text-muted small">Faz download de um JSON completo da BD. Sensível — guarda em local seguro.</p>
+            <a href="/api/admin/backup" class="btn btn-info"><i class="fas fa-download mr-1"></i>Gerar backup</a>
+          </div>
+
+        </div>
+
+      </div>
+    </div>
+    <%- include('../partials/footer') %>
+  </div>
+</div>
+
+<script src="/assets/vendor/jquery/jquery.min.js"></script>
+<script src="/assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+<script src="/assets/js/sb-admin-2.min.js"></script>
+<script>
+function toLocalInput(d) { if (!d) return ''; const dt = new Date(d); const off = dt.getTimezoneOffset(); return new Date(dt.getTime()-off*60000).toISOString().slice(0,16); }
+
+async function loadSettings() {
+  const r = await fetch('/api/admin/system-settings');
+  const d = await r.json();
+  if (!d.success) return;
+  const s = d.settings;
+  document.getElementById('bannerEnabled').checked = !!s.banner.enabled;
+  document.getElementById('bannerMessage').value = s.banner.message || '';
+  document.getElementById('bannerType').value = s.banner.type || 'info';
+  document.getElementById('bannerStarts').value = toLocalInput(s.banner.startsAt);
+  document.getElementById('bannerEnds').value = toLocalInput(s.banner.endsAt);
+  document.getElementById('maintEnabled').checked = !!s.maintenanceMode;
+  document.getElementById('maintMsg').value = s.maintenanceMessage || '';
+}
+
+async function saveBanner() {
+  const body = {
+    enabled: document.getElementById('bannerEnabled').checked,
+    message: document.getElementById('bannerMessage').value,
+    type: document.getElementById('bannerType').value,
+    startsAt: document.getElementById('bannerStarts').value || null,
+    endsAt: document.getElementById('bannerEnds').value || null,
+  };
+  const r = await fetch('/api/admin/system-settings/banner', { method:'PATCH', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) });
+  const d = await r.json();
+  alert(d.message || 'OK');
+}
+
+async function saveMaintenance() {
+  const enabled = document.getElementById('maintEnabled').checked;
+  if (enabled && !confirm('ATENÇÃO: vais bloquear o acesso de TODOS os utilizadores não-SUPERADMIN. Confirmas?')) return;
+  const body = { enabled, message: document.getElementById('maintMsg').value };
+  const r = await fetch('/api/admin/system-settings/maintenance', { method:'PATCH', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) });
+  const d = await r.json();
+  alert(d.message || 'OK');
+}
+
+async function sendBroadcast() {
+  const audience = document.getElementById('brAudience').value;
+  const subject = document.getElementById('brSubject').value;
+  const html = document.getElementById('brHtml').value;
+  if (!subject || !html) return alert('Assunto e conteúdo obrigatórios.');
+  if (!confirm(`Enviar a "${audience}"?`)) return;
+  const res = document.getElementById('brResult');
+  res.textContent = 'A enviar...';
+  const r = await fetch('/api/admin/email-broadcast', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ audience, subject, html }) });
+  const d = await r.json();
+  res.textContent = d.message + (d.sent != null ? ` (${d.sent}/${d.total} enviados, ${d.failed} falhas)` : '');
+}
+
+async function loadAudit() {
+  const email = document.getElementById('auditEmail').value;
+  const success = document.getElementById('auditSuccess').value;
+  const params = new URLSearchParams();
+  if (email) params.set('email', email);
+  if (success) params.set('success', success);
+  const r = await fetch('/api/admin/login-audit?' + params);
+  const d = await r.json();
+  const tb = document.getElementById('auditTbody');
+  if (!d.logs?.length) { tb.innerHTML = '<tr><td colspan="6" class="text-muted text-center">Sem registos.</td></tr>'; return; }
+  tb.innerHTML = d.logs.map(l => `<tr>
+    <td>${new Date(l.createdAt).toLocaleString('pt-PT')}</td>
+    <td>${l.email || l.userId?.email || '—'}</td>
+    <td>${l.success ? '<span class="text-success">✓</span>' : '<span class="text-danger">✗</span>'}</td>
+    <td><code class="small">${l.reason || ''}</code></td>
+    <td>${l.ip || '—'}</td>
+    <td><small class="text-muted">${(l.userAgent||'').slice(0,60)}</small></td>
+  </tr>`).join('');
+}
+
+async function loadErrors() {
+  const r = await fetch('/api/admin/error-logs');
+  const d = await r.json();
+  const tb = document.getElementById('errorsTbody');
+  if (!d.logs?.length) { tb.innerHTML = '<tr><td colspan="5" class="text-muted text-center">Sem erros 🎉</td></tr>'; return; }
+  tb.innerHTML = d.logs.map(l => `<tr>
+    <td>${new Date(l.createdAt).toLocaleString('pt-PT')}</td>
+    <td><span class="badge badge-${l.statusCode >= 500 ? 'danger' : 'warning'}">${l.statusCode || '?'}</span></td>
+    <td>${l.method || ''}</td>
+    <td><small><code>${l.url || ''}</code></small></td>
+    <td><small>${(l.message||'').slice(0,150)}</small></td>
+  </tr>`).join('');
+}
+
+async function clearErrors() {
+  if (!confirm('Apagar todos os logs de erro?')) return;
+  await fetch('/api/admin/error-logs', { method:'DELETE' });
+  loadErrors();
+}
+
+async function loadDb() {
+  const r = await fetch('/api/admin/db-health');
+  const d = await r.json();
+  if (!d.success) { document.getElementById('dbBox').textContent = 'Erro'; return; }
+  const db = d.db;
+  const fmt = b => (b/1024/1024).toFixed(2) + ' MB';
+  document.getElementById('dbBox').innerHTML = `
+    <p><strong>BD:</strong> ${db.name} | <strong>Collections:</strong> ${db.collections}</p>
+    <p><strong>Dados:</strong> ${fmt(db.dataSize)} | <strong>Storage:</strong> ${fmt(db.storageSize)} | <strong>Indexes:</strong> ${fmt(db.indexSize)}</p>
+    <table class="table table-sm">
+      <thead class="thead-light"><tr><th>Collection</th><th class="text-right">Documentos</th></tr></thead>
+      <tbody>${Object.entries(db.counts).map(([k,v]) => `<tr><td><code>${k}</code></td><td class="text-right">${v}</td></tr>`).join('')}</tbody>
+    </table>`;
+}
+
+loadSettings();
+loadAudit();
+loadErrors();
+loadDb();
+</script>
+</body>
+</html>

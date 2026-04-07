@@ -139,9 +139,12 @@ async function loadCompanies() {
         <td>${expDate}</td>
         <td><span class="badge badge-light">${c.userCount}</span></td>
         <td>${new Date(c.createdAt).toLocaleDateString('pt-PT')}</td>
-        <td class="text-center">
-          <button class="btn btn-outline-primary btn-sm mr-1" onclick="viewCompany('${c._id}','${c.name.replace(/'/g,'\\\'')}')" title="Detalhes">
+        <td class="text-center text-nowrap">
+          <button class="btn btn-outline-primary btn-sm" onclick="viewCompany('${c._id}','${c.name.replace(/'/g,'\\\'')}')" title="Detalhes e acções">
             <i class="fas fa-eye"></i>
+          </button>
+          <button class="btn btn-outline-secondary btn-sm" onclick="editCompany('${c._id}')" title="Editar">
+            <i class="fas fa-edit"></i>
           </button>
           <button class="btn btn-success btn-sm" onclick="openActivateFromCompany('${c._id}','${c.name.replace(/'/g,'\\\'')}')" title="Gerir subscrição">
             <i class="fas fa-star"></i>
@@ -154,7 +157,10 @@ async function loadCompanies() {
   }
 }
 
+let currentCompanyId = null;
+
 async function viewCompany(id, name) {
+  currentCompanyId = id;
   document.getElementById('modalTitle').textContent = name;
   document.getElementById('modalBody').innerHTML = '<div class="text-center py-4"><i class="fas fa-spinner fa-spin fa-2x text-primary"></i></div>';
   $('#companyModal').modal('show');
@@ -165,55 +171,240 @@ async function viewCompany(id, name) {
     if (!data.success) throw new Error(data.message);
     const c = data.company;
     const sub = data.subscription;
+    const u = data.usage || {};
     const planLabel = sub ? ({'FREE':'Gratuito','BASIC':'Básico','PREMIUM':'Premium'}[sub.plan] || sub.plan) : 'Sem subscrição';
 
-    document.getElementById('modalBody').innerHTML = `
-      <div class="row">
-        <div class="col-md-6">
-          <h6 class="font-weight-bold text-primary">Informações</h6>
-          <p class="mb-1"><strong>Nome:</strong> ${c.name}</p>
-          <p class="mb-1"><strong>Email:</strong> ${c.email}</p>
-          <p class="mb-1"><strong>Contacto:</strong> ${c.contact}</p>
-          <p class="mb-1"><strong>NUIT:</strong> ${c.nuit || 'N/A'}</p>
-          <p class="mb-1"><strong>Módulos:</strong>
-            ${c.modules?.invoicing ? '<span class="module-badge">Facturação</span>' : ''}
-            ${c.modules?.sales ? '<span class="module-badge">Vendas</span>' : ''}
-          </p>
+    const usageItem = (label, val, icon) => `
+      <div class="col-md-3 col-6 mb-2">
+        <div class="border rounded p-2 text-center">
+          <div class="small text-muted"><i class="fas ${icon} mr-1"></i>${label}</div>
+          <div class="h5 mb-0 font-weight-bold">${val ?? 0}</div>
         </div>
-        <div class="col-md-6">
-          <h6 class="font-weight-bold text-primary">Subscrição</h6>
-          <p class="mb-1"><strong>Plano:</strong> ${planLabel}</p>
-          <p class="mb-1"><strong>Estado:</strong> ${sub?.status || '—'}</p>
-          <p class="mb-1"><strong>Expira:</strong> ${sub?.expiresAt ? new Date(sub.expiresAt).toLocaleDateString('pt-PT') : '—'}</p>
-          <hr/>
-          <h6 class="font-weight-bold text-primary mt-2">Uso</h6>
-          <p class="mb-1"><strong>Facturas:</strong> ${data.usage.invoices}</p>
-          <p class="mb-1"><strong>Vendas:</strong> ${data.usage.sales}</p>
-        </div>
-      </div>
-      <hr/>
-      <h6 class="font-weight-bold text-primary">Utilizadores (${data.users.length})</h6>
-      <div class="table-responsive">
-        <table class="table table-sm mb-0">
-          <thead class="thead-light"><tr><th>Nome</th><th>Email</th><th>Role</th><th>Estado</th></tr></thead>
-          <tbody>
-            ${data.users.map(u => `<tr>
-              <td>${u.name}</td>
-              <td>${u.email}</td>
-              <td><span class="badge badge-secondary">${u.role}</span></td>
-              <td><span class="badge ${u.status==='active'?'badge-success':'badge-danger'}">${u.status}</span></td>
-            </tr>`).join('')}
-          </tbody>
-        </table>
-      </div>
-      <div class="mt-3 text-right">
-        <button class="btn btn-success btn-sm" onclick="$('#companyModal').modal('hide'); openActivateFromCompany('${id}','${name.replace(/'/g,"\\'")}')">
-          <i class="fas fa-star mr-1"></i>Gerir Subscrição
-        </button>
       </div>`;
+
+    document.getElementById('modalBody').innerHTML = `
+      <ul class="nav nav-tabs mb-3" role="tablist">
+        <li class="nav-item"><a class="nav-link active" data-toggle="tab" href="#tab-info">Info</a></li>
+        <li class="nav-item"><a class="nav-link" data-toggle="tab" href="#tab-usage">Uso</a></li>
+        <li class="nav-item"><a class="nav-link" data-toggle="tab" href="#tab-users">Utilizadores</a></li>
+        <li class="nav-item"><a class="nav-link" data-toggle="tab" href="#tab-payments">Pagamentos</a></li>
+        <li class="nav-item"><a class="nav-link" data-toggle="tab" href="#tab-actions">Acções</a></li>
+      </ul>
+
+      <div class="tab-content">
+        <div class="tab-pane fade show active" id="tab-info">
+          <div class="row">
+            <div class="col-md-6">
+              <p class="mb-1"><strong>Nome:</strong> ${c.name}</p>
+              <p class="mb-1"><strong>Email:</strong> ${c.email}</p>
+              <p class="mb-1"><strong>Contacto:</strong> ${c.contact}</p>
+              <p class="mb-1"><strong>NUIT:</strong> ${c.nuit || 'N/A'}</p>
+              <p class="mb-1"><strong>Endereço:</strong> ${c.address || '—'}</p>
+            </div>
+            <div class="col-md-6">
+              <p class="mb-1"><strong>Plano:</strong> ${planLabel}</p>
+              <p class="mb-1"><strong>Estado:</strong> ${sub?.status || '—'}</p>
+              <p class="mb-1"><strong>Expira:</strong> ${sub?.expiresAt ? new Date(sub.expiresAt).toLocaleDateString('pt-PT') : '—'}</p>
+              <p class="mb-1"><strong>Módulos:</strong>
+                ${c.modules?.invoicing ? '<span class="module-badge">Facturação</span>' : ''}
+                ${c.modules?.sales ? '<span class="module-badge">Vendas</span>' : ''}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div class="tab-pane fade" id="tab-usage">
+          <div class="row">
+            ${usageItem('Facturas', u.invoices, 'fa-file-invoice')}
+            ${usageItem('Vendas (POS)', u.sales, 'fa-cash-register')}
+            ${usageItem('Cotações', u.quotations, 'fa-file-contract')}
+            ${usageItem('Recibos', u.recibos, 'fa-receipt')}
+            ${usageItem('VDs', u.vds, 'fa-file-alt')}
+            ${usageItem('Notas Crédito', u.creditNotes, 'fa-undo')}
+            ${usageItem('Notas Débito', u.debitNotes, 'fa-redo')}
+            ${usageItem('Despesas', u.expenses, 'fa-wallet')}
+            ${usageItem('Produtos', u.products, 'fa-box')}
+            ${usageItem('Serviços', u.services, 'fa-concierge-bell')}
+            ${usageItem('Clientes', u.clients, 'fa-users')}
+            ${usageItem('Fornecedores', u.suppliers, 'fa-truck')}
+          </div>
+        </div>
+
+        <div class="tab-pane fade" id="tab-users">
+          <table class="table table-sm">
+            <thead class="thead-light"><tr><th>Nome</th><th>Email</th><th>Role</th><th>Estado</th></tr></thead>
+            <tbody>
+              ${data.users.map(usr => `<tr>
+                <td>${usr.name}</td>
+                <td>${usr.email}</td>
+                <td><span class="badge badge-secondary">${usr.role}</span></td>
+                <td><span class="badge ${usr.status==='active'?'badge-success':'badge-danger'}">${usr.status}</span></td>
+              </tr>`).join('')}
+            </tbody>
+          </table>
+        </div>
+
+        <div class="tab-pane fade" id="tab-payments">
+          <div id="paymentsBox" class="text-muted small">A carregar...</div>
+        </div>
+
+        <div class="tab-pane fade" id="tab-actions">
+          <div class="alert alert-warning small">As acções abaixo afectam directamente a empresa. Use com cuidado.</div>
+
+          <h6 class="font-weight-bold text-primary mt-3">Subscrição</h6>
+          <div class="form-row align-items-end">
+            <div class="form-group col-md-4">
+              <label class="small">Estender (dias)</label>
+              <input type="number" id="extDays" class="form-control form-control-sm" value="7"/>
+            </div>
+            <div class="form-group col-md-4">
+              <button class="btn btn-info btn-sm btn-block" onclick="extendSub()">Estender</button>
+            </div>
+          </div>
+          <div class="form-row align-items-end">
+            <div class="form-group col-md-4">
+              <label class="small">Mudar plano (mantém expiração)</label>
+              <select id="newPlan" class="form-control form-control-sm">
+                <option value="FREE">FREE</option>
+                <option value="BASIC">BASIC</option>
+                <option value="PREMIUM">PREMIUM</option>
+              </select>
+            </div>
+            <div class="form-group col-md-4">
+              <button class="btn btn-info btn-sm btn-block" onclick="changePlan()">Mudar Plano</button>
+            </div>
+          </div>
+
+          <h6 class="font-weight-bold text-primary mt-3">Sessões e segurança</h6>
+          <button class="btn btn-warning btn-sm" onclick="setCompanyStatus('blocked')"><i class="fas fa-ban mr-1"></i>Bloquear empresa</button>
+          <button class="btn btn-success btn-sm" onclick="setCompanyStatus('active')"><i class="fas fa-unlock mr-1"></i>Desbloquear</button>
+          <button class="btn btn-secondary btn-sm" onclick="forceLogoutCompany()"><i class="fas fa-sign-out-alt mr-1"></i>Forçar logout de todos</button>
+
+          <h6 class="font-weight-bold text-primary mt-3">Comunicação</h6>
+          <button class="btn btn-primary btn-sm" onclick="emailCompanyPrompt()"><i class="fas fa-envelope mr-1"></i>Enviar email ao admin</button>
+
+          <h6 class="font-weight-bold text-primary mt-3">Dados</h6>
+          <button class="btn btn-info btn-sm" onclick="exportCompany()"><i class="fas fa-download mr-1"></i>Exportar (GDPR)</button>
+          <button class="btn btn-warning btn-sm" onclick="wipeTransactional()"><i class="fas fa-broom mr-1"></i>Limpar dados de teste</button>
+
+          <h6 class="font-weight-bold text-danger mt-3">Zona perigosa</h6>
+          <button class="btn btn-outline-danger btn-sm" onclick="deleteCompany(false)"><i class="fas fa-archive mr-1"></i>Desactivar (soft)</button>
+          <button class="btn btn-danger btn-sm" onclick="deleteCompany(true)"><i class="fas fa-trash mr-1"></i>Apagar permanentemente</button>
+        </div>
+      </div>`;
+
+    // Pagamentos lazy
+    fetch(`/api/admin/companies/${id}/payments`).then(r => r.json()).then(pd => {
+      const box = document.getElementById('paymentsBox');
+      if (!box) return;
+      if (!pd.success || !pd.payments?.length) { box.innerHTML = '<div class="text-muted">Sem pagamentos registados.</div>'; return; }
+      box.innerHTML = `<p class="font-weight-bold">Total: ${(pd.total || 0).toLocaleString('pt-PT')} MZN</p>
+        <table class="table table-sm"><thead class="thead-light"><tr><th>Data</th><th>Valor</th><th>Método</th><th>Ref.</th></tr></thead>
+        <tbody>${pd.payments.map(p => `<tr>
+          <td>${new Date(p.date).toLocaleDateString('pt-PT')}</td>
+          <td>${(p.amount||0).toLocaleString('pt-PT')} MZN</td>
+          <td>${p.paymentMethod}</td>
+          <td>${p.reference || '—'}</td>
+        </tr>`).join('')}</tbody></table>`;
+    });
   } catch(e) {
     document.getElementById('modalBody').innerHTML = `<div class="alert alert-danger">${e.message}</div>`;
   }
+}
+
+async function editCompany(id) {
+  const res = await fetch('/api/admin/companies/' + id);
+  const d = await res.json();
+  if (!d.success) return alert(d.message);
+  const c = d.company;
+  const name = prompt('Nome:', c.name); if (name === null) return;
+  const email = prompt('Email:', c.email); if (email === null) return;
+  const contact = prompt('Contacto:', c.contact); if (contact === null) return;
+  const nuit = prompt('NUIT:', c.nuit || ''); if (nuit === null) return;
+  const address = prompt('Endereço:', c.address || ''); if (address === null) return;
+  const r = await fetch('/api/admin/companies/' + id, {
+    method:'PATCH', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({ name, email, contact, nuit, address })
+  });
+  const dd = await r.json();
+  alert(dd.message || 'OK');
+  if (dd.success) loadCompanies();
+}
+
+async function setCompanyStatus(status) {
+  if (!confirm(`Confirma alterar o estado da empresa para "${status}"?`)) return;
+  const r = await fetch(`/api/admin/companies/${currentCompanyId}/status`, {
+    method:'PATCH', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({ status })
+  });
+  const d = await r.json();
+  alert(d.message || 'OK');
+}
+
+async function forceLogoutCompany() {
+  if (!confirm('Forçar logout de todos os utilizadores desta empresa?')) return;
+  const r = await fetch(`/api/admin/companies/${currentCompanyId}/force-logout`, { method:'POST' });
+  const d = await r.json();
+  alert(d.message || 'OK');
+}
+
+async function extendSub() {
+  const days = parseInt(document.getElementById('extDays').value);
+  const r = await fetch(`/api/admin/companies/${currentCompanyId}/extend`, {
+    method:'PATCH', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({ days })
+  });
+  const d = await r.json();
+  alert(d.message || 'OK');
+  if (d.success) loadCompanies();
+}
+
+async function changePlan() {
+  const plan = document.getElementById('newPlan').value;
+  if (!confirm(`Mudar plano para ${plan}, mantendo a data de expiração actual?`)) return;
+  const r = await fetch(`/api/admin/companies/${currentCompanyId}/change-plan`, {
+    method:'PATCH', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({ plan })
+  });
+  const d = await r.json();
+  alert(d.message || 'OK');
+  if (d.success) loadCompanies();
+}
+
+async function emailCompanyPrompt() {
+  const subject = prompt('Assunto:'); if (!subject) return;
+  const html = prompt('Conteúdo (HTML):'); if (!html) return;
+  const r = await fetch(`/api/admin/companies/${currentCompanyId}/email`, {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({ subject, html })
+  });
+  const d = await r.json();
+  alert(d.message || 'OK');
+}
+
+function exportCompany() {
+  window.open(`/api/admin/companies/${currentCompanyId}/export`, '_blank');
+}
+
+async function wipeTransactional() {
+  if (!confirm('Apagar TODOS os dados transaccionais (facturas, vendas, etc.) desta empresa? Empresa, utilizadores e produtos serão mantidos.')) return;
+  if (!confirm('Tens a certeza? Esta acção é irreversível.')) return;
+  const r = await fetch(`/api/admin/companies/${currentCompanyId}/wipe-transactional`, { method:'POST' });
+  const d = await r.json();
+  alert(d.message || 'OK');
+}
+
+async function deleteCompany(hard) {
+  const msg = hard
+    ? 'APAGAR PERMANENTEMENTE esta empresa e TODOS os seus dados? Esta acção é irreversível.'
+    : 'Desactivar esta empresa? Os utilizadores serão bloqueados e a subscrição cancelada.';
+  if (!confirm(msg)) return;
+  if (hard && prompt('Escreve "APAGAR" para confirmar:') !== 'APAGAR') return;
+  const url = `/api/admin/companies/${currentCompanyId}${hard ? '?hard=true' : ''}`;
+  const r = await fetch(url, { method:'DELETE' });
+  const d = await r.json();
+  alert(d.message || 'OK');
+  if (d.success) { $('#companyModal').modal('hide'); loadCompanies(); }
 }
 
 function openActivateFromCompany(companyId, companyName) {

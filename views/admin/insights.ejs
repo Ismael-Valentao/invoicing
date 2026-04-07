@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"/>
+  <title>Invoicing — <%- title %></title>
+  <link rel="icon" type="image/png" href="/images/invoicing-logo-simple.png"/>
+  <link href="/assets/vendor/fontawesome-free/css/all.min.css" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css?family=Nunito:400,600,700,800" rel="stylesheet"/>
+  <link href="/assets/css/sb-admin-2.min.css" rel="stylesheet"/>
+  <link href="/assets/css/custom.css" rel="stylesheet"/>
+</head>
+<body id="page-top">
+<div id="wrapper">
+  <%- include('../partials/admin-sidebar') %>
+  <div id="content-wrapper" class="d-flex flex-column">
+    <div id="content">
+      <%- include('../partials/topbar') %>
+      <div class="container-fluid py-4">
+
+        <h4 class="font-weight-bold text-gray-800 mb-4">
+          <i class="fas fa-chart-line text-primary mr-2"></i>Insights da Plataforma
+        </h4>
+
+        <!-- KPI cards -->
+        <div class="row">
+          <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-success shadow h-100 py-2"><div class="card-body">
+              <div class="text-xs font-weight-bold text-success text-uppercase mb-1">MRR (Mensal)</div>
+              <div class="h5 mb-0 font-weight-bold text-gray-800" id="kpiMrr">—</div>
+            </div></div>
+          </div>
+          <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-primary shadow h-100 py-2"><div class="card-body">
+              <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">ARR (Anual)</div>
+              <div class="h5 mb-0 font-weight-bold text-gray-800" id="kpiArr">—</div>
+            </div></div>
+          </div>
+          <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-warning shadow h-100 py-2"><div class="card-body">
+              <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Churn (30d)</div>
+              <div class="h5 mb-0 font-weight-bold text-gray-800" id="kpiChurn">—</div>
+            </div></div>
+          </div>
+          <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-info shadow h-100 py-2"><div class="card-body">
+              <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Conversão FREE→Pago</div>
+              <div class="h5 mb-0 font-weight-bold text-gray-800" id="kpiConv">—</div>
+            </div></div>
+          </div>
+        </div>
+
+        <!-- Funil + Crescimento -->
+        <div class="row">
+          <div class="col-lg-6 mb-4">
+            <div class="card shadow h-100">
+              <div class="card-header"><strong>Funil de Onboarding</strong></div>
+              <div class="card-body" id="funnelBox">A carregar...</div>
+            </div>
+          </div>
+          <div class="col-lg-6 mb-4">
+            <div class="card shadow h-100">
+              <div class="card-header"><strong>Crescimento Mensal (12 meses)</strong></div>
+              <div class="card-body" id="growthBox">A carregar...</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Top + Inactive + Churn risk -->
+        <div class="row">
+          <div class="col-lg-4 mb-4">
+            <div class="card shadow h-100">
+              <div class="card-header"><strong>Top Empresas</strong></div>
+              <div class="card-body p-0" id="topBox">A carregar...</div>
+            </div>
+          </div>
+          <div class="col-lg-4 mb-4">
+            <div class="card shadow h-100">
+              <div class="card-header"><strong>Inactivas (+30d)</strong></div>
+              <div class="card-body p-0" id="inactiveBox">A carregar...</div>
+            </div>
+          </div>
+          <div class="col-lg-4 mb-4">
+            <div class="card shadow h-100">
+              <div class="card-header"><strong>Risco de Churn (≤7d)</strong></div>
+              <div class="card-body p-0" id="riskBox">A carregar...</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+    <%- include('../partials/footer') %>
+  </div>
+</div>
+
+<script src="/assets/vendor/jquery/jquery.min.js"></script>
+<script src="/assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+<script src="/assets/js/sb-admin-2.min.js"></script>
+<script>
+const fmtMZN = v => new Intl.NumberFormat('pt-PT', { style:'currency', currency:'MZN', maximumFractionDigits:0 }).format(v||0);
+const MONTHS = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+
+async function loadMetrics() {
+  try {
+    const r = await fetch('/api/admin/metrics');
+    const d = await r.json();
+    if (!d.success) throw new Error(d.message);
+    const m = d.metrics;
+
+    document.getElementById('kpiMrr').textContent = fmtMZN(m.mrr);
+    document.getElementById('kpiArr').textContent = fmtMZN(m.arr);
+    document.getElementById('kpiChurn').textContent = m.churnRate + '%';
+    document.getElementById('kpiConv').textContent = m.conversionRate + '%';
+
+    // Funnel
+    const f = m.funnel;
+    const max = Math.max(f.registered, 1);
+    const bar = (label, val) => `
+      <div class="mb-2">
+        <div class="d-flex justify-content-between small"><span>${label}</span><strong>${val}</strong></div>
+        <div class="progress" style="height:14px;"><div class="progress-bar bg-info" style="width:${(val/max)*100}%"></div></div>
+      </div>`;
+    document.getElementById('funnelBox').innerHTML =
+      bar('Utilizadores registados', f.registered) +
+      bar('Empresas criadas', f.withCompany) +
+      bar('Com pelo menos 1 documento', f.withFirstDoc) +
+      bar('Com plano pago', f.withPayment);
+
+    // Growth
+    if (m.monthlyGrowth?.length) {
+      const maxC = Math.max(...m.monthlyGrowth.map(x => x.count));
+      document.getElementById('growthBox').innerHTML = m.monthlyGrowth.map(x => `
+        <div class="mb-2">
+          <div class="d-flex justify-content-between small"><span>${MONTHS[x._id.m-1]} ${x._id.y}</span><strong>${x.count}</strong></div>
+          <div class="progress" style="height:10px;"><div class="progress-bar bg-success" style="width:${(x.count/maxC)*100}%"></div></div>
+        </div>`).join('');
+    } else {
+      document.getElementById('growthBox').innerHTML = '<div class="text-muted">Sem dados.</div>';
+    }
+  } catch(e) { console.error(e); }
+}
+
+async function loadTop() {
+  try {
+    const r = await fetch('/api/admin/companies-top?limit=10');
+    const d = await r.json();
+    document.getElementById('topBox').innerHTML = `<table class="table table-sm mb-0">
+      <thead class="thead-light"><tr><th>Empresa</th><th class="text-right">Facturas</th><th class="text-right">Receita</th></tr></thead>
+      <tbody>${d.top.map(t => `<tr>
+        <td>${t.companyName}</td>
+        <td class="text-right">${t.invoiceCount}</td>
+        <td class="text-right">${fmtMZN(t.revenue)}</td>
+      </tr>`).join('')}</tbody></table>`;
+  } catch(e) { console.error(e); }
+}
+
+async function loadInactive() {
+  try {
+    const r = await fetch('/api/admin/companies-inactive?days=30');
+    const d = await r.json();
+    if (!d.inactive?.length) { document.getElementById('inactiveBox').innerHTML = '<div class="p-3 text-muted">Nenhuma 🎉</div>'; return; }
+    document.getElementById('inactiveBox').innerHTML = `<table class="table table-sm mb-0"><tbody>
+      ${d.inactive.slice(0,15).map(c => `<tr><td><strong>${c.name}</strong><br><small class="text-muted">${c.email}</small></td></tr>`).join('')}
+    </tbody></table>`;
+  } catch(e) { console.error(e); }
+}
+
+async function loadRisk() {
+  try {
+    const r = await fetch('/api/admin/churn-risk');
+    const d = await r.json();
+    if (!d.atRisk?.length) { document.getElementById('riskBox').innerHTML = '<div class="p-3 text-muted">Nenhuma 🎉</div>'; return; }
+    document.getElementById('riskBox').innerHTML = `<table class="table table-sm mb-0"><tbody>
+      ${d.atRisk.map(s => `<tr>
+        <td><strong>${s.companyId?.name || '—'}</strong><br><small class="text-muted">expira ${new Date(s.expiresAt).toLocaleDateString('pt-PT')}</small></td>
+      </tr>`).join('')}
+    </tbody></table>`;
+  } catch(e) { console.error(e); }
+}
+
+loadMetrics(); loadTop(); loadInactive(); loadRisk();
+</script>
+</body>
+</html>

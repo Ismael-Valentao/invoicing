@@ -1,3 +1,19 @@
+<!-- Banner global da plataforma -->
+<div id="globalBanner" class="alert mb-0 text-center" style="display:none; border-radius:0;"></div>
+<script>
+fetch('/api/admin/banner/public', { cache:'no-store' })
+  .then(r => r.ok ? r.json() : null)
+  .then(d => {
+    if (!d || !d.success || !d.banner) return;
+    const b = d.banner;
+    const el = document.getElementById('globalBanner');
+    el.classList.add('alert-' + (b.type || 'info'));
+    el.textContent = b.message;
+    el.style.display = '';
+  })
+  .catch(() => {});
+</script>
+
 <!-- Topbar -->
 <nav
   class="navbar navbar-expand navbar-light bg-white topbar mb-4 static-top shadow"

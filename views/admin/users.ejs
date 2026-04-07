@@ -57,11 +57,13 @@
                     <th>Empresa</th>
                     <th>Role</th>
                     <th>Estado</th>
+                    <th>Último Login</th>
                     <th>Registado</th>
+                    <th class="text-center">Acções</th>
                   </tr>
                 </thead>
                 <tbody id="usersTbody">
-                  <tr><td colspan="6" class="text-center text-muted py-4">A carregar...</td></tr>
+                  <tr><td colspan="8" class="text-center text-muted py-4">A carregar...</td></tr>
                 </tbody>
               </table>
             </div>
@@ -121,14 +123,35 @@ async function loadUsers() {
       return;
     }
 
-    tbody.innerHTML = data.users.map(u => `<tr>
+    tbody.innerHTML = data.users.map(u => {
+      const isSA = u.role === 'SUPERADMIN';
+      const blocked = u.status === 'blocked';
+      return `<tr>
       <td class="font-weight-bold">${u.name}</td>
       <td>${u.email}</td>
       <td>${u.companyId?.name || '—'}</td>
       <td><span class="badge badge-${ROLE_COLORS[u.role]||'secondary'}">${u.role}</span></td>
-      <td><span class="badge ${u.status==='active'?'badge-success':'badge-danger'}">${u.status}</span></td>
+      <td><span class="badge ${blocked?'badge-danger':'badge-success'}">${u.status}</span></td>
+      <td><small class="text-muted">${u.lastLoginAt ? new Date(u.lastLoginAt).toLocaleString('pt-PT') : '—'}</small></td>
       <td>${new Date(u.createdAt).toLocaleDateString('pt-PT')}</td>
-    </tr>`).join('');
+      <td class="text-center text-nowrap">
+        ${isSA ? '<small class="text-muted">protegido</small>' : `
+          <button class="btn btn-${blocked?'success':'warning'} btn-sm" title="${blocked?'Desbloquear':'Bloquear'}" onclick="setStatus('${u._id}','${blocked?'active':'blocked'}')">
+            <i class="fas fa-${blocked?'unlock':'ban'}"></i>
+          </button>
+          <button class="btn btn-info btn-sm" title="Forçar logout" onclick="forceLogout('${u._id}','${u.name.replace(/'/g,"\\'")}')">
+            <i class="fas fa-sign-out-alt"></i>
+          </button>
+          <button class="btn btn-secondary btn-sm" title="Forçar reset de password" onclick="forcePwd('${u._id}','${u.email}')">
+            <i class="fas fa-key"></i>
+          </button>
+          <button class="btn btn-dark btn-sm" title="Entrar como (impersonate)" onclick="impersonate('${u._id}','${u.name.replace(/'/g,"\\'")}')">
+            <i class="fas fa-user-secret"></i>
+          </button>
+        `}
+      </td>
+    </tr>`;
+    }).join('');
   } catch(e) {
     tbody.innerHTML = `<tr><td colspan="6" class="text-danger text-center py-3">${e.message}</td></tr>`;
   }
@@ -150,6 +173,43 @@ document.getElementById('btnPromote').addEventListener('click', async function()
     if (d.success) { $('#promoteModal').modal('hide'); loadUsers(); }
   } finally { this.disabled = false; }
 });
+
+async function setStatus(id, status) {
+  if (!confirm(`Confirmas alterar o estado para "${status}"?`)) return;
+  const r = await fetch(`/api/admin/users/${id}/status`, {
+    method:'PATCH', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({ status })
+  });
+  const d = await r.json();
+  alert(d.message || 'OK');
+  if (d.success) loadUsers();
+}
+
+async function forceLogout(id, name) {
+  if (!confirm(`Forçar logout de ${name}? Vai ter de fazer login novamente.`)) return;
+  const r = await fetch(`/api/admin/users/${id}/force-logout`, { method:'POST' });
+  const d = await r.json();
+  alert(d.message || 'OK');
+}
+
+async function forcePwd(id, email) {
+  if (!confirm(`Enviar email de redefinição de password para ${email}? O utilizador será desconectado.`)) return;
+  const r = await fetch(`/api/admin/users/${id}/force-password-reset`, { method:'POST' });
+  const d = await r.json();
+  alert(d.message || 'OK');
+  if (d.success) loadUsers();
+}
+
+async function impersonate(id, name) {
+  if (!confirm(`Entrar como ${name}? A tua sessão actual será substituída por uma sessão temporária (30min). Esta acção fica registada.`)) return;
+  const r = await fetch('/api/admin/impersonate', {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({ userId: id })
+  });
+  const d = await r.json();
+  if (d.success) window.location.href = d.redirect || '/dashboard';
+  else alert(d.message || 'Erro');
+}
 
 document.getElementById('searchInput').addEventListener('keydown', e => {
   if (e.key === 'Enter') loadUsers();
