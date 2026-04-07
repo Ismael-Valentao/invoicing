@@ -25,6 +25,11 @@ const stockMovementSchema = new mongoose.Schema({
         required: true
     },
 
+    unitCost: {
+        type: Number,
+        default: 0
+    },
+
     reason: {
         type: String
     },

@@ -4,6 +4,7 @@ const itemSchema = new mongoose.Schema({
     description: { type: String, required: true },
     quantity: { type: Number, required: true },
     unitPrice: { type: Number, required: true },
+    productId: { type: mongoose.Schema.Types.ObjectId, ref: 'Product', default: null },
 })
 
 const invoiceSchema = new mongoose.Schema({

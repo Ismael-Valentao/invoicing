@@ -1,7 +1,7 @@
 const Product = require('../models/product');
 const StockMovement = require('../models/stockMovement');
 
-async function processSale({ items, companyId, saleId, userId, session }) {
+async function processSale({ items, companyId, saleId, userId, session, referenceModel = 'Sale', reason = 'Venda' }) {
 
     for (const item of items) {
 
@@ -28,9 +28,9 @@ async function processSale({ items, companyId, saleId, userId, session }) {
             companyId,
             type: 'OUT',
             quantity: item.quantity,
-            reason: 'Venda',
+            reason,
             reference: {
-                model: 'Sale',
+                model: referenceModel,
                 id: saleId
             },
             createdBy: userId

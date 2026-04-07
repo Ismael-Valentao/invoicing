@@ -2,6 +2,8 @@ const ExcelJS = require("exceljs");
 const mongoose = require("mongoose")
 const Invoice = require("../models/invoice");
 const Recibo = require("../models/recibo");
+const Product = require("../models/product");
+const { processSale } = require("../services/sale");
 const { generateInvoicePDF, generateCreditNotePDF, generateDebitNotePDF } = require("../utils/pdfGenerator");
 const { amounts, normalizeItems } = require("../utils/amountCalculator");
 const { normalizeInvoiceStatus } = require("../utils/normalizeStatus")
@@ -11,12 +13,43 @@ const { log: logActivity } = require('./activityLogController');
 const { getNextReciboNumber, getNextInvoiceNumber } = require('../utils/numerationGenerator');
 
 exports.createInvoice = async (req, res) => {
-  const { subTotal, tax, totalAmount } = amounts(req.body.items, req.body.iva * 1 * 0.01);
-
-  const cleanedItems = normalizeItems(req.body.items);
-
   const userId = req.user._id;
   const companyId = req.user.company._id;
+
+  let cleanedItems = normalizeItems(req.body.items);
+
+  // 🔒 Revalidar preços e existência de stock para itens ligados a produtos
+  const productIds = cleanedItems
+    .map(i => i.productId)
+    .filter(Boolean);
+
+  let productsMap = new Map();
+  if (productIds.length) {
+    const products = await Product.find({
+      _id: { $in: productIds },
+      companyId,
+    });
+    productsMap = new Map(products.map(p => [String(p._id), p]));
+
+    // força preço da BD (vendedor não pode alterar) e valida stock
+    cleanedItems = cleanedItems.map(item => {
+      if (!item.productId) return item;
+      const product = productsMap.get(String(item.productId));
+      if (!product) {
+        throw new Error(`Produto não encontrado: ${item.description || item.productId}`);
+      }
+      if (Number(product.stock?.quantity || 0) < Number(item.quantity)) {
+        throw new Error(`Stock insuficiente: ${product.description}`);
+      }
+      return {
+        ...item,
+        description: product.description,
+        unitPrice: Number(product.unitPrice),
+      };
+    });
+  }
+
+  const { subTotal, tax, totalAmount } = amounts(cleanedItems, req.body.iva * 1 * 0.01);
 
   // Gerar número real da factura (ignora o que vem do frontend)
   const invoiceNumber = await getNextInvoiceNumber(companyId);
@@ -40,6 +73,29 @@ exports.createInvoice = async (req, res) => {
   });
 
   await invoice.save();
+
+  // 📦 Dar baixa no stock para os itens ligados a produtos
+  const productItems = cleanedItems
+    .filter(i => i.productId)
+    .map(i => ({ productId: i.productId, quantity: Number(i.quantity) }));
+
+  if (productItems.length) {
+    try {
+      await processSale({
+        items: productItems,
+        companyId,
+        saleId: invoice._id,
+        userId,
+        session: null,
+        referenceModel: 'Invoice',
+        reason: `Factura ${invoice.invoiceNumber}`,
+      });
+    } catch (err) {
+      // rollback da factura para manter consistência
+      await Invoice.deleteOne({ _id: invoice._id });
+      return res.status(400).json({ success: false, message: err.message });
+    }
+  }
 
   logActivity({
     companyId, userId, userName: req.user.name,

@@ -17,6 +17,9 @@ exports.createProduct = async (req, res) => {
       description,
       sku,
       unitPrice,
+      costPrice,
+      barcode,
+      category,
       unit,
       stockQuantity,
       stockMin,
@@ -32,11 +35,19 @@ exports.createProduct = async (req, res) => {
       return res.status(400).json({ status: "error", message: "Preço unitário inválido." });
     }
 
+    const cost = toNumber(costPrice, 0);
+    if (cost < 0) {
+      return res.status(400).json({ status: "error", message: "Preço de custo inválido." });
+    }
+
     const product = await Product.create({
       companyId,
       description: String(description).trim(),
       sku: sku ? String(sku).trim() : undefined,
       unitPrice: price,
+      costPrice: cost,
+      barcode: barcode ? String(barcode).trim() : "",
+      category: category ? String(category).trim() : "",
       unit: unit || "un",
       stock: {
         quantity: toNumber(stockQuantity, 0),
@@ -126,7 +137,13 @@ exports.updateProduct = async (req, res) => {
     if (description !== undefined) update.description = String(description).trim();
     if (sku !== undefined) update.sku = String(sku).trim() || undefined;
 
+    const isAdmin = req.user?.role === 'ADMIN';
+    const { costPrice, barcode, category: prodCategory } = req.body;
+
     if (unitPrice !== undefined) {
+      if (!isAdmin) {
+        return res.status(403).json({ status: "error", message: "Apenas administradores podem alterar o preço de venda." });
+      }
       const price = toNumber(unitPrice, NaN);
       if (!Number.isFinite(price) || price < 0) {
         return res.status(400).json({ status: "error", message: "Preço unitário inválido." });
@@ -137,9 +154,12 @@ exports.updateProduct = async (req, res) => {
     if (unit !== undefined) update.unit = unit;
     if (active !== undefined) update.active = Boolean(active);
 
-    // costPrice
-    const { costPrice, barcode, category: prodCategory } = req.body;
-    if (costPrice !== undefined) update.costPrice = toNumber(costPrice, 0);
+    if (costPrice !== undefined) {
+      if (!isAdmin) {
+        return res.status(403).json({ status: "error", message: "Apenas administradores podem alterar o preço de custo." });
+      }
+      update.costPrice = toNumber(costPrice, 0);
+    }
     if (barcode !== undefined) update.barcode = String(barcode).trim();
     if (prodCategory !== undefined) update.category = String(prodCategory).trim();
 
@@ -206,7 +226,7 @@ exports.adjustStock = async (req, res) => {
     const companyId = req.user.company._id;
     const userId = req.user._id;
 
-    let { type, quantity, reason, note } = req.body;
+    let { type, quantity, reason, note, unitCost } = req.body;
 
     const q = toNumber(quantity, NaN);
     if (!Number.isFinite(q) || q <= 0) {
@@ -231,6 +251,7 @@ exports.adjustStock = async (req, res) => {
     }
 
     const beforeQty = Number(product.stock?.quantity || 0);
+    let movementCost = 0;
 
     if (type === "OUT") {
       if (beforeQty < q) {
@@ -238,6 +259,16 @@ exports.adjustStock = async (req, res) => {
       }
       product.stock.quantity = beforeQty - q;
     } else {
+      const cost = toNumber(unitCost, NaN);
+      if (Number.isFinite(cost) && cost >= 0) {
+        movementCost = cost;
+        // Custo médio ponderado
+        const oldCost = Number(product.costPrice || 0);
+        const newQty = beforeQty + q;
+        product.costPrice = newQty > 0
+          ? Number(((oldCost * beforeQty + cost * q) / newQty).toFixed(2))
+          : cost;
+      }
       product.stock.quantity = beforeQty + q;
     }
 
@@ -249,6 +280,7 @@ exports.adjustStock = async (req, res) => {
       productId: product._id,
       type,
       quantity: q,
+      unitCost: movementCost,
       reason,
       note,
       createdBy: userId,
@@ -320,7 +352,7 @@ exports.adjustStockWithReason = async (req, res) => {
     const companyId = req.user.company._id;
     const userId = req.user._id;
 
-    const { type, quantity, reason, note } = req.body;
+    const { type, quantity, reason, note, unitCost } = req.body;
 
     const q = toNumber(quantity);
     if (!q || !Number.isFinite(q) || q <= 0) {
@@ -349,10 +381,23 @@ exports.adjustStockWithReason = async (req, res) => {
       return res.status(400).json({ status: "error", message: "Stock insuficiente." });
     }
 
-    // aplica stock
-    product.stock.quantity = t === "IN"
-      ? product.stock.quantity + q
-      : product.stock.quantity - q;
+    const beforeQty = Number(product.stock.quantity || 0);
+    let movementCost = 0;
+
+    if (t === "IN") {
+      const cost = toNumber(unitCost, NaN);
+      if (Number.isFinite(cost) && cost >= 0) {
+        movementCost = cost;
+        const oldCost = Number(product.costPrice || 0);
+        const newQty = beforeQty + q;
+        product.costPrice = newQty > 0
+          ? Number(((oldCost * beforeQty + cost * q) / newQty).toFixed(2))
+          : cost;
+      }
+      product.stock.quantity = beforeQty + q;
+    } else {
+      product.stock.quantity = beforeQty - q;
+    }
 
     await product.save();
 
@@ -362,6 +407,7 @@ exports.adjustStockWithReason = async (req, res) => {
       productId: product._id,
       type: t,
       quantity: q,
+      unitCost: movementCost,
       reason: String(reason).trim(),
       note: note ? String(note).trim() : undefined,
       createdBy: userId,
