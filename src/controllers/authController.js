@@ -130,7 +130,7 @@ exports.refreshToken = async (req, res) => {
     if (!user) return res.status(401).json({ success: false, message: 'Utilizador não encontrado.' });
 
     const token = jwt.sign(
-      { id: user._id, name: user.name, email: user.email, permissions: user.permissions, role: user.role, company: user.companyId },
+      { id: user._id, name: user.name, email: user.email, permissions: user.permissions, role: user.role, company: user.companyId, tokenVersion: user.tokenVersion || 0 },
       SECRET, { expiresIn: '1h' }
     );
 

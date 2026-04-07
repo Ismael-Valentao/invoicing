@@ -11,6 +11,9 @@ router.post('/create-superadmin', admin.createSuperAdmin);
 // Endpoint público — banner global (qualquer utilizador autenticado pode ler)
 router.get('/banner/public', admin.getPublicBanner);
 
+// Stop impersonate — só requer authMiddleware (role do user é o do target durante impersonação)
+router.post('/stop-impersonate', authMiddleware, admin.stopImpersonate);
+
 // Todas as rotas seguintes exigem SUPERADMIN
 router.use(authMiddleware, requireSuperAdmin);
 
@@ -33,8 +36,8 @@ router.get('/companies/:id/export', admin.exportCompanyData);
 router.post('/companies/:id/force-logout', admin.forceLogoutCompany);
 router.get('/companies/:id/payments', admin.getCompanyPayments);
 router.post('/companies/:id/email', admin.emailCompany);
-router.patch('/companies/:companyId/extend', admin.extendSubscription);
-router.patch('/companies/:companyId/change-plan', admin.changePlanKeepExpiry);
+router.patch('/companies/:id/extend', admin.extendSubscription);
+router.patch('/companies/:id/change-plan', admin.changePlanKeepExpiry);
 
 // Utilizadores
 router.get('/users', admin.listUsers);

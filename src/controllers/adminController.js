@@ -25,6 +25,7 @@ const EmailTemplate = require('../models/emailTemplate');
 const { DEFAULTS: PLAN_DEFAULTS, invalidateCache: invalidatePlanCache } = require('../utils/plans');
 const { PLANS, getPlan, getPaidPlanExpiration, getFreePlanExpiration } = require('../utils/plans');
 const { sendUpgradeConfirmationEmail, sendGeneric, sendForcedPasswordResetEmail } = require('../utils/mailSender');
+const { logError } = require('../middlewares/errorLogger');
 
 const JWT_SECRET = process.env.JWT_SECRET;
 const APP_URL = process.env.APP_URL || process.env.BASE_URL || '';
@@ -601,7 +602,7 @@ exports.deleteCompany = async (req, res) => {
 
 exports.extendSubscription = async (req, res) => {
     try {
-        const { companyId } = req.params;
+        const companyId = req.params.id || req.params.companyId;
         const { days } = req.body;
         const d = parseInt(days);
         if (!Number.isFinite(d) || d === 0) {
@@ -625,7 +626,7 @@ exports.extendSubscription = async (req, res) => {
 
 exports.changePlanKeepExpiry = async (req, res) => {
     try {
-        const { companyId } = req.params;
+        const companyId = req.params.id || req.params.companyId;
         const { plan } = req.body;
         if (!PLANS[plan]) return res.status(400).json({ success: false, message: 'Plano inválido.' });
 
@@ -733,15 +734,22 @@ exports.forcePasswordReset = async (req, res) => {
         await user.save();
 
         const base = APP_URL || `${req.protocol}://${req.get('host')}`;
-        const resetUrl = `${base.replace(/\/$/, '')}/reset-password?token=${token}`;
+        const resetUrl = `${base.replace(/\/$/, '')}/reset-password/${token}`;
 
+        let emailSent = true;
         try {
             await sendForcedPasswordResetEmail(user.email, user.name, resetUrl);
         } catch (e) {
+            emailSent = false;
             console.error('[Admin] forcePasswordReset email:', e.message);
         }
 
-        return res.json({ success: true, message: `Email de redefinição enviado para ${user.email}.`, resetUrl });
+        return res.json({
+            success: true,
+            message: emailSent
+                ? `Email de redefinição enviado para ${user.email}.`
+                : `Token gerado mas falhou o envio do email para ${user.email}.`
+        });
     } catch (err) {
         return res.status(500).json({ success: false, message: err.message });
     }
@@ -791,6 +799,45 @@ exports.impersonate = async (req, res) => {
         });
 
         return res.json({ success: true, message: `A entrar como ${target.name}...`, redirect: '/dashboard' });
+    } catch (err) {
+        return res.status(500).json({ success: false, message: err.message });
+    }
+};
+
+// Termina sessão de impersonação e devolve cookie ao SUPERADMIN original
+exports.stopImpersonate = async (req, res) => {
+    try {
+        // Esta rota corre com authMiddleware (já foi validado), e req.user vem do JWT actual
+        // que pode ser o de impersonação. Lemos directamente do token sem passar pelo requireSuperAdmin
+        // (a rota é montada antes do require — ver routes/admin.js).
+        const decoded = req.user;
+        if (!decoded?.impersonatedBy) {
+            return res.status(400).json({ success: false, message: 'Não está em modo impersonação.' });
+        }
+
+        const original = await User.findById(decoded.impersonatedBy).populate('companyId');
+        if (!original || original.role !== 'SUPERADMIN') {
+            return res.status(403).json({ success: false, message: 'Sessão original inválida.' });
+        }
+
+        const token = jwt.sign({
+            id: original._id,
+            name: original.name,
+            email: original.email,
+            permissions: original.permissions,
+            role: original.role,
+            company: original.companyId,
+            tokenVersion: original.tokenVersion || 0,
+        }, JWT_SECRET, { expiresIn: '1h' });
+
+        res.cookie('token', token, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
+            maxAge: 3600000,
+        });
+
+        return res.json({ success: true, message: 'Voltaste à tua sessão SUPERADMIN.', redirect: '/admin' });
     } catch (err) {
         return res.status(500).json({ success: false, message: err.message });
     }
@@ -1111,11 +1158,13 @@ exports.emailCompany = async (req, res) => {
         const { subject, html } = req.body;
         if (!subject || !html) return res.status(400).json({ success: false, message: 'subject e html obrigatórios.' });
 
-        const admin = await User.findOne({ companyId: id, role: 'ADMIN' });
-        if (!admin) return res.status(404).json({ success: false, message: 'Admin da empresa não encontrado.' });
+        // Tenta primeiro um ADMIN; se não houver, qualquer utilizador da empresa
+        let recipient = await User.findOne({ companyId: id, role: 'ADMIN', status: 'active' });
+        if (!recipient) recipient = await User.findOne({ companyId: id, status: 'active' });
+        if (!recipient) return res.status(404).json({ success: false, message: 'Nenhum utilizador activo encontrado para esta empresa.' });
 
-        await sendGeneric(admin.email, subject, html.replace(/\{\{name\}\}/g, admin.name));
-        return res.json({ success: true, message: `Email enviado para ${admin.email}.` });
+        await sendGeneric(recipient.email, subject, html.replace(/\{\{name\}\}/g, recipient.name));
+        return res.json({ success: true, message: `Email enviado para ${recipient.email}.` });
     } catch (err) {
         return res.status(500).json({ success: false, message: err.message });
     }

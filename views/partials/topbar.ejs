@@ -1,3 +1,21 @@
+<% if (typeof user !== 'undefined' && user && user.impersonatedBy) { %>
+<div class="alert alert-dark mb-0 text-center d-flex align-items-center justify-content-center" style="border-radius:0;">
+  <i class="fas fa-user-secret mr-2"></i>
+  <strong>Modo impersonação</strong>&nbsp;— a agir como <strong><%= user.name %></strong>.
+  <button class="btn btn-sm btn-light ml-3" onclick="stopImpersonate()">
+    <i class="fas fa-undo mr-1"></i>Voltar à sessão SUPERADMIN
+  </button>
+</div>
+<script>
+async function stopImpersonate() {
+  const r = await fetch('/api/admin/stop-impersonate', { method: 'POST' });
+  const d = await r.json();
+  if (d.success) window.location.href = d.redirect || '/admin';
+  else alert(d.message || 'Erro ao voltar.');
+}
+</script>
+<% } %>
+
 <!-- Banner global da plataforma -->
 <div id="globalBanner" class="alert mb-0 text-center" style="display:none; border-radius:0;"></div>
 <script>
