@@ -72,6 +72,10 @@ app.use((req, res) => {
   });
 });
 
+// Middleware global de captura de erros (deve vir por último)
+const { errorLogger } = require('./src/middlewares/errorLogger');
+app.use(errorLogger);
+
 
 mongoose.connect(mongodbURI)
 .then(() => {

@@ -75,7 +75,16 @@ const userSchema = new mongoose.Schema({
         enum: ['active', 'blocked'],
         default: 'active',
         required: true
-    }
+    },
+
+    // Incrementado pelo SUPERADMIN para forçar logout — invalida tokens emitidos antes deste valor
+    tokenVersion: {
+        type: Number,
+        default: 0
+    },
+
+    lastLoginAt: { type: Date, default: null },
+    lastLoginIp: { type: String, default: '' }
 }, {
     timestamps: true,
 });

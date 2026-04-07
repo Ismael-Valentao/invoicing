@@ -1,15 +1,33 @@
 const bcrypt = require('bcryptjs');
+const crypto = require('crypto');
+const jwt = require('jsonwebtoken');
+const mongoose = require('mongoose');
 const Subscription = require('../models/subscription');
 const Company = require('../models/company');
 const User = require('../models/user');
 const Invoice = require('../models/invoice');
 const Sale = require('../models/sale');
+const Quotation = require('../models/quotation');
+const Product = require('../models/product');
+const Client = require('../models/client');
+const Supplier = require('../models/supplier');
+const Expense = require('../models/expense');
+const Recibo = require('../models/recibo');
+const VD = require('../models/vd');
+const Payment = require('../models/payment');
 const PaymentSettings = require('../models/paymentSettings');
 const ActivityLog = require('../models/activityLog');
 const PlanConfig = require('../models/planConfig');
+const LoginAudit = require('../models/loginAudit');
+const SystemSetting = require('../models/systemSetting');
+const ErrorLog = require('../models/errorLog');
+const EmailTemplate = require('../models/emailTemplate');
 const { DEFAULTS: PLAN_DEFAULTS, invalidateCache: invalidatePlanCache } = require('../utils/plans');
 const { PLANS, getPlan, getPaidPlanExpiration, getFreePlanExpiration } = require('../utils/plans');
-const { sendUpgradeConfirmationEmail } = require('../utils/mailSender');
+const { sendUpgradeConfirmationEmail, sendGeneric, sendForcedPasswordResetEmail } = require('../utils/mailSender');
+
+const JWT_SECRET = process.env.JWT_SECRET;
+const APP_URL = process.env.APP_URL || process.env.BASE_URL || '';
 
 // ─── STATS (Dashboard) ────────────────────────────────────────────────────────
 exports.getDashboardStats = async (req, res) => {
@@ -231,11 +249,28 @@ exports.getCompanyDetail = async (req, res) => {
         const company = await Company.findById(id);
         if (!company) return res.status(404).json({ success: false, message: 'Empresa não encontrada.' });
 
-        const [sub, users, invoiceCount, saleCount] = await Promise.all([
+        const [
+            sub, users,
+            invoiceCount, saleCount, quotationCount,
+            productCount, serviceCount,
+            clientCount, supplierCount,
+            expenseCount, reciboCount, vdCount,
+            creditNoteCount, debitNoteCount
+        ] = await Promise.all([
             Subscription.findOne({ companyId: id }),
             User.find({ companyId: id }).select('name email role status createdAt'),
-            Invoice.countDocuments({ companyId: id }),
+            Invoice.countDocuments({ companyId: id, docType: 'invoice' }),
             Sale.countDocuments({ companyId: id }),
+            Quotation.countDocuments({ companyId: id }),
+            Product.countDocuments({ companyId: id, type: { $ne: 'service' } }),
+            Product.countDocuments({ companyId: id, type: 'service' }),
+            Client.countDocuments({ companyId: id }),
+            Supplier.countDocuments({ companyId: id }),
+            Expense.countDocuments({ companyId: id }),
+            Recibo.countDocuments({ companyId: id }),
+            VD.countDocuments({ companyId: id }),
+            Invoice.countDocuments({ companyId: id, docType: 'credit_note' }),
+            Invoice.countDocuments({ companyId: id, docType: 'debit_note' }),
         ]);
 
         return res.json({
@@ -243,7 +278,20 @@ exports.getCompanyDetail = async (req, res) => {
             company,
             subscription: sub,
             users,
-            usage: { invoices: invoiceCount, sales: saleCount }
+            usage: {
+                invoices: invoiceCount,
+                sales: saleCount,
+                quotations: quotationCount,
+                products: productCount,
+                services: serviceCount,
+                clients: clientCount,
+                suppliers: supplierCount,
+                expenses: expenseCount,
+                recibos: reciboCount,
+                vds: vdCount,
+                creditNotes: creditNoteCount,
+                debitNotes: debitNoteCount,
+            }
         });
     } catch (err) {
         return res.status(500).json({ success: false, message: 'Erro ao carregar empresa.' });
@@ -269,6 +317,70 @@ exports.listUsers = async (req, res) => {
         return res.json({ success: true, users });
     } catch (err) {
         return res.status(500).json({ success: false, message: 'Erro ao listar utilizadores.' });
+    }
+};
+
+// ─── BLOQUEAR / DESBLOQUEAR UTILIZADOR ───────────────────────────────────────
+exports.setUserStatus = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { status } = req.body; // 'active' | 'blocked'
+
+        if (!['active', 'blocked'].includes(status)) {
+            return res.status(400).json({ success: false, message: 'Estado inválido. Use "active" ou "blocked".' });
+        }
+
+        const user = await User.findById(id);
+        if (!user) return res.status(404).json({ success: false, message: 'Utilizador não encontrado.' });
+
+        if (user.role === 'SUPERADMIN') {
+            return res.status(403).json({ success: false, message: 'Não é possível bloquear um SUPERADMIN.' });
+        }
+
+        user.status = status;
+        await user.save();
+
+        return res.json({
+            success: true,
+            message: status === 'blocked'
+                ? `${user.name} foi bloqueado.`
+                : `${user.name} foi desbloqueado.`,
+            user: { _id: user._id, name: user.name, email: user.email, status: user.status }
+        });
+    } catch (err) {
+        console.error('[Admin] setUserStatus:', err);
+        return res.status(500).json({ success: false, message: 'Erro ao actualizar estado do utilizador.' });
+    }
+};
+
+// ─── BLOQUEAR / DESBLOQUEAR EMPRESA INTEIRA ──────────────────────────────────
+exports.setCompanyStatus = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { status } = req.body; // 'active' | 'blocked'
+
+        if (!['active', 'blocked'].includes(status)) {
+            return res.status(400).json({ success: false, message: 'Estado inválido.' });
+        }
+
+        const company = await Company.findById(id);
+        if (!company) return res.status(404).json({ success: false, message: 'Empresa não encontrada.' });
+
+        // Bloqueia/desbloqueia todos os utilizadores não-SUPERADMIN da empresa
+        const result = await User.updateMany(
+            { companyId: id, role: { $ne: 'SUPERADMIN' } },
+            { $set: { status } }
+        );
+
+        return res.json({
+            success: true,
+            message: status === 'blocked'
+                ? `${company.name} bloqueada (${result.modifiedCount} utilizadores afectados).`
+                : `${company.name} desbloqueada (${result.modifiedCount} utilizadores afectados).`,
+        });
+    } catch (err) {
+        console.error('[Admin] setCompanyStatus:', err);
+        return res.status(500).json({ success: false, message: 'Erro ao actualizar estado da empresa.' });
     }
 };
 
@@ -430,5 +542,632 @@ exports.updatePaymentSettings = async (req, res) => {
         res.json({ success: true, message: 'Dados de pagamento actualizados.' });
     } catch (err) {
         res.status(500).json({ success: false, message: err.message });
+    }
+};
+
+// ═════════════════════════════════════════════════════════════════════════════
+//  COMPANIES — edit, delete, extend trial, change plan, wipe test data
+// ═════════════════════════════════════════════════════════════════════════════
+
+exports.updateCompany = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const allowed = ['name', 'email', 'contact', 'nuit', 'address', 'currency'];
+        const update = {};
+        for (const f of allowed) if (req.body[f] !== undefined) update[f] = req.body[f];
+
+        const company = await Company.findByIdAndUpdate(id, { $set: update }, { new: true });
+        if (!company) return res.status(404).json({ success: false, message: 'Empresa não encontrada.' });
+        return res.json({ success: true, message: 'Empresa actualizada.', company });
+    } catch (err) {
+        return res.status(500).json({ success: false, message: err.message });
+    }
+};
+
+exports.deleteCompany = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { hard } = req.query; // ?hard=true → apaga tudo
+
+        if (hard === 'true') {
+            // Hard delete: apaga todos os dados da empresa
+            await Promise.all([
+                Invoice.deleteMany({ companyId: id }),
+                Sale.deleteMany({ companyId: id }),
+                Quotation.deleteMany({ companyId: id }),
+                Product.deleteMany({ companyId: id }),
+                Client.deleteMany({ companyId: id }),
+                Supplier.deleteMany({ companyId: id }),
+                Expense.deleteMany({ companyId: id }),
+                Recibo.deleteMany({ companyId: id }),
+                VD.deleteMany({ companyId: id }),
+                Payment.deleteMany({ companyId: id }),
+                Subscription.deleteMany({ companyId: id }),
+                User.deleteMany({ companyId: id, role: { $ne: 'SUPERADMIN' } }),
+                ActivityLog.deleteMany({ companyId: id }),
+                Company.deleteOne({ _id: id }),
+            ]);
+            return res.json({ success: true, message: 'Empresa e todos os seus dados foram apagados permanentemente.' });
+        }
+
+        // Soft delete: apenas bloqueia utilizadores e marca subscrição como cancelada
+        await User.updateMany({ companyId: id, role: { $ne: 'SUPERADMIN' } }, { $set: { status: 'blocked' } });
+        await Subscription.updateMany({ companyId: id }, { $set: { status: 'cancelled' } });
+        return res.json({ success: true, message: 'Empresa desactivada (utilizadores bloqueados, subscrição cancelada).' });
+    } catch (err) {
+        return res.status(500).json({ success: false, message: err.message });
+    }
+};
+
+exports.extendSubscription = async (req, res) => {
+    try {
+        const { companyId } = req.params;
+        const { days } = req.body;
+        const d = parseInt(days);
+        if (!Number.isFinite(d) || d === 0) {
+            return res.status(400).json({ success: false, message: 'days deve ser um inteiro não-zero.' });
+        }
+        const sub = await Subscription.findOne({ companyId });
+        if (!sub) return res.status(404).json({ success: false, message: 'Subscrição não encontrada.' });
+
+        const base = sub.expiresAt && sub.expiresAt > new Date() ? sub.expiresAt : new Date();
+        const newExpiry = new Date(base);
+        newExpiry.setDate(newExpiry.getDate() + d);
+        sub.expiresAt = newExpiry;
+        if (d > 0 && sub.status === 'expired') sub.status = 'active';
+        await sub.save();
+
+        return res.json({ success: true, message: `Subscrição estendida em ${d} dias.`, subscription: sub });
+    } catch (err) {
+        return res.status(500).json({ success: false, message: err.message });
+    }
+};
+
+exports.changePlanKeepExpiry = async (req, res) => {
+    try {
+        const { companyId } = req.params;
+        const { plan } = req.body;
+        if (!PLANS[plan]) return res.status(400).json({ success: false, message: 'Plano inválido.' });
+
+        const sub = await Subscription.findOne({ companyId });
+        if (!sub) return res.status(404).json({ success: false, message: 'Subscrição não encontrada.' });
+
+        sub.plan = plan;
+        await sub.save();
+        return res.json({ success: true, message: `Plano alterado para ${plan} (data de expiração mantida).`, subscription: sub });
+    } catch (err) {
+        return res.status(500).json({ success: false, message: err.message });
+    }
+};
+
+exports.wipeCompanyData = async (req, res) => {
+    try {
+        const { id } = req.params;
+        await Promise.all([
+            Invoice.deleteMany({ companyId: id }),
+            Sale.deleteMany({ companyId: id }),
+            Quotation.deleteMany({ companyId: id }),
+            Expense.deleteMany({ companyId: id }),
+            Recibo.deleteMany({ companyId: id }),
+            VD.deleteMany({ companyId: id }),
+            Payment.deleteMany({ companyId: id }),
+            ActivityLog.deleteMany({ companyId: id }),
+        ]);
+        return res.json({ success: true, message: 'Dados transaccionais apagados (empresa, utilizadores e produtos mantidos).' });
+    } catch (err) {
+        return res.status(500).json({ success: false, message: err.message });
+    }
+};
+
+exports.exportCompanyData = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const company = await Company.findById(id).lean();
+        if (!company) return res.status(404).json({ success: false, message: 'Empresa não encontrada.' });
+
+        const [users, sub, invoices, sales, quotations, products, clients, suppliers, expenses, recibos, vds, payments] = await Promise.all([
+            User.find({ companyId: id }).select('-password').lean(),
+            Subscription.findOne({ companyId: id }).lean(),
+            Invoice.find({ companyId: id }).lean(),
+            Sale.find({ companyId: id }).lean(),
+            Quotation.find({ companyId: id }).lean(),
+            Product.find({ companyId: id }).lean(),
+            Client.find({ companyId: id }).lean(),
+            Supplier.find({ companyId: id }).lean(),
+            Expense.find({ companyId: id }).lean(),
+            Recibo.find({ companyId: id }).lean(),
+            VD.find({ companyId: id }).lean(),
+            Payment.find({ companyId: id }).lean(),
+        ]);
+
+        const filename = `export-${company.name?.replace(/\s+/g, '-')}-${Date.now()}.json`;
+        res.setHeader('Content-Type', 'application/json');
+        res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+        return res.send(JSON.stringify({
+            exportedAt: new Date().toISOString(),
+            company, subscription: sub, users,
+            invoices, sales, quotations, products, clients, suppliers,
+            expenses, recibos, vds, payments
+        }, null, 2));
+    } catch (err) {
+        return res.status(500).json({ success: false, message: err.message });
+    }
+};
+
+// ═════════════════════════════════════════════════════════════════════════════
+//  USERS — force logout, forced password reset
+// ═════════════════════════════════════════════════════════════════════════════
+
+exports.forceLogoutUser = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const user = await User.findByIdAndUpdate(id, { $inc: { tokenVersion: 1 } }, { new: true });
+        if (!user) return res.status(404).json({ success: false, message: 'Utilizador não encontrado.' });
+        return res.json({ success: true, message: `${user.name} foi desconectado de todas as sessões.` });
+    } catch (err) {
+        return res.status(500).json({ success: false, message: err.message });
+    }
+};
+
+exports.forceLogoutCompany = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const result = await User.updateMany({ companyId: id }, { $inc: { tokenVersion: 1 } });
+        return res.json({ success: true, message: `${result.modifiedCount} utilizadores desconectados.` });
+    } catch (err) {
+        return res.status(500).json({ success: false, message: err.message });
+    }
+};
+
+exports.forcePasswordReset = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const user = await User.findById(id);
+        if (!user) return res.status(404).json({ success: false, message: 'Utilizador não encontrado.' });
+
+        const token = crypto.randomBytes(32).toString('hex');
+        user.passwordResetToken = token;
+        user.passwordResetExpires = new Date(Date.now() + 60 * 60 * 1000); // 1h
+        user.mustChangePassword = true;
+        user.tokenVersion = (user.tokenVersion || 0) + 1; // logout forçado
+        await user.save();
+
+        const base = APP_URL || `${req.protocol}://${req.get('host')}`;
+        const resetUrl = `${base.replace(/\/$/, '')}/reset-password?token=${token}`;
+
+        try {
+            await sendForcedPasswordResetEmail(user.email, user.name, resetUrl);
+        } catch (e) {
+            console.error('[Admin] forcePasswordReset email:', e.message);
+        }
+
+        return res.json({ success: true, message: `Email de redefinição enviado para ${user.email}.`, resetUrl });
+    } catch (err) {
+        return res.status(500).json({ success: false, message: err.message });
+    }
+};
+
+// ═════════════════════════════════════════════════════════════════════════════
+//  IMPERSONATE — SUPERADMIN entra na conta de outro utilizador
+// ═════════════════════════════════════════════════════════════════════════════
+
+exports.impersonate = async (req, res) => {
+    try {
+        const { userId } = req.body;
+        const target = await User.findById(userId).populate('companyId');
+        if (!target) return res.status(404).json({ success: false, message: 'Utilizador não encontrado.' });
+        if (target.role === 'SUPERADMIN') {
+            return res.status(403).json({ success: false, message: 'Não é possível impersonar outro SUPERADMIN.' });
+        }
+
+        // Token curto (30min) com flag de impersonação e identidade original
+        const token = jwt.sign({
+            id: target._id,
+            name: target.name,
+            email: target.email,
+            permissions: target.permissions,
+            role: target.role,
+            company: target.companyId,
+            tokenVersion: target.tokenVersion || 0,
+            impersonatedBy: req.user.id,
+        }, JWT_SECRET, { expiresIn: '30m' });
+
+        // Log crítico
+        ActivityLog.create({
+            companyId: target.companyId?._id || null,
+            userId: req.user.id,
+            userName: req.user.name,
+            action: 'impersonate',
+            entity: 'user',
+            entityId: target._id,
+            description: `SUPERADMIN ${req.user.name} entrou como ${target.name} (${target.email}).`
+        }).catch(() => {});
+
+        res.cookie('token', token, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
+            maxAge: 30 * 60 * 1000,
+        });
+
+        return res.json({ success: true, message: `A entrar como ${target.name}...`, redirect: '/dashboard' });
+    } catch (err) {
+        return res.status(500).json({ success: false, message: err.message });
+    }
+};
+
+// ═════════════════════════════════════════════════════════════════════════════
+//  BUSINESS INSIGHTS — MRR, churn, top, inactive, growth, conversion, funnel
+// ═════════════════════════════════════════════════════════════════════════════
+
+exports.getBusinessMetrics = async (req, res) => {
+    try {
+        const now = new Date();
+        const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+        const oneYearAgo = new Date(now.getFullYear() - 1, now.getMonth(), 1);
+        const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+
+        // MRR — subscrições pagas activas
+        const activePaidSubs = await Subscription.find({
+            status: 'active',
+            plan: { $in: ['BASIC', 'PREMIUM'] }
+        }).lean();
+        const mrr = activePaidSubs.reduce((acc, s) => acc + (getPlan(s.plan).priceMZN || 0), 0);
+        const arr = mrr * 12;
+
+        // Churn (cancelled + expired nos últimos 30d)
+        const churned = await Subscription.countDocuments({
+            status: { $in: ['cancelled', 'expired'] },
+            updatedAt: { $gte: thirtyDaysAgo }
+        });
+        const totalActive30d = await Subscription.countDocuments({ createdAt: { $lt: thirtyDaysAgo } });
+        const churnRate = totalActive30d > 0 ? (churned / totalActive30d) * 100 : 0;
+
+        // Crescimento mensal (últimos 12 meses)
+        const monthlyGrowth = await Company.aggregate([
+            { $match: { createdAt: { $gte: oneYearAgo } } },
+            { $group: {
+                _id: { y: { $year: '$createdAt' }, m: { $month: '$createdAt' } },
+                count: { $sum: 1 }
+            }},
+            { $sort: { '_id.y': 1, '_id.m': 1 } }
+        ]);
+
+        // Conversão FREE → BASIC/PREMIUM
+        const totalCompanies = await Company.countDocuments();
+        const paidCount = await Subscription.countDocuments({ plan: { $in: ['BASIC', 'PREMIUM'] } });
+        const conversionRate = totalCompanies > 0 ? (paidCount / totalCompanies) * 100 : 0;
+
+        // Funil de onboarding
+        const [withCompany, withFirstDoc, withPayment] = await Promise.all([
+            Company.countDocuments(),
+            Invoice.distinct('companyId').then(a => a.length),
+            Subscription.countDocuments({ plan: { $in: ['BASIC', 'PREMIUM'] }, status: 'active' }),
+        ]);
+        const totalUsers = await User.countDocuments({ role: { $ne: 'SUPERADMIN' } });
+
+        return res.json({
+            success: true,
+            metrics: {
+                mrr, arr,
+                churnRate: Number(churnRate.toFixed(2)),
+                conversionRate: Number(conversionRate.toFixed(2)),
+                monthlyGrowth,
+                funnel: {
+                    registered: totalUsers,
+                    withCompany,
+                    withFirstDoc,
+                    withPayment,
+                }
+            }
+        });
+    } catch (err) {
+        return res.status(500).json({ success: false, message: err.message });
+    }
+};
+
+exports.getTopCompanies = async (req, res) => {
+    try {
+        const limit = Math.min(Number(req.query.limit) || 10, 50);
+        const agg = await Invoice.aggregate([
+            { $group: { _id: '$companyId', invoiceCount: { $sum: 1 }, revenue: { $sum: '$totalAmount' } } },
+            { $sort: { invoiceCount: -1 } },
+            { $limit: limit },
+        ]);
+        const companyIds = agg.map(a => a._id);
+        const companies = await Company.find({ _id: { $in: companyIds } }).select('name email').lean();
+        const byId = new Map(companies.map(c => [String(c._id), c]));
+
+        const result = agg.map(a => ({
+            companyId: a._id,
+            companyName: byId.get(String(a._id))?.name || '—',
+            companyEmail: byId.get(String(a._id))?.email || '',
+            invoiceCount: a.invoiceCount,
+            revenue: a.revenue,
+        }));
+        return res.json({ success: true, top: result });
+    } catch (err) {
+        return res.status(500).json({ success: false, message: err.message });
+    }
+};
+
+exports.getInactiveCompanies = async (req, res) => {
+    try {
+        const days = Math.max(Number(req.query.days) || 30, 1);
+        const cutoff = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
+
+        // Empresas sem nenhuma actividade após cutoff
+        const activeIds = await ActivityLog.distinct('companyId', { createdAt: { $gte: cutoff } });
+        const inactive = await Company.find({
+            _id: { $nin: activeIds }
+        }).select('name email createdAt').lean();
+
+        return res.json({ success: true, days, inactive });
+    } catch (err) {
+        return res.status(500).json({ success: false, message: err.message });
+    }
+};
+
+exports.getChurnRisk = async (req, res) => {
+    try {
+        const now = new Date();
+        const in7Days = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+        const subs = await Subscription.find({
+            status: 'active',
+            expiresAt: { $gte: now, $lte: in7Days }
+        }).populate('companyId', 'name email').lean();
+
+        return res.json({ success: true, atRisk: subs });
+    } catch (err) {
+        return res.status(500).json({ success: false, message: err.message });
+    }
+};
+
+// ═════════════════════════════════════════════════════════════════════════════
+//  PAYMENTS — histórico por empresa
+// ═════════════════════════════════════════════════════════════════════════════
+
+exports.getCompanyPayments = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const payments = await Payment.find({ companyId: id }).sort({ date: -1 }).lean();
+        const total = payments.reduce((acc, p) => acc + (p.amount || 0), 0);
+        return res.json({ success: true, payments, total });
+    } catch (err) {
+        return res.status(500).json({ success: false, message: err.message });
+    }
+};
+
+// ═════════════════════════════════════════════════════════════════════════════
+//  LOGIN AUDIT
+// ═════════════════════════════════════════════════════════════════════════════
+
+exports.getLoginAudit = async (req, res) => {
+    try {
+        const { userId, email, success, limit = 100 } = req.query;
+        const filter = {};
+        if (userId) filter.userId = userId;
+        if (email) filter.email = { $regex: email, $options: 'i' };
+        if (success !== undefined) filter.success = success === 'true';
+
+        const logs = await LoginAudit.find(filter)
+            .sort({ createdAt: -1 })
+            .limit(Math.min(Number(limit), 500))
+            .populate('userId', 'name email')
+            .populate('companyId', 'name')
+            .lean();
+        return res.json({ success: true, logs });
+    } catch (err) {
+        return res.status(500).json({ success: false, message: err.message });
+    }
+};
+
+// ═════════════════════════════════════════════════════════════════════════════
+//  SYSTEM SETTINGS — banner global, maintenance mode
+// ═════════════════════════════════════════════════════════════════════════════
+
+exports.getSystemSettings = async (req, res) => {
+    try {
+        const settings = await SystemSetting.getSingleton();
+        return res.json({ success: true, settings });
+    } catch (err) {
+        return res.status(500).json({ success: false, message: err.message });
+    }
+};
+
+exports.updateBanner = async (req, res) => {
+    try {
+        const { enabled, message, type, startsAt, endsAt } = req.body;
+        const settings = await SystemSetting.getSingleton();
+        if (enabled !== undefined) settings.banner.enabled = Boolean(enabled);
+        if (message !== undefined) settings.banner.message = String(message);
+        if (type !== undefined) settings.banner.type = type;
+        if (startsAt !== undefined) settings.banner.startsAt = startsAt ? new Date(startsAt) : null;
+        if (endsAt !== undefined) settings.banner.endsAt = endsAt ? new Date(endsAt) : null;
+        await settings.save();
+        return res.json({ success: true, message: 'Banner actualizado.', banner: settings.banner });
+    } catch (err) {
+        return res.status(500).json({ success: false, message: err.message });
+    }
+};
+
+exports.setMaintenanceMode = async (req, res) => {
+    try {
+        const { enabled, message } = req.body;
+        const settings = await SystemSetting.getSingleton();
+        if (enabled !== undefined) settings.maintenanceMode = Boolean(enabled);
+        if (message !== undefined) settings.maintenanceMessage = String(message);
+        await settings.save();
+        return res.json({
+            success: true,
+            message: settings.maintenanceMode ? 'Modo manutenção ACTIVO.' : 'Modo manutenção DESACTIVADO.',
+            settings
+        });
+    } catch (err) {
+        return res.status(500).json({ success: false, message: err.message });
+    }
+};
+
+// Endpoint público (sem auth) para o frontend ler banner
+exports.getPublicBanner = async (req, res) => {
+    try {
+        const settings = await SystemSetting.getSingleton();
+        const b = settings.banner;
+        const now = new Date();
+        const active = b.enabled &&
+            (!b.startsAt || b.startsAt <= now) &&
+            (!b.endsAt || b.endsAt >= now);
+        return res.json({ success: true, banner: active ? b : null });
+    } catch (err) {
+        return res.json({ success: true, banner: null });
+    }
+};
+
+// ═════════════════════════════════════════════════════════════════════════════
+//  DB HEALTH + BACKUP
+// ═════════════════════════════════════════════════════════════════════════════
+
+exports.getDbHealth = async (req, res) => {
+    try {
+        const db = mongoose.connection.db;
+        const stats = await db.stats();
+        const collections = await db.listCollections().toArray();
+        const counts = {};
+        for (const c of collections) {
+            counts[c.name] = await db.collection(c.name).countDocuments();
+        }
+        return res.json({
+            success: true,
+            db: {
+                name: db.databaseName,
+                collections: collections.length,
+                dataSize: stats.dataSize,
+                storageSize: stats.storageSize,
+                indexSize: stats.indexSize,
+                counts,
+            }
+        });
+    } catch (err) {
+        return res.status(500).json({ success: false, message: err.message });
+    }
+};
+
+exports.manualBackup = async (req, res) => {
+    try {
+        const db = mongoose.connection.db;
+        const collections = await db.listCollections().toArray();
+        const backup = { createdAt: new Date().toISOString(), collections: {} };
+        for (const c of collections) {
+            backup.collections[c.name] = await db.collection(c.name).find({}).toArray();
+        }
+        const filename = `backup-${Date.now()}.json`;
+        res.setHeader('Content-Type', 'application/json');
+        res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+        return res.send(JSON.stringify(backup));
+    } catch (err) {
+        return res.status(500).json({ success: false, message: err.message });
+    }
+};
+
+// ═════════════════════════════════════════════════════════════════════════════
+//  EMAIL — broadcast, single, templates
+// ═════════════════════════════════════════════════════════════════════════════
+
+exports.emailBroadcast = async (req, res) => {
+    try {
+        const { subject, html, audience } = req.body; // audience: 'all' | 'active' | 'expired' | 'free' | 'paid'
+        if (!subject || !html) return res.status(400).json({ success: false, message: 'subject e html obrigatórios.' });
+
+        let filter = { role: { $ne: 'SUPERADMIN' }, status: 'active' };
+        let companyFilter = null;
+
+        if (audience === 'active') companyFilter = { status: 'active' };
+        else if (audience === 'expired') companyFilter = { status: { $in: ['expired', 'cancelled'] } };
+        else if (audience === 'free') companyFilter = { plan: 'FREE' };
+        else if (audience === 'paid') companyFilter = { plan: { $in: ['BASIC', 'PREMIUM'] } };
+
+        if (companyFilter) {
+            const subs = await Subscription.find(companyFilter).select('companyId').lean();
+            filter.companyId = { $in: subs.map(s => s.companyId) };
+        }
+
+        const users = await User.find(filter).select('email name').lean();
+        let sent = 0, failed = 0;
+        for (const u of users) {
+            try {
+                await sendGeneric(u.email, subject, html.replace(/\{\{name\}\}/g, u.name || ''));
+                sent++;
+            } catch (e) { failed++; }
+        }
+        return res.json({ success: true, message: `Broadcast enviado.`, sent, failed, total: users.length });
+    } catch (err) {
+        return res.status(500).json({ success: false, message: err.message });
+    }
+};
+
+exports.emailCompany = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { subject, html } = req.body;
+        if (!subject || !html) return res.status(400).json({ success: false, message: 'subject e html obrigatórios.' });
+
+        const admin = await User.findOne({ companyId: id, role: 'ADMIN' });
+        if (!admin) return res.status(404).json({ success: false, message: 'Admin da empresa não encontrado.' });
+
+        await sendGeneric(admin.email, subject, html.replace(/\{\{name\}\}/g, admin.name));
+        return res.json({ success: true, message: `Email enviado para ${admin.email}.` });
+    } catch (err) {
+        return res.status(500).json({ success: false, message: err.message });
+    }
+};
+
+exports.listEmailTemplates = async (req, res) => {
+    try {
+        const templates = await EmailTemplate.find().sort({ key: 1 });
+        return res.json({ success: true, templates });
+    } catch (err) {
+        return res.status(500).json({ success: false, message: err.message });
+    }
+};
+
+exports.upsertEmailTemplate = async (req, res) => {
+    try {
+        const { key } = req.params;
+        const { subject, html, description } = req.body;
+        if (!subject || !html) return res.status(400).json({ success: false, message: 'subject e html obrigatórios.' });
+        const tpl = await EmailTemplate.findOneAndUpdate(
+            { key },
+            { $set: { key, subject, html, description } },
+            { new: true, upsert: true }
+        );
+        return res.json({ success: true, template: tpl });
+    } catch (err) {
+        return res.status(500).json({ success: false, message: err.message });
+    }
+};
+
+// ═════════════════════════════════════════════════════════════════════════════
+//  ERROR LOGS
+// ═════════════════════════════════════════════════════════════════════════════
+
+exports.getErrorLogs = async (req, res) => {
+    try {
+        const { limit = 100 } = req.query;
+        const logs = await ErrorLog.find()
+            .sort({ createdAt: -1 })
+            .limit(Math.min(Number(limit), 500))
+            .lean();
+        return res.json({ success: true, logs });
+    } catch (err) {
+        return res.status(500).json({ success: false, message: err.message });
+    }
+};
+
+exports.clearErrorLogs = async (req, res) => {
+    try {
+        await ErrorLog.deleteMany({});
+        return res.json({ success: true, message: 'Logs de erro apagados.' });
+    } catch (err) {
+        return res.status(500).json({ success: false, message: err.message });
     }
 };

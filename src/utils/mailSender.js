@@ -196,11 +196,30 @@ const sendUpgradeConfirmationEmail = async (toEmail, userName, companyName, plan
     await send(toEmail, `✅ Plano ${plan} activado — ${companyName}`, html);
 };
 
+// Helper genérico — usado pelas funcionalidades de admin (broadcast, password reset, etc.)
+const sendGeneric = async (toEmail, subject, htmlBody) => {
+    return send(toEmail, subject, htmlBody);
+};
+
+const sendForcedPasswordResetEmail = async (toEmail, userName, resetUrl) => {
+    const html = `
+        <h2>Redefinição de password</h2>
+        <p>Olá ${userName || ''},</p>
+        <p>O administrador da plataforma solicitou a redefinição da sua password.</p>
+        <p><a href="${resetUrl}" style="background:#4e73df;color:#fff;padding:10px 20px;text-decoration:none;border-radius:4px;">Definir nova password</a></p>
+        <p>Este link é válido por 1 hora.</p>
+    `;
+    await send(toEmail, '🔐 Redefinição de password — Invoicing', html);
+};
+
 module.exports = {
+    send,
+    sendGeneric,
     sendWelcomeEmail,
     sendExpiryWarningEmail,
     sendLimitWarningEmail,
     sendMonthlySummaryEmail,
     sendUpgradeRequestEmail,
     sendUpgradeConfirmationEmail,
+    sendForcedPasswordResetEmail,
 };

@@ -3,7 +3,26 @@ const jwt = require('jsonwebtoken');
 require('dotenv').config();
 
 const User = require('../models/user');
+const LoginAudit = require('../models/loginAudit');
 const { log: logActivity } = require('./activityLogController');
+
+function clientIp(req) {
+  return (req.headers['x-forwarded-for']?.split(',')[0] || req.ip || req.connection?.remoteAddress || '').trim();
+}
+
+async function auditLogin({ user, email, req, success, reason }) {
+  try {
+    await LoginAudit.create({
+      userId: user?._id || null,
+      email: email || user?.email || '',
+      companyId: user?.companyId?._id || user?.companyId || null,
+      ip: clientIp(req),
+      userAgent: req.get('user-agent') || '',
+      success,
+      reason: reason || (success ? 'ok' : 'unknown'),
+    });
+  } catch (_) { /* não bloqueia login */ }
+}
 
 const SECRET = process.env.JWT_SECRET;
 
@@ -32,22 +51,30 @@ exports.login = async (req, res) => {
   const user = await User.findOne({ email }).populate('companyId');
 
   if (user?.status === "blocked") {
-    return res.status(401).json({ success: false, message: "Conta bloqueiada. Por favor, contacte o administrador!!!" })
+    await auditLogin({ user, email, req, success: false, reason: 'blocked' });
+    return res.status(403).json({ success: false, message: "Conta bloqueada. Por favor, contacte o administrador." })
   }
 
   if (!user || !bcrypt.compareSync(password, user.password)) {
+    await auditLogin({ user, email, req, success: false, reason: 'wrong_credentials' });
     return res.status(401).json({ success: false, message: 'E-mail ou password inválidos' });
   }
 
   if (!user.emailVerified) {
+    await auditLogin({ user, email, req, success: false, reason: 'email_not_verified' });
     return res.status(403).json({
       message: 'Seu e-mail ainda não foi verificado. Verifique sua caixa de entrada.',
       resendVerificationEmail:true
     });
   }
 
+  // Actualiza last login
+  user.lastLoginAt = new Date();
+  user.lastLoginIp = clientIp(req);
+  await user.save();
+  await auditLogin({ user, email, req, success: true, reason: 'ok' });
 
-  const token = jwt.sign({ id: user._id, name: user.name, email: user.email, permissions:user.permissions, role:user.role, company: user.companyId }, SECRET, { expiresIn: '1h' });
+  const token = jwt.sign({ id: user._id, name: user.name, email: user.email, permissions:user.permissions, role:user.role, company: user.companyId, tokenVersion: user.tokenVersion || 0 }, SECRET, { expiresIn: '1h' });
 
   res.cookie('token', token, {
     httpOnly: true,
