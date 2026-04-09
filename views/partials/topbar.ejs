@@ -17,6 +17,18 @@
     window.__swRegistered = true;
     navigator.serviceWorker.register('/sw.js').catch(() => {});
   }
+
+  // Badge de novidades não lidas
+  fetch('/api/admin/releases/unread', { cache: 'no-store' })
+    .then(r => r.ok ? r.json() : null)
+    .then(d => {
+      if (!d || !d.success || !d.count) return;
+      const b = document.getElementById('releasesBadge');
+      if (!b) return;
+      b.textContent = d.count > 9 ? '9+' : d.count;
+      b.style.display = '';
+    })
+    .catch(() => {});
 })();
 </script>
 
@@ -277,6 +289,7 @@ fetch('/api/admin/banner/public', { cache:'no-store' })
         <a class="dropdown-item" href="/whats-new">
           <i class="fas fa-bullhorn fa-sm fa-fw mr-2 text-gray-400"></i>
           Novidades
+          <span id="releasesBadge" class="badge badge-danger badge-pill ml-1" style="display:none;"></span>
         </a>
         <a class="dropdown-item" href="#">
           <i class="fas fa-list fa-sm fa-fw mr-2 text-gray-400"></i>

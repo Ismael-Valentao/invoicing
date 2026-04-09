@@ -16,6 +16,8 @@ router.post('/stop-impersonate', authMiddleware, admin.stopImpersonate);
 
 // Releases (whats-new) — leitura pública para qualquer user autenticado
 router.get('/releases', authMiddleware, admin.listReleases);
+router.get('/releases/unread', authMiddleware, admin.getUnreadReleasesCount);
+router.post('/releases/mark-read', authMiddleware, admin.markReleasesRead);
 
 // Todas as rotas seguintes exigem SUPERADMIN
 router.use(authMiddleware, requireSuperAdmin);

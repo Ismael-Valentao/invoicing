@@ -1226,6 +1226,29 @@ exports.listReleases = async (req, res) => {
     }
 };
 
+// Conta releases publicados depois do último que o utilizador leu
+exports.getUnreadReleasesCount = async (req, res) => {
+    try {
+        const user = await User.findById(req.user.id).select('lastReadReleasesAt').lean();
+        const cutoff = user?.lastReadReleasesAt || new Date(0);
+        const count = await Release.countDocuments({ publishedAt: { $gt: cutoff } });
+        const latest = await Release.findOne().sort({ publishedAt: -1 }).select('publishedAt').lean();
+        return res.json({ success: true, count, latestPublishedAt: latest?.publishedAt || null });
+    } catch (err) {
+        return res.status(500).json({ success: false, message: err.message });
+    }
+};
+
+// Marca como lido: actualiza lastReadReleasesAt para now
+exports.markReleasesRead = async (req, res) => {
+    try {
+        await User.findByIdAndUpdate(req.user.id, { $set: { lastReadReleasesAt: new Date() } });
+        return res.json({ success: true });
+    } catch (err) {
+        return res.status(500).json({ success: false, message: err.message });
+    }
+};
+
 exports.createRelease = async (req, res) => {
     try {
         const { title, version, body, type, pinned } = req.body;

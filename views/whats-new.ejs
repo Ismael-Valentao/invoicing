@@ -84,6 +84,9 @@ fetch('/api/admin/releases')
   .catch(() => {
     document.getElementById('releases').innerHTML = '<div class="text-danger text-center py-4">Erro ao carregar.</div>';
   });
+
+// Marcar como lido
+fetch('/api/admin/releases/mark-read', { method: 'POST' }).catch(() => {});
 </script>
 </body>
 </html>

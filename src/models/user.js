@@ -84,7 +84,9 @@ const userSchema = new mongoose.Schema({
     },
 
     lastLoginAt: { type: Date, default: null },
-    lastLoginIp: { type: String, default: '' }
+    lastLoginIp: { type: String, default: '' },
+
+    lastReadReleasesAt: { type: Date, default: null }
 }, {
     timestamps: true,
 });
