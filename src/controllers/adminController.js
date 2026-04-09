@@ -1226,6 +1226,21 @@ exports.listReleases = async (req, res) => {
     }
 };
 
+// Endpoint público (sem auth) — usado pelo website e página /whats-new pública
+exports.listReleasesPublic = async (req, res) => {
+    try {
+        const limit = Math.min(Number(req.query.limit) || 100, 100);
+        const releases = await Release.find()
+            .sort({ pinned: -1, publishedAt: -1 })
+            .limit(limit)
+            .select('title version body type publishedAt authorName pinned')
+            .lean();
+        return res.json({ success: true, releases });
+    } catch (err) {
+        return res.status(500).json({ success: false, message: err.message });
+    }
+};
+
 // Conta releases publicados depois do último que o utilizador leu
 exports.getUnreadReleasesCount = async (req, res) => {
     try {

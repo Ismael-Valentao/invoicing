@@ -318,7 +318,13 @@ router.get('/product-margins', authMiddleware2, requirePermission('reports'), (r
     res.render('product-margins', buildViewData(req, 'Margem por Produto'));
 });
 
-router.get('/whats-new', authMiddleware2, (req, res) => {
+// Página pública de novidades (sem auth) — layout do website
+router.get('/whats-new', (req, res) => {
+    res.render('whats-new-public', { title: 'Novidades' });
+});
+
+// Página de novidades dentro da app (com sidebar) — só autenticado
+router.get('/app/whats-new', authMiddleware2, (req, res) => {
     res.render('whats-new', buildViewData(req, 'Novidades'));
 });
 

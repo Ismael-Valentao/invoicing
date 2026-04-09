@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="utf-8">
+  <meta content="width=device-width, initial-scale=1.0" name="viewport">
+  <title>Invoicing — Novidades</title>
+  <meta name="description" content="Últimas actualizações, melhorias e novas funcionalidades da plataforma Invoicing.">
+  <link href="/images/invoicing-logo-simple.png" rel="icon">
+  <link href="https://fonts.googleapis.com" rel="preconnect">
+  <link href="https://fonts.gstatic.com" rel="preconnect" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Raleway:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="/site-assets/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+  <link href="/site-assets/vendor/bootstrap-icons/bootstrap-icons.css" rel="stylesheet">
+  <link href="/site-assets/css/main.css" rel="stylesheet">
+  <link href="/site-assets/css/custom.css" rel="stylesheet">
+  <style>
+    body { padding-top: 90px; }
+    .release-card { border-left: 4px solid #228CDF; background:#fff; border-radius:8px; padding:24px; margin-bottom:20px; box-shadow:0 2px 10px rgba(0,0,0,.04); }
+    .release-card.feature { border-left-color:#1cc88a; }
+    .release-card.fix { border-left-color:#e74a3b; }
+    .release-card.improvement { border-left-color:#36b9cc; }
+    .release-card.announcement { border-left-color:#f6c23e; }
+    .release-badge { display:inline-block; font-size:.75rem; padding:3px 10px; border-radius:999px; font-weight:600; margin-right:6px; }
+    .rb-feature { background:#d1fae5; color:#065f46; }
+    .rb-fix { background:#fee2e2; color:#991b1b; }
+    .rb-improvement { background:#cffafe; color:#155e75; }
+    .rb-announcement { background:#fef3c7; color:#92400e; }
+    .release-version { background:#f1f5f9; color:#475569; font-weight:600; }
+    .release-body { white-space: pre-wrap; line-height:1.7; color:#4a5568; margin-top:10px; }
+    .release-date { color:#94a3b8; font-size:.85rem; }
+    .page-header { text-align:center; padding:40px 0 30px; }
+    .page-header h1 { font-weight:800; color:#1a1e2e; }
+    .page-header p { color:#6c757d; font-size:1.1rem; }
+  </style>
+</head>
+<body>
+
+<header id="header" class="header d-flex align-items-center fixed-top">
+  <div class="container-fluid container-xl position-relative d-flex align-items-center justify-content-between">
+    <a href="/" class="logo d-flex align-items-center">
+      <h1 class="sitename">Invoicing</h1>
+    </a>
+    <nav id="navmenu" class="navmenu">
+      <ul>
+        <li><a href="/">Início</a></li>
+        <li><a href="/#features">Funcionalidades</a></li>
+        <li><a href="/whats-new" class="active">Novidades</a></li>
+        <li><a href="/#pricing">Planos</a></li>
+        <li><a href="/login" class="btn btn-primary" style="padding:10px 18px; border-radius:25px;">Área do Cliente</a></li>
+      </ul>
+      <i class="mobile-nav-toggle d-xl-none bi bi-list"></i>
+    </nav>
+  </div>
+</header>
+
+<main class="main">
+  <section class="section">
+    <div class="container">
+      <div class="page-header">
+        <h1><i class="bi bi-megaphone-fill text-primary mr-2"></i>Novidades</h1>
+        <p>Acompanha as últimas actualizações, melhorias e novas funcionalidades da plataforma.</p>
+      </div>
+
+      <div class="row justify-content-center">
+        <div class="col-lg-8">
+          <div id="releases">
+            <div class="text-center py-5 text-muted">A carregar...</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer id="footer" class="footer dark-background">
+  <div class="container text-center py-4">
+    <p class="mb-0">© <span id="year"></span> <strong>Invoicing</strong>. Todos os direitos reservados.</p>
+  </div>
+</footer>
+
+<script>
+document.getElementById('year').textContent = new Date().getFullYear();
+
+const TYPE = {
+  feature: { label:'Nova funcionalidade', cls:'feature', icon:'bi-stars' },
+  fix: { label:'Correcção', cls:'fix', icon:'bi-wrench' },
+  improvement: { label:'Melhoria', cls:'improvement', icon:'bi-arrow-up-circle' },
+  announcement: { label:'Anúncio', cls:'announcement', icon:'bi-megaphone' },
+};
+
+fetch('/api/admin/releases/public')
+  .then(r => r.json())
+  .then(d => {
+    const box = document.getElementById('releases');
+    if (!d.success || !d.releases?.length) {
+      box.innerHTML = '<div class="text-center py-5 text-muted">Ainda não há novidades publicadas.</div>';
+      return;
+    }
+    box.innerHTML = d.releases.map(r => {
+      const t = TYPE[r.type] || TYPE.feature;
+      const date = new Date(r.publishedAt).toLocaleDateString('pt-PT', { day:'2-digit', month:'long', year:'numeric' });
+      return `
+        <div class="release-card ${t.cls}">
+          <div class="mb-2">
+            <span class="release-badge rb-${t.cls}"><i class="bi ${t.icon} mr-1"></i>${t.label}</span>
+            ${r.version ? '<span class="release-badge release-version">' + r.version + '</span>' : ''}
+            ${r.pinned ? '<i class="bi bi-pin-angle-fill text-warning ml-1" title="Fixado"></i>' : ''}
+            <span class="float-right release-date">${date}</span>
+          </div>
+          <h3 class="font-weight-bold mb-0" style="color:#1a1e2e;">${r.title}</h3>
+          <div class="release-body">${r.body}</div>
+          ${r.authorName ? '<small class="release-date d-block mt-3">— ' + r.authorName + '</small>' : ''}
+        </div>
+      `;
+    }).join('');
+  })
+  .catch(() => {
+    document.getElementById('releases').innerHTML = '<div class="text-center py-5 text-danger">Erro ao carregar.</div>';
+  });
+</script>
+</body>
+</html>

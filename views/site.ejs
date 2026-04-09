@@ -47,6 +47,7 @@
           <li><a href="#hero" class="active">Início</a></li>
           <li><a href="#about">Sobre</a></li>
           <li><a href="#features">Funcionalidades</a></li>
+          <li><a href="#whats-new">Novidades</a></li>
           <li><a href="#pricing">Planos & Preços</a></li>
           <li><a href="#faq">Ajuda</a></li>
           <li>
@@ -373,6 +374,86 @@
       </div>
     </section>
     <!-- /Features Section -->
+
+    <!-- Whats New Section -->
+    <section id="whats-new" class="section light-background">
+      <div class="container section-title" data-aos="fade-up">
+        <h2>Novidades</h2>
+        <p>Últimas melhorias e funcionalidades que acabámos de lançar na plataforma.</p>
+      </div>
+
+      <div class="container" data-aos="fade-up" data-aos-delay="100">
+        <div class="row justify-content-center" id="landingReleases">
+          <div class="col-12 text-center text-muted py-4">A carregar...</div>
+        </div>
+        <div class="text-center mt-3">
+          <a href="/whats-new" class="btn btn-primary" style="border-radius:25px; padding:10px 28px;">
+            Ver todas as novidades <i class="bi bi-arrow-right ml-1"></i>
+          </a>
+        </div>
+      </div>
+
+      <style>
+        #landingReleases .lr-card {
+          background:#fff; border-radius:12px; padding:22px; height:100%;
+          box-shadow:0 4px 14px rgba(0,0,0,.06); border-top:4px solid #228CDF;
+          transition:transform .2s, box-shadow .2s;
+        }
+        #landingReleases .lr-card:hover { transform:translateY(-4px); box-shadow:0 8px 20px rgba(0,0,0,.1); }
+        #landingReleases .lr-card.feature { border-top-color:#1cc88a; }
+        #landingReleases .lr-card.fix { border-top-color:#e74a3b; }
+        #landingReleases .lr-card.improvement { border-top-color:#36b9cc; }
+        #landingReleases .lr-card.announcement { border-top-color:#f6c23e; }
+        #landingReleases .lr-type { display:inline-block; font-size:.72rem; padding:3px 10px; border-radius:999px; font-weight:700; text-transform:uppercase; letter-spacing:.5px; }
+        #landingReleases .lr-date { color:#94a3b8; font-size:.82rem; }
+        #landingReleases .lr-title { font-size:1.15rem; font-weight:700; color:#1a1e2e; margin:12px 0 8px; }
+        #landingReleases .lr-body { color:#64748b; font-size:.92rem; line-height:1.55; display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden; }
+      </style>
+
+      <script>
+      (function () {
+        const TYPES = {
+          feature: { label:'Novidade', bg:'#d1fae5', color:'#065f46' },
+          fix: { label:'Correcção', bg:'#fee2e2', color:'#991b1b' },
+          improvement: { label:'Melhoria', bg:'#cffafe', color:'#155e75' },
+          announcement: { label:'Anúncio', bg:'#fef3c7', color:'#92400e' },
+        };
+        fetch('/api/admin/releases/public?limit=3')
+          .then(r => r.json())
+          .then(d => {
+            const box = document.getElementById('landingReleases');
+            if (!d.success || !d.releases?.length) {
+              box.innerHTML = '<div class="col-12 text-center text-muted py-4">Em breve, novidades...</div>';
+              return;
+            }
+            box.innerHTML = d.releases.slice(0, 3).map(r => {
+              const t = TYPES[r.type] || TYPES.feature;
+              const date = new Date(r.publishedAt).toLocaleDateString('pt-PT', { day:'2-digit', month:'short', year:'numeric' });
+              const plain = (r.body || '').replace(/<[^>]+>/g, '');
+              return `
+                <div class="col-lg-4 col-md-6 mb-4">
+                  <a href="/whats-new" style="text-decoration:none;">
+                    <div class="lr-card ${r.type}">
+                      <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="lr-type" style="background:${t.bg}; color:${t.color};">${t.label}</span>
+                        <span class="lr-date">${date}</span>
+                      </div>
+                      <div class="lr-title">${r.title}</div>
+                      <div class="lr-body">${plain}</div>
+                      ${r.version ? '<small class="text-muted d-block mt-2">' + r.version + '</small>' : ''}
+                    </div>
+                  </a>
+                </div>
+              `;
+            }).join('');
+          })
+          .catch(() => {
+            document.getElementById('landingReleases').innerHTML = '<div class="col-12 text-center text-muted py-4">Em breve, novidades...</div>';
+          });
+      })();
+      </script>
+    </section>
+    <!-- /Whats New Section -->
 
     <!-- Stats / Social Proof Section -->
     <section id="stats" class="section dark-background" style="background: linear-gradient(135deg, #1a1e2e 0%, #228CDF 100%);">

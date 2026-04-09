@@ -11,6 +11,9 @@ router.post('/create-superadmin', admin.createSuperAdmin);
 // Endpoint público — banner global (qualquer utilizador autenticado pode ler)
 router.get('/banner/public', admin.getPublicBanner);
 
+// Endpoint público — releases (sem auth, usado no website e /whats-new público)
+router.get('/releases/public', admin.listReleasesPublic);
+
 // Stop impersonate — só requer authMiddleware (role do user é o do target durante impersonação)
 router.post('/stop-impersonate', authMiddleware, admin.stopImpersonate);
 
