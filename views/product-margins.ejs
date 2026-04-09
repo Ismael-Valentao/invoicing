@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"/>
+  <title>Invoicing — <%- title %></title>
+  <link rel="icon" type="image/png" href="/images/invoicing-logo-simple.png"/>
+  <link href="/assets/vendor/fontawesome-free/css/all.min.css" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css?family=Nunito:400,600,700,800" rel="stylesheet"/>
+  <link href="/assets/css/sb-admin-2.min.css" rel="stylesheet"/>
+  <link href="/assets/css/custom.css" rel="stylesheet"/>
+</head>
+<body id="page-top">
+<div id="wrapper">
+  <%- include('partials/sidebar') %>
+  <div id="content-wrapper" class="d-flex flex-column">
+    <div id="content">
+      <%- include('partials/topbar') %>
+      <div class="container-fluid py-4">
+
+        <h4 class="font-weight-bold text-gray-800 mb-1">
+          <i class="fas fa-percentage text-primary mr-2"></i>Margem por Produto
+        </h4>
+        <p class="text-muted small mb-4">Análise teórica baseada no preço de venda e custo registado de cada produto. Inclui valorização do stock actual.</p>
+
+        <div id="alertNoCost" class="alert alert-warning small" style="display:none;"></div>
+
+        <!-- Totais -->
+        <div class="row mb-4">
+          <div class="col-md-4 mb-3">
+            <div class="card border-left-info shadow h-100 py-2"><div class="card-body">
+              <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Valor de Stock (custo)</div>
+              <div class="h5 mb-0 font-weight-bold text-gray-800" id="totalStockValue">—</div>
+            </div></div>
+          </div>
+          <div class="col-md-4 mb-3">
+            <div class="card border-left-primary shadow h-100 py-2"><div class="card-body">
+              <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Receita potencial</div>
+              <div class="h5 mb-0 font-weight-bold text-gray-800" id="totalRevenue">—</div>
+            </div></div>
+          </div>
+          <div class="col-md-4 mb-3">
+            <div class="card border-left-success shadow h-100 py-2"><div class="card-body">
+              <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Lucro potencial</div>
+              <div class="h5 mb-0 font-weight-bold text-gray-800" id="totalProfit">—</div>
+            </div></div>
+          </div>
+        </div>
+
+        <div class="card shadow">
+          <div class="card-body p-0">
+            <div class="table-responsive">
+              <table class="table table-hover mb-0">
+                <thead class="thead-light">
+                  <tr>
+                    <th>Produto</th>
+                    <th class="text-right">Preço Venda</th>
+                    <th class="text-right">Preço Custo</th>
+                    <th class="text-right">Margem (MZN)</th>
+                    <th class="text-right">Margem (%)</th>
+                    <th class="text-right">Stock</th>
+                    <th class="text-right">Lucro Potencial</th>
+                  </tr>
+                </thead>
+                <tbody id="tbody"><tr><td colspan="7" class="text-center text-muted py-4">A carregar...</td></tr></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+    <%- include('partials/footer') %>
+  </div>
+</div>
+
+<script src="/assets/vendor/jquery/jquery.min.js"></script>
+<script src="/assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+<script src="/assets/js/sb-admin-2.min.js"></script>
+<script>
+const fmt = v => new Intl.NumberFormat('pt-PT', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(v||0);
+
+function marginColor(pct) {
+  if (pct >= 30) return 'text-success';
+  if (pct >= 15) return 'text-primary';
+  if (pct >= 5)  return 'text-warning';
+  return 'text-danger';
+}
+
+fetch('/api/dashboard/product-margins')
+  .then(r => r.json())
+  .then(d => {
+    if (!d.success) throw new Error(d.message);
+
+    document.getElementById('totalStockValue').textContent = fmt(d.totals.stockValue) + ' MZN';
+    document.getElementById('totalRevenue').textContent = fmt(d.totals.potentialRevenue) + ' MZN';
+    document.getElementById('totalProfit').textContent = fmt(d.totals.potentialProfit) + ' MZN';
+
+    if (d.productsWithoutCost > 0) {
+      const a = document.getElementById('alertNoCost');
+      a.style.display = '';
+      a.innerHTML = '<strong>' + d.productsWithoutCost + '</strong> produto(s) ainda não têm preço de custo definido. A margem desses produtos aparece como 100% (a venda é tratada como lucro puro). Vai a <a href="/products">Produtos</a> e define o preço de compra para uma análise correcta.';
+    }
+
+    if (!d.rows.length) {
+      document.getElementById('tbody').innerHTML = '<tr><td colspan="7" class="text-muted text-center py-4">Sem produtos.</td></tr>';
+      return;
+    }
+
+    document.getElementById('tbody').innerHTML = d.rows.map(r => `
+      <tr>
+        <td><strong>${r.description}</strong>${r.sku ? '<br><small class="text-muted">' + r.sku + '</small>' : ''}</td>
+        <td class="text-right">${fmt(r.unitPrice)}</td>
+        <td class="text-right">${r.hasCost ? fmt(r.costPrice) : '<span class="text-warning">não definido</span>'}</td>
+        <td class="text-right ${marginColor(r.marginPct)}">${fmt(r.marginValue)}</td>
+        <td class="text-right ${marginColor(r.marginPct)}">${r.marginPct.toFixed(1)}%</td>
+        <td class="text-right">${r.stockQty}</td>
+        <td class="text-right font-weight-bold">${fmt(r.potentialProfit)}</td>
+      </tr>
+    `).join('');
+  })
+  .catch(e => {
+    document.getElementById('tbody').innerHTML = '<tr><td colspan="7" class="text-danger text-center py-3">' + e.message + '</td></tr>';
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"/>
+  <title>Invoicing — <%- title %></title>
+  <link rel="icon" type="image/png" href="/images/invoicing-logo-simple.png"/>
+  <link href="/assets/vendor/fontawesome-free/css/all.min.css" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css?family=Nunito:400,600,700,800" rel="stylesheet"/>
+  <link href="/assets/css/sb-admin-2.min.css" rel="stylesheet"/>
+  <link href="/assets/css/custom.css" rel="stylesheet"/>
+  <style>
+    .release-card { border-left: 4px solid #4e73df; }
+    .release-card.feature { border-left-color: #1cc88a; }
+    .release-card.fix { border-left-color: #e74a3b; }
+    .release-card.improvement { border-left-color: #36b9cc; }
+    .release-card.announcement { border-left-color: #f6c23e; }
+    .release-pin { color: #f6c23e; }
+    .release-body { white-space: pre-wrap; line-height: 1.6; }
+  </style>
+</head>
+<body id="page-top">
+<div id="wrapper">
+  <%- include('partials/sidebar') %>
+  <div id="content-wrapper" class="d-flex flex-column">
+    <div id="content">
+      <%- include('partials/topbar') %>
+      <div class="container-fluid py-4">
+
+        <h4 class="font-weight-bold text-gray-800 mb-1">
+          <i class="fas fa-bullhorn text-primary mr-2"></i>Novidades
+        </h4>
+        <p class="text-muted small mb-4">Últimas actualizações, melhorias e correcções da plataforma.</p>
+
+        <div id="releases">
+          <div class="text-muted text-center py-4">A carregar...</div>
+        </div>
+
+      </div>
+    </div>
+    <%- include('partials/footer') %>
+  </div>
+</div>
+
+<script src="/assets/vendor/jquery/jquery.min.js"></script>
+<script src="/assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+<script src="/assets/js/sb-admin-2.min.js"></script>
+<script>
+const TYPE_LABEL = {
+  feature: { label: 'Nova funcionalidade', icon: 'fa-star', cls: 'success' },
+  fix: { label: 'Correcção', icon: 'fa-bug', cls: 'danger' },
+  improvement: { label: 'Melhoria', icon: 'fa-arrow-up', cls: 'info' },
+  announcement: { label: 'Anúncio', icon: 'fa-bullhorn', cls: 'warning' },
+};
+
+fetch('/api/admin/releases')
+  .then(r => r.json())
+  .then(d => {
+    const box = document.getElementById('releases');
+    if (!d.success || !d.releases?.length) {
+      box.innerHTML = '<div class="text-muted text-center py-4">Ainda não há novidades publicadas.</div>';
+      return;
+    }
+    box.innerHTML = d.releases.map(r => {
+      const t = TYPE_LABEL[r.type] || TYPE_LABEL.feature;
+      const date = new Date(r.publishedAt).toLocaleDateString('pt-PT', { day:'2-digit', month:'long', year:'numeric' });
+      return `
+        <div class="card shadow-sm mb-3 release-card ${r.type}">
+          <div class="card-body">
+            <div class="d-flex align-items-center mb-2">
+              <span class="badge badge-${t.cls} mr-2"><i class="fas ${t.icon} mr-1"></i>${t.label}</span>
+              ${r.version ? '<span class="badge badge-light mr-2">' + r.version + '</span>' : ''}
+              ${r.pinned ? '<i class="fas fa-thumbtack release-pin mr-2" title="Fixado"></i>' : ''}
+              <small class="text-muted ml-auto">${date}</small>
+            </div>
+            <h5 class="font-weight-bold mb-2">${r.title}</h5>
+            <div class="release-body text-gray-700">${r.body}</div>
+            ${r.authorName ? '<small class="text-muted d-block mt-2">— ' + r.authorName + '</small>' : ''}
+          </div>
+        </div>
+      `;
+    }).join('');
+  })
+  .catch(() => {
+    document.getElementById('releases').innerHTML = '<div class="text-danger text-center py-4">Erro ao carregar.</div>';
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Sem ligação — Invoicing</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background:#f8f9fc; color:#5a5c69; display:flex; align-items:center; justify-content:center; height:100vh; margin:0; padding:20px; }
+    .box { max-width:420px; text-align:center; }
+    .icon { font-size:64px; margin-bottom:16px; }
+    h1 { color:#4e73df; margin:0 0 12px; }
+    p { line-height:1.6; }
+    a { display:inline-block; margin-top:16px; padding:10px 24px; background:#4e73df; color:#fff; text-decoration:none; border-radius:6px; }
+  </style>
+</head>
+<body>
+  <div class="box">
+    <div class="icon">📡</div>
+    <h1>Sem ligação à internet</h1>
+    <p>Não foi possível carregar esta página. Verifica a tua ligação e tenta novamente.</p>
+    <p><small>As vendas feitas no POS em modo offline são guardadas localmente e enviadas automaticamente quando voltares a ter ligação.</small></p>
+    <a href="/dashboard" onclick="location.reload();return false;">Tentar novamente</a>
+  </div>
+</body>
+</html>

@@ -63,11 +63,7 @@
                   <strong>Escolhe o método de pagamento</strong>
                   <div class="mt-2">
                     <div class="form-check form-check-inline">
-                      <input class="form-check-input" type="radio" name="paymentMethod" id="pmMpesa" value="M-Pesa" checked/>
-                      <label class="form-check-label" for="pmMpesa">M-Pesa</label>
-                    </div>
-                    <div class="form-check form-check-inline">
-                      <input class="form-check-input" type="radio" name="paymentMethod" id="pmEmola" value="E-mola"/>
+                      <input class="form-check-input" type="radio" name="paymentMethod" id="pmEmola" value="E-mola" checked/>
                       <label class="form-check-label" for="pmEmola">E-mola</label>
                     </div>
                     <div class="form-check form-check-inline">
@@ -80,14 +76,7 @@
 
               <!-- Dados de pagamento dinâmicos -->
               <div id="paymentDetails" class="mb-4 p-3 rounded" style="background:#f8f9fc; border:1px solid #e3e6f0;">
-                <div id="detailMpesa">
-                  <p class="mb-1"><strong>Número M-Pesa:</strong>
-                    <span id="mpesaNum">—</span>
-                    <span class="copy-btn ml-2" onclick="copyText('mpesaNum')"><i class="far fa-copy"></i> copiar</span>
-                  </p>
-                  <p class="mb-0 text-muted small">Envia o valor exacto do plano e guarda a confirmação.</p>
-                </div>
-                <div id="detailEmola" style="display:none;">
+                <div id="detailEmola">
                   <p class="mb-1"><strong>Número E-mola:</strong>
                     <span id="emolaNum">—</span>
                     <span class="copy-btn ml-2" onclick="copyText('emolaNum')"><i class="far fa-copy"></i> copiar</span>
@@ -121,7 +110,7 @@
                 <div class="step-badge mr-3 mt-1">3</div>
                 <div>
                   <strong>Envia o pedido</strong>
-                  <p class="small text-muted mb-0">Activamos o teu plano em até <strong>24 horas</strong> após confirmarmos o pagamento.</p>
+                  <p class="small text-muted mb-0"><strong>Activação instantânea</strong> após confirmarmos o pagamento.</p>
                 </div>
               </div>
 
@@ -150,7 +139,6 @@
     .then(data => {
       if (!data || !data.success) return;
       const s = data.settings;
-      if (s.mpesa)      document.getElementById('mpesaNum').textContent  = s.mpesa;
       if (s.emola)      document.getElementById('emolaNum').textContent  = s.emola;
       if (s.bankName)   document.getElementById('bankName').textContent  = s.bankName;
       if (s.bankHolder) document.getElementById('bankHolder').textContent = s.bankHolder;
@@ -229,10 +217,8 @@
   // Troca detalhes de pagamento
   document.querySelectorAll('input[name="paymentMethod"]').forEach(radio => {
     radio.addEventListener('change', function () {
-      document.getElementById('detailMpesa').style.display = 'none';
       document.getElementById('detailEmola').style.display = 'none';
       document.getElementById('detailBank').style.display = 'none';
-      if (this.value === 'M-Pesa') document.getElementById('detailMpesa').style.display = '';
       if (this.value === 'E-mola') document.getElementById('detailEmola').style.display = '';
       if (this.value === 'Transferência bancária') document.getElementById('detailBank').style.display = '';
     });

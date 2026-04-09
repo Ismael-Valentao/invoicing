@@ -22,6 +22,7 @@ const LoginAudit = require('../models/loginAudit');
 const SystemSetting = require('../models/systemSetting');
 const ErrorLog = require('../models/errorLog');
 const EmailTemplate = require('../models/emailTemplate');
+const Release = require('../models/release');
 const { DEFAULTS: PLAN_DEFAULTS, invalidateCache: invalidatePlanCache } = require('../utils/plans');
 const { PLANS, getPlan, getPaidPlanExpiration, getFreePlanExpiration } = require('../utils/plans');
 const { sendUpgradeConfirmationEmail, sendGeneric, sendForcedPasswordResetEmail } = require('../utils/mailSender');
@@ -1207,6 +1208,56 @@ exports.getErrorLogs = async (req, res) => {
             .limit(Math.min(Number(limit), 500))
             .lean();
         return res.json({ success: true, logs });
+    } catch (err) {
+        return res.status(500).json({ success: false, message: err.message });
+    }
+};
+
+// ═════════════════════════════════════════════════════════════════════════════
+//  RELEASES — Whats-new (acessível a todos para leitura, escrita só SUPERADMIN)
+// ═════════════════════════════════════════════════════════════════════════════
+
+exports.listReleases = async (req, res) => {
+    try {
+        const releases = await Release.find().sort({ pinned: -1, publishedAt: -1 }).limit(100).lean();
+        return res.json({ success: true, releases });
+    } catch (err) {
+        return res.status(500).json({ success: false, message: err.message });
+    }
+};
+
+exports.createRelease = async (req, res) => {
+    try {
+        const { title, version, body, type, pinned } = req.body;
+        if (!title || !body) return res.status(400).json({ success: false, message: 'Título e conteúdo obrigatórios.' });
+        const r = await Release.create({
+            title, version: version || '', body, type: type || 'feature',
+            pinned: !!pinned, authorName: req.user.name || 'SUPERADMIN',
+        });
+        return res.json({ success: true, release: r });
+    } catch (err) {
+        return res.status(500).json({ success: false, message: err.message });
+    }
+};
+
+exports.updateRelease = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const allowed = ['title', 'version', 'body', 'type', 'pinned'];
+        const update = {};
+        for (const f of allowed) if (req.body[f] !== undefined) update[f] = req.body[f];
+        const r = await Release.findByIdAndUpdate(id, { $set: update }, { new: true });
+        if (!r) return res.status(404).json({ success: false, message: 'Não encontrado.' });
+        return res.json({ success: true, release: r });
+    } catch (err) {
+        return res.status(500).json({ success: false, message: err.message });
+    }
+};
+
+exports.deleteRelease = async (req, res) => {
+    try {
+        await Release.findByIdAndDelete(req.params.id);
+        return res.json({ success: true, message: 'Release apagado.' });
     } catch (err) {
         return res.status(500).json({ success: false, message: err.message });
     }

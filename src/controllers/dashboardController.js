@@ -288,6 +288,125 @@ exports.getGreeting = async (req, res) => {
 };
 
 // Profit overview (revenue - expenses)
+// Análise de margem por produto (usa unitPrice e costPrice do Product)
+exports.getProductMargins = async (req, res) => {
+    try {
+        const companyId = req.user.company._id;
+        const products = await Product.find({ companyId, type: { $ne: 'service' } })
+            .select('description sku unitPrice costPrice stock')
+            .lean();
+
+        const rows = products.map(p => {
+            const price = Number(p.unitPrice || 0);
+            const cost = Number(p.costPrice || 0);
+            const marginValue = price - cost;
+            const marginPct = price > 0 ? (marginValue / price) * 100 : 0;
+            const stockQty = Number(p.stock?.quantity || 0);
+            const stockValue = stockQty * cost;
+            const potentialRevenue = stockQty * price;
+            const potentialProfit = stockQty * marginValue;
+            return {
+                _id: p._id,
+                description: p.description,
+                sku: p.sku || '',
+                unitPrice: price,
+                costPrice: cost,
+                marginValue: Number(marginValue.toFixed(2)),
+                marginPct: Number(marginPct.toFixed(2)),
+                stockQty,
+                stockValue: Number(stockValue.toFixed(2)),
+                potentialRevenue: Number(potentialRevenue.toFixed(2)),
+                potentialProfit: Number(potentialProfit.toFixed(2)),
+                hasCost: cost > 0,
+            };
+        });
+
+        // Ordenar por margem absoluta descendente
+        rows.sort((a, b) => b.potentialProfit - a.potentialProfit);
+
+        const totals = rows.reduce((acc, r) => ({
+            stockValue: acc.stockValue + r.stockValue,
+            potentialRevenue: acc.potentialRevenue + r.potentialRevenue,
+            potentialProfit: acc.potentialProfit + r.potentialProfit,
+        }), { stockValue: 0, potentialRevenue: 0, potentialProfit: 0 });
+
+        const productsWithoutCost = rows.filter(r => !r.hasCost).length;
+
+        return res.json({ success: true, rows, totals, productsWithoutCost });
+    } catch (err) {
+        return res.status(500).json({ success: false, message: err.message });
+    }
+};
+
+// Pesquisa global (Ctrl+K) — facturas, clientes, produtos, vendas
+exports.globalSearch = async (req, res) => {
+    try {
+        const companyId = toObjectId(req.user.company._id);
+        const q = String(req.query.q || '').trim();
+        if (!q || q.length < 2) return res.json({ success: true, results: [] });
+
+        const rx = new RegExp(q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i');
+        const limit = 5;
+
+        const [invoices, clients, products, sales] = await Promise.all([
+            Invoice.find({
+                companyId,
+                $or: [{ invoiceNumber: rx }, { clientName: rx }]
+            }).select('invoiceNumber clientName totalAmount date docType').limit(limit).lean(),
+
+            Client.find({
+                companyId,
+                $or: [{ name: rx }, { nuit: rx }, { email: rx }]
+            }).select('name nuit email').limit(limit).lean(),
+
+            Product.find({
+                companyId,
+                $or: [{ description: rx }, { sku: rx }, { barcode: rx }]
+            }).select('description sku unitPrice stock type').limit(limit).lean(),
+
+            Sale.find({
+                companyId,
+                receiptNumber: rx
+            }).select('receiptNumber total createdAt').limit(limit).lean(),
+        ]);
+
+        const results = [
+            ...invoices.map(i => ({
+                type: 'invoice',
+                icon: i.docType === 'credit_note' ? 'fa-undo' : i.docType === 'debit_note' ? 'fa-redo' : 'fa-file-invoice',
+                title: i.invoiceNumber,
+                subtitle: `${i.clientName} — ${(i.totalAmount || 0).toLocaleString('pt-PT')} MZN`,
+                url: `/api/invoices/${i._id}/pdf`
+            })),
+            ...clients.map(c => ({
+                type: 'client',
+                icon: 'fa-user',
+                title: c.name,
+                subtitle: [c.nuit, c.email].filter(Boolean).join(' · '),
+                url: `/clients?focus=${c._id}`
+            })),
+            ...products.map(p => ({
+                type: 'product',
+                icon: p.type === 'service' ? 'fa-concierge-bell' : 'fa-box',
+                title: p.description,
+                subtitle: `${p.sku || ''} — ${(p.unitPrice || 0).toLocaleString('pt-PT')} MZN${p.type !== 'service' ? ' · stock: ' + (p.stock?.quantity || 0) : ''}`,
+                url: `/products?focus=${p._id}`
+            })),
+            ...sales.map(s => ({
+                type: 'sale',
+                icon: 'fa-cash-register',
+                title: s.receiptNumber || String(s._id).slice(-6),
+                subtitle: `Venda — ${(s.total || 0).toLocaleString('pt-PT')} MZN`,
+                url: `/api/sales/${s._id}/receipt`
+            })),
+        ];
+
+        return res.json({ success: true, results });
+    } catch (err) {
+        return res.status(500).json({ success: false, message: err.message });
+    }
+};
+
 exports.getProfitOverview = async (req, res) => {
     try {
         const companyId = toObjectId(req.user.company._id);

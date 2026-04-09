@@ -1,3 +1,25 @@
+<!-- PWA: manifest + theme -->
+<script>
+(function () {
+  if (!document.querySelector('link[rel="manifest"]')) {
+    const link = document.createElement('link');
+    link.rel = 'manifest';
+    link.href = '/manifest.json';
+    document.head.appendChild(link);
+  }
+  if (!document.querySelector('meta[name="theme-color"]')) {
+    const m = document.createElement('meta');
+    m.name = 'theme-color';
+    m.content = '#4e73df';
+    document.head.appendChild(m);
+  }
+  if ('serviceWorker' in navigator && !window.__swRegistered) {
+    window.__swRegistered = true;
+    navigator.serviceWorker.register('/sw.js').catch(() => {});
+  }
+})();
+</script>
+
 <% if (typeof user !== 'undefined' && user && user.impersonatedBy) { %>
 <div class="alert alert-dark mb-0 text-center d-flex align-items-center justify-content-center" style="border-radius:0;">
   <i class="fas fa-user-secret mr-2"></i>
@@ -18,6 +40,104 @@ async function stopImpersonate() {
 
 <!-- Banner global da plataforma -->
 <div id="globalBanner" class="alert mb-0 text-center" style="display:none; border-radius:0;"></div>
+
+<!-- ════════ Pesquisa global Ctrl+K ════════ -->
+<div id="globalSearchOverlay" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,.5); z-index:9999; padding-top:80px;">
+  <div style="max-width:600px; margin:0 auto; background:#fff; border-radius:8px; box-shadow:0 10px 40px rgba(0,0,0,.2); overflow:hidden;">
+    <div style="padding:14px 18px; border-bottom:1px solid #eee; display:flex; align-items:center;">
+      <i class="fas fa-search text-muted mr-2"></i>
+      <input id="globalSearchInput" type="text" placeholder="Pesquisar facturas, clientes, produtos, vendas..." style="flex:1; border:none; outline:none; font-size:16px;"/>
+      <kbd style="font-size:11px; color:#888; background:#f3f3f3; padding:2px 6px; border-radius:3px;">ESC</kbd>
+    </div>
+    <div id="globalSearchResults" style="max-height:480px; overflow-y:auto;">
+      <div class="text-muted text-center p-4" style="font-size:13px;">Escreve pelo menos 2 caracteres...</div>
+    </div>
+  </div>
+</div>
+<style>
+  #globalSearchResults .gs-item { display:flex; align-items:center; padding:10px 18px; border-bottom:1px solid #f3f3f3; cursor:pointer; text-decoration:none; color:#333; }
+  #globalSearchResults .gs-item:hover, #globalSearchResults .gs-item.active { background:#f8f9fc; }
+  #globalSearchResults .gs-icon { width:32px; text-align:center; color:#4e73df; font-size:14px; }
+  #globalSearchResults .gs-title { font-weight:600; font-size:13px; }
+  #globalSearchResults .gs-sub { font-size:11px; color:#888; }
+  #globalSearchResults .gs-type { font-size:10px; text-transform:uppercase; color:#aaa; }
+</style>
+<script>
+(function () {
+  var overlay = document.getElementById('globalSearchOverlay');
+  var input = document.getElementById('globalSearchInput');
+  var results = document.getElementById('globalSearchResults');
+  var current = -1;
+  var items = [];
+  var debounceT = null;
+
+  var TYPE_LABEL = { invoice:'Factura', client:'Cliente', product:'Produto', sale:'Venda' };
+
+  function open() { overlay.style.display = ''; setTimeout(function(){ input.focus(); }, 10); }
+  function close() { overlay.style.display = 'none'; input.value = ''; results.innerHTML = '<div class="text-muted text-center p-4" style="font-size:13px;">Escreve pelo menos 2 caracteres...</div>'; current = -1; items = []; }
+
+  function render(rs) {
+    items = rs;
+    if (!rs.length) {
+      results.innerHTML = '<div class="text-muted text-center p-4" style="font-size:13px;">Sem resultados.</div>';
+      return;
+    }
+    results.innerHTML = rs.map(function(r, i) {
+      return '<a class="gs-item" href="' + r.url + '" data-i="' + i + '">' +
+        '<div class="gs-icon"><i class="fas ' + r.icon + '"></i></div>' +
+        '<div style="flex:1;">' +
+          '<div class="gs-title">' + r.title + '</div>' +
+          '<div class="gs-sub">' + (r.subtitle || '') + '</div>' +
+        '</div>' +
+        '<div class="gs-type">' + (TYPE_LABEL[r.type] || r.type) + '</div>' +
+      '</a>';
+    }).join('');
+  }
+
+  function highlight() {
+    var els = results.querySelectorAll('.gs-item');
+    els.forEach(function(el, i) { el.classList.toggle('active', i === current); });
+    if (current >= 0 && els[current]) els[current].scrollIntoView({ block:'nearest' });
+  }
+
+  async function search(q) {
+    try {
+      var r = await fetch('/api/dashboard/search?q=' + encodeURIComponent(q));
+      var d = await r.json();
+      render(d.results || []);
+    } catch (e) {}
+  }
+
+  // Toggle: Ctrl+K / Cmd+K
+  document.addEventListener('keydown', function (e) {
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+      e.preventDefault();
+      overlay.style.display === 'none' ? open() : close();
+      return;
+    }
+    if (overlay.style.display === 'none') return;
+    if (e.key === 'Escape') { close(); return; }
+    if (e.key === 'ArrowDown') { e.preventDefault(); current = Math.min(current + 1, items.length - 1); highlight(); return; }
+    if (e.key === 'ArrowUp') { e.preventDefault(); current = Math.max(current - 1, 0); highlight(); return; }
+    if (e.key === 'Enter' && current >= 0 && items[current]) { window.location.href = items[current].url; return; }
+  });
+
+  // Click fora do modal fecha
+  overlay.addEventListener('click', function (e) {
+    if (e.target === overlay) close();
+  });
+
+  input.addEventListener('input', function () {
+    clearTimeout(debounceT);
+    var q = this.value.trim();
+    if (q.length < 2) {
+      results.innerHTML = '<div class="text-muted text-center p-4" style="font-size:13px;">Escreve pelo menos 2 caracteres...</div>';
+      return;
+    }
+    debounceT = setTimeout(function () { search(q); }, 200);
+  });
+})();
+</script>
 <script>
 fetch('/api/admin/banner/public', { cache:'no-store' })
   .then(r => r.ok ? r.json() : null)
@@ -153,6 +273,10 @@ fetch('/api/admin/banner/public', { cache:'no-store' })
         <a class="dropdown-item" href="/settings">
           <i class="fas fa-cogs fa-sm fa-fw mr-2 text-gray-400"></i>
           Configurações
+        </a>
+        <a class="dropdown-item" href="/whats-new">
+          <i class="fas fa-bullhorn fa-sm fa-fw mr-2 text-gray-400"></i>
+          Novidades
         </a>
         <a class="dropdown-item" href="#">
           <i class="fas fa-list fa-sm fa-fw mr-2 text-gray-400"></i>

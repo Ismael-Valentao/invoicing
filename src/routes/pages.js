@@ -314,6 +314,14 @@ router.get('/product-profits', authMiddleware2, requirePermission('reports'), (r
     res.render('product-profits', buildViewData(req, 'Lucro por Produto'));
 });
 
+router.get('/product-margins', authMiddleware2, requirePermission('reports'), (req, res) => {
+    res.render('product-margins', buildViewData(req, 'Margem por Produto'));
+});
+
+router.get('/whats-new', authMiddleware2, (req, res) => {
+    res.render('whats-new', buildViewData(req, 'Novidades'));
+});
+
 // Facturas recorrentes
 router.get('/recurring-invoices', authMiddleware2, requirePermission('invoicing'), (req, res) => {
     res.render('recurring-invoices', buildViewData(req, 'Facturas Recorrentes'));

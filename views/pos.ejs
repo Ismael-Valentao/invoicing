@@ -32,7 +32,9 @@
           <!-- Products grid -->
           <div class="col-lg-8">
             <div class="d-flex align-items-center justify-content-between mb-3">
-              <h5 class="mb-0 text-gray-800"><strong><i class="fas fa-cash-register mr-2"></i>Venda Rápida</strong></h5>
+              <h5 class="mb-0 text-gray-800"><strong><i class="fas fa-cash-register mr-2"></i>Venda Rápida</strong>
+                <span id="offlineBadge" class="badge badge-warning ml-2" style="display:none;"></span>
+              </h5>
               <div class="d-flex" style="gap:6px;">
                 <input type="text" id="barcodeInput" class="form-control form-control-sm" placeholder="Código de barras..." style="width:160px;" />
                 <input type="text" id="posSearch" class="form-control form-control-sm" placeholder="Pesquisar produto..." style="width:200px;" oninput="filterProducts()"/>
@@ -195,6 +197,7 @@ async function confirmSale() {
   var btn = document.getElementById('posConfirmBtn');
   btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i>A processar...';
   try {
+    if (!navigator.onLine) throw new Error('offline');
     var res = await fetch('/api/sales', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) });
     if (res.ok) {
       clearCart();
@@ -206,7 +209,19 @@ async function confirmSale() {
       var data = await res.json().catch(function(){ return {}; });
       alert(data.message || 'Erro ao registar venda.');
     }
-  } catch(e) { alert('Erro de ligação.'); }
+  } catch(e) {
+    // OFFLINE: guarda em IndexedDB e sincroniza depois
+    try {
+      await offlineQueue.add(body);
+      clearCart();
+      if (typeof Swal !== 'undefined') {
+        Swal.fire({ icon:'info', title:'Venda guardada offline', text:'Sem ligação. A venda será enviada quando a internet voltar.', timer:2500, showConfirmButton:false });
+      } else { alert('Venda guardada offline.'); }
+      updateOfflineBadge();
+    } catch (qErr) {
+      alert('Erro ao guardar venda offline: ' + qErr.message);
+    }
+  }
   btn.disabled = false; btn.innerHTML = '<i class="fas fa-check mr-1"></i>Confirmar Venda';
 }
 
@@ -232,6 +247,97 @@ barcodeInput.addEventListener('keydown', function(e) {
 barcodeInput.focus();
 
 loadProducts();
+
+// ════════════════════════════════════════════════════════════════════
+// OFFLINE QUEUE — guarda vendas em IndexedDB quando não há internet
+// ════════════════════════════════════════════════════════════════════
+var offlineQueue = (function () {
+  var DB = 'invoicing-offline';
+  var STORE = 'pendingSales';
+
+  function open() {
+    return new Promise(function (resolve, reject) {
+      var req = indexedDB.open(DB, 1);
+      req.onupgradeneeded = function () {
+        var db = req.result;
+        if (!db.objectStoreNames.contains(STORE)) {
+          db.createObjectStore(STORE, { keyPath: 'id', autoIncrement: true });
+        }
+      };
+      req.onsuccess = function () { resolve(req.result); };
+      req.onerror = function () { reject(req.error); };
+    });
+  }
+
+  return {
+    add: function (payload) {
+      return open().then(function (db) {
+        return new Promise(function (resolve, reject) {
+          var tx = db.transaction(STORE, 'readwrite');
+          tx.objectStore(STORE).add({ payload: payload, createdAt: new Date().toISOString() });
+          tx.oncomplete = function () { resolve(); };
+          tx.onerror = function () { reject(tx.error); };
+        });
+      });
+    },
+    list: function () {
+      return open().then(function (db) {
+        return new Promise(function (resolve, reject) {
+          var tx = db.transaction(STORE, 'readonly');
+          var req = tx.objectStore(STORE).getAll();
+          req.onsuccess = function () { resolve(req.result || []); };
+          req.onerror = function () { reject(req.error); };
+        });
+      });
+    },
+    remove: function (id) {
+      return open().then(function (db) {
+        return new Promise(function (resolve, reject) {
+          var tx = db.transaction(STORE, 'readwrite');
+          tx.objectStore(STORE).delete(id);
+          tx.oncomplete = function () { resolve(); };
+          tx.onerror = function () { reject(tx.error); };
+        });
+      });
+    }
+  };
+})();
+
+async function updateOfflineBadge() {
+  var pending = await offlineQueue.list().catch(function () { return []; });
+  var badge = document.getElementById('offlineBadge');
+  if (!badge) return;
+  if (pending.length > 0) {
+    badge.textContent = pending.length + ' venda' + (pending.length > 1 ? 's' : '') + ' offline';
+    badge.style.display = '';
+  } else {
+    badge.style.display = 'none';
+  }
+}
+
+async function syncOffline() {
+  if (!navigator.onLine) return;
+  var pending = await offlineQueue.list();
+  if (!pending.length) return;
+  var ok = 0, fail = 0;
+  for (var i = 0; i < pending.length; i++) {
+    var item = pending[i];
+    try {
+      var res = await fetch('/api/sales', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(item.payload) });
+      if (res.ok) { await offlineQueue.remove(item.id); ok++; }
+      else { fail++; }
+    } catch (e) { fail++; }
+  }
+  if (ok > 0 && typeof Swal !== 'undefined') {
+    Swal.fire({ icon:'success', title:'Sincronizadas', text: ok + ' venda(s) enviada(s) com sucesso.', timer:2500, showConfirmButton:false });
+  }
+  updateOfflineBadge();
+  if (typeof loadProducts === 'function') loadProducts();
+}
+
+window.addEventListener('online', syncOffline);
+updateOfflineBadge();
+syncOffline();
 </script>
 </body>
 </html>

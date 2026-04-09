@@ -14,6 +14,9 @@ router.get('/banner/public', admin.getPublicBanner);
 // Stop impersonate — só requer authMiddleware (role do user é o do target durante impersonação)
 router.post('/stop-impersonate', authMiddleware, admin.stopImpersonate);
 
+// Releases (whats-new) — leitura pública para qualquer user autenticado
+router.get('/releases', authMiddleware, admin.listReleases);
+
 // Todas as rotas seguintes exigem SUPERADMIN
 router.use(authMiddleware, requireSuperAdmin);
 
@@ -75,6 +78,11 @@ router.put('/email-templates/:key', admin.upsertEmailTemplate);
 // Error logs
 router.get('/error-logs', admin.getErrorLogs);
 router.delete('/error-logs', admin.clearErrorLogs);
+
+// Releases (whats-new) — escrita SUPERADMIN
+router.post('/releases', admin.createRelease);
+router.patch('/releases/:id', admin.updateRelease);
+router.delete('/releases/:id', admin.deleteRelease);
 
 // Gestão de planos
 router.get('/plans', admin.getPlans);
