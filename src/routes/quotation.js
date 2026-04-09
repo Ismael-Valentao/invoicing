@@ -12,8 +12,9 @@ const {
 } = require('../controllers/quotationController');
 
 const { authMiddleware } = require('../middlewares/authMiddleware');
+const { checkSubscriptionActive } = require('../middlewares/checkPlanLimit');
 
-router.post('/', authMiddleware, createQuotation);
+router.post('/', authMiddleware, checkSubscriptionActive, createQuotation);
 router.get('/', authMiddleware, getQuotations);
 router.get('/last-Quotation', authMiddleware, getLastQuotation);
 router.get('/total-amount', authMiddleware, getQuotationsTotalAmount);
@@ -34,10 +35,10 @@ router.get('/next-number', authMiddleware, async (req, res) => {
     }
 });
 
-router.patch('/:id/approve', authMiddleware, approveQuotation);
+router.patch('/:id/approve', authMiddleware, checkSubscriptionActive, approveQuotation);
 
 // Duplicar cotação
-router.post('/:id/duplicate', authMiddleware, async (req, res) => {
+router.post('/:id/duplicate', authMiddleware, checkSubscriptionActive, async (req, res) => {
     try {
         const Quotation = require('../models/invoice');
         const { getNextQuotationNumber } = require('../utils/numerationGenerator');

@@ -54,7 +54,7 @@ router.get('/:id/pdf',authMiddleware, downloadInvoicePDF);
 router.get("/export/excel/:filter", authMiddleware, checkExcelExportAllowed,
   downloadInvoicesStatementExcel
 );
-router.patch('/:id',authMiddleware, updateInvoiceStatus);
+router.patch('/:id', authMiddleware, checkSubscriptionActive, updateInvoiceStatus);
 
 // Duplicar factura
 router.post('/:id/duplicate', authMiddleware, checkSubscriptionActive, async (req, res) => {

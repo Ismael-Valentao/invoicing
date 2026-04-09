@@ -10,7 +10,7 @@ router.get("/export", authMiddleware, checkExcelExportAllowed, saleController.ex
 router.get("/datatable", authMiddleware, saleController.getSalesDataTable);
 router.get("/dashboard-info", authMiddleware, saleController.getSalesDashboard);
 router.get('/:id', authMiddleware, saleController.getSaleById);
-router.patch('/:id/cancel', authMiddleware, saleController.cancelSale);
+router.patch('/:id/cancel', authMiddleware, checkSubscriptionActive, saleController.cancelSale);
 router.get("/:id/receipt", authMiddleware, saleController.getSaleReceiptPDF)
 
 module.exports = router;

@@ -8,8 +8,8 @@ const { checkSubscriptionActive, checkClientLimit } = require('../middlewares/ch
 router.post('/', authMiddleware, checkSubscriptionActive, checkClientLimit, createClient);
 router.get('/', authMiddleware, getClients);
 router.get('/:id', authMiddleware, getClientById);
-router.patch('/:id', authMiddleware, updateClient);
-router.delete('/:id', authMiddleware, deleteClient);
+router.patch('/:id', authMiddleware, checkSubscriptionActive, updateClient);
+router.delete('/:id', authMiddleware, checkSubscriptionActive, deleteClient);
 
 
 module.exports = router;

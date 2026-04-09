@@ -8,10 +8,10 @@ const { checkSubscriptionActive, checkProductLimit } = require('../middlewares/c
 router.post('/', authMiddleware, checkSubscriptionActive, checkProductLimit, createProduct);
 router.get('/', authMiddleware, getProducts);
 router.get('/:id', authMiddleware, getProductById);
-router.patch('/:id', authMiddleware, updateProduct);
-router.delete('/:id', authMiddleware, deleteProduct);
-router.patch("/:id/stock", authMiddleware, adjustStock);
-router.patch("/:id/active", authMiddleware, setActive);
-router.patch("/:id/deactivate", authMiddleware, deactivateProduct);
+router.patch('/:id', authMiddleware, checkSubscriptionActive, updateProduct);
+router.delete('/:id', authMiddleware, checkSubscriptionActive, deleteProduct);
+router.patch("/:id/stock", authMiddleware, checkSubscriptionActive, adjustStock);
+router.patch("/:id/active", authMiddleware, checkSubscriptionActive, setActive);
+router.patch("/:id/deactivate", authMiddleware, checkSubscriptionActive, deactivateProduct);
 
 module.exports = router;

@@ -11,8 +11,9 @@ const {
     generateVDPDF
 } = require('../controllers/vdController');
 const { authMiddleware } = require('../middlewares/authMiddleware');
+const { checkSubscriptionActive } = require('../middlewares/checkPlanLimit');
 
-router.post('/', authMiddleware, createVD);
+router.post('/', authMiddleware, checkSubscriptionActive, createVD);
 router.get('/', authMiddleware, getVDs);
 router.get('/last-number', authMiddleware, getVDLastNumber);
 
