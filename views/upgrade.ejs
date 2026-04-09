@@ -35,6 +35,19 @@
       <%- include('partials/topbar') %>
       <div class="container-fluid py-4">
 
+        <div id="expiredBanner" class="alert alert-danger d-flex align-items-center mb-4" style="display:none;">
+          <i class="fas fa-lock fa-2x mr-3"></i>
+          <div>
+            <strong>A tua subscrição expirou.</strong>
+            <div class="small">Para voltar a criar facturas, vendas, cotações e outros documentos, renova o teu plano abaixo.</div>
+          </div>
+        </div>
+        <script>
+          if (new URLSearchParams(location.search).get('expired') === '1') {
+            document.getElementById('expiredBanner').style.display = '';
+          }
+        </script>
+
         <!-- Header -->
         <div class="text-center mb-5">
           <h2 class="h3 font-weight-bold text-gray-800">Escolhe o teu plano</h2>

@@ -4,6 +4,7 @@ const { requireAdmin } = require("../middlewares/requireAdmin");
 const { requireSuperAdmin } = require("../middlewares/requireSuperAdmin");
 const { authMiddleware2 } = require('../middlewares/authMiddleware');
 const { ensureHasActiveModule } = require("../middlewares/validationMiddleware");
+const { requireActiveSubscription } = require("../middlewares/checkPlanLimit");
 
 const router = express.Router();
 
@@ -92,7 +93,7 @@ router.get('/invoices', authMiddleware2, requirePermission('invoicing'), (req, r
     res.render('invoices', buildViewData(req, 'Facturas'));
 });
 
-router.get('/new-invoice', authMiddleware2, requirePermission('invoicing'), (req, res) => {
+router.get('/new-invoice', authMiddleware2, requirePermission('invoicing'), requireActiveSubscription, (req, res) => {
     res.render('new-invoice', buildViewData(req, 'Nova Factura'));
 });
 
@@ -100,7 +101,7 @@ router.get('/quotations', authMiddleware2, requirePermission('invoicing'), (req,
     res.render('quotations', buildViewData(req, 'Cotações'));
 });
 
-router.get('/new-quotation', authMiddleware2, requirePermission('invoicing'), (req, res) => {
+router.get('/new-quotation', authMiddleware2, requirePermission('invoicing'), requireActiveSubscription, (req, res) => {
     res.render('new-quotation', buildViewData(req, 'Nova Cotação'));
 });
 
@@ -112,7 +113,7 @@ router.get('/receipts', authMiddleware2, requirePermission('invoicing'), (req, r
     res.render('receipt', buildViewData(req, 'Recibos'));
 });
 
-router.get('/new-vd', authMiddleware2, requirePermission('invoicing'), (req, res) => {
+router.get('/new-vd', authMiddleware2, requirePermission('invoicing'), requireActiveSubscription, (req, res) => {
     res.render('new-vd', buildViewData(req, 'Nova VD'));
 });
 
@@ -148,7 +149,7 @@ router.get('/sales', authMiddleware2, requirePermission('sales'), (req, res) => 
     res.render('sales', buildViewData(req, 'Vendas'));
 });
 
-router.get('/new-sale', authMiddleware2, requirePermission('sales'), (req, res) => {
+router.get('/new-sale', authMiddleware2, requirePermission('sales'), requireActiveSubscription, (req, res) => {
     res.render('new-sale', buildViewData(req, 'Nova Venda'));
 });
 
@@ -280,7 +281,7 @@ router.get('/suppliers', authMiddleware2, requirePermission('suppliers'), (req, 
 });
 
 // POS (Venda rápida)
-router.get('/pos', authMiddleware2, requirePermission('sales'), (req, res) => {
+router.get('/pos', authMiddleware2, requirePermission('sales'), requireActiveSubscription, (req, res) => {
     res.render('pos', buildViewData(req, 'Venda Rápida'));
 });
 

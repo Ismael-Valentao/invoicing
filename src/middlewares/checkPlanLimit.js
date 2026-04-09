@@ -10,6 +10,30 @@ const { getPlan } = require('../utils/plans');
  * Verifica se a subscrição da empresa está activa.
  * Se expirada, bloqueia todas as acções de criação.
  */
+/**
+ * Versão para páginas (GET /new-invoice, /new-sale, etc.).
+ * Em vez de JSON 403, redirecciona para /upgrade com flash na query.
+ */
+async function requireActiveSubscription(req, res, next) {
+    try {
+        if (req.user?.role === 'SUPERADMIN') return next();
+        const companyId = req.user?.company?._id;
+        if (!companyId) return next();
+
+        const sub = await Subscription.findOne({ companyId });
+        if (!sub || sub.status !== 'active' || (sub.expiresAt && sub.expiresAt < new Date())) {
+            if (sub && sub.status === 'active' && sub.expiresAt && sub.expiresAt < new Date()) {
+                sub.status = 'expired';
+                await sub.save();
+            }
+            return res.redirect('/upgrade?expired=1');
+        }
+        next();
+    } catch (err) {
+        next(err);
+    }
+}
+
 async function checkSubscriptionActive(req, res, next) {
     try {
         const companyId = req.user.company._id;
@@ -204,6 +228,7 @@ async function checkExcelExportAllowed(req, res, next) {
 
 module.exports = {
     checkSubscriptionActive,
+    requireActiveSubscription,
     checkInvoiceLimit,
     checkSaleLimit,
     checkClientLimit,
