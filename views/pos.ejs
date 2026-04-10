@@ -200,11 +200,20 @@ async function confirmSale() {
     if (!navigator.onLine) throw new Error('offline');
     var res = await fetch('/api/sales', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) });
     if (res.ok) {
+      var soldItems = body.items.map(function(i) { return { id: i.productId, name: i.name, qty: i.quantity }; });
       clearCart();
+      await loadProducts(); // refresh stock
+
+      // Mostrar stock restante para cada item vendido
+      var stockInfo = soldItems.map(function(si) {
+        var prod = allProducts.find(function(p) { return p._id === si.id; });
+        var remaining = prod ? (prod.stock?.quantity ?? '?') : '?';
+        return '<b>' + si.name + '</b>: ficam <b>' + remaining + '</b> un.';
+      }).join('<br>');
+
       if (typeof Swal !== 'undefined') {
-        Swal.fire({ icon:'success', title:'Venda registada!', text:'A venda foi confirmada com sucesso.', timer:2000, showConfirmButton:false });
+        Swal.fire({ icon:'success', title:'Venda registada!', html:'<div class="text-left small mt-2">' + stockInfo + '</div>', timer:4000, showConfirmButton:false });
       } else { alert('Venda registada com sucesso!'); }
-      loadProducts(); // refresh stock
     } else {
       var data = await res.json().catch(function(){ return {}; });
       alert(data.message || 'Erro ao registar venda.');

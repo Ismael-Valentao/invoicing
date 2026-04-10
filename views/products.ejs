@@ -337,11 +337,23 @@
                                     id="add-product-stock" value="0">
                             </div>
 
-                            <div class="form-group col-md-4 add-product-stock-field">
+                            <div class=”form-group col-md-4 add-product-stock-field”>
                                 <label>Stock Mínimo</label>
-                                <input type="number" step="0.01" min="0" class="form-control form-control-sm"
-                                    id="add-product-min" value="0">
-                                <small class="text-muted">Quando o stock atingir este valor, aparece “Baixo”.</small>
+                                <input type=”number” step=”0.01” min=”0” class=”form-control form-control-sm”
+                                    id=”add-product-min” value=”0”>
+                                <small class=”text-muted”>Quando o stock atingir este valor, aparece “Baixo”.</small>
+                            </div>
+
+                            <div class=”form-group col-md-4 add-product-stock-field”>
+                                <label>Prazo de Validade</label>
+                                <input type=”date” class=”form-control form-control-sm” id=”add-product-expiry”>
+                            </div>
+
+                            <div class=”form-group col-md-4 add-product-stock-field”>
+                                <label>Alertar N dias antes</label>
+                                <input type=”number” min=”1” class=”form-control form-control-sm”
+                                    id=”add-product-expiry-days” value=”30”>
+                                <small class=”text-muted”>Dias antes do vencimento para gerar alerta.</small>
                             </div>
                         </div>
                     </div>
@@ -419,7 +431,18 @@
                                     id="update-product-min" value="0">
                             </div>
 
-                            <div class="form-group col-md-6">
+                            <div class="form-group col-md-4 update-product-stock-field">
+                                <label>Prazo de Validade</label>
+                                <input type="date" class="form-control form-control-sm" id="update-product-expiry">
+                            </div>
+
+                            <div class="form-group col-md-4 update-product-stock-field">
+                                <label>Alertar N dias antes</label>
+                                <input type="number" min="1" class="form-control form-control-sm"
+                                    id="update-product-expiry-days" value="30">
+                            </div>
+
+                            <div class="form-group col-md-4">
                                 <label>Estado</label>
                                 <select class="form-control form-control-sm" id="update-product-active">
                                     <option value="true">Ativo</option>

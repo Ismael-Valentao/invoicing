@@ -188,7 +188,12 @@ document.addEventListener("DOMContentLoaded", function () {
       });
     }
 
+    const expiryDate = document.getElementById("add-product-expiry")?.value || '';
+    const expiryAlertDays = document.getElementById("add-product-expiry-days")?.value || 30;
+
     const payload = { description, unitPrice, costPrice, sku, unit, stockQuantity, stockMin, type };
+    if (expiryDate) payload.expiryDate = expiryDate;
+    payload.expiryAlertDays = expiryAlertDays;
 
     const resp = await fetch("/api/products", {
       method: "POST",
@@ -243,6 +248,10 @@ document.addEventListener("DOMContentLoaded", function () {
         updType.value = p.type === 'service' ? 'service' : 'product';
         toggleUpdateStockFields(updType.value);
       }
+      const updExpiry = document.getElementById("update-product-expiry");
+      if (updExpiry) updExpiry.value = p.expiryDate ? new Date(p.expiryDate).toISOString().slice(0,10) : '';
+      const updExpiryDays = document.getElementById("update-product-expiry-days");
+      if (updExpiryDays) updExpiryDays.value = p.expiryAlertDays ?? 30;
 
       document.getElementById("update-product-sku") && (document.getElementById("update-product-sku").value = p.sku || "");
       document.getElementById("update-product-unit") && (document.getElementById("update-product-unit").value = p.unit || "un");
@@ -331,6 +340,9 @@ document.addEventListener("DOMContentLoaded", function () {
     const payload = { description, unitPrice, sku, unit };
     if (costPrice !== undefined && costPrice !== "") payload.costPrice = costPrice;
     if (type) payload.type = type;
+    const expiryDate = document.getElementById("update-product-expiry")?.value;
+    payload.expiryDate = expiryDate || null;
+    payload.expiryAlertDays = document.getElementById("update-product-expiry-days")?.value || 30;
     if (stockMin !== undefined) payload.stockMin = stockMin;
     if (active !== undefined) payload.active = active === "true";
 
@@ -405,6 +417,10 @@ document.addEventListener("DOMContentLoaded", function () {
     if (addCostEl) addCostEl.value = "";
     document.getElementById("add-product-stock").value = 0;
     document.getElementById("add-product-min").value = 0;
+    const expEl = document.getElementById("add-product-expiry");
+    if (expEl) expEl.value = "";
+    const expDaysEl = document.getElementById("add-product-expiry-days");
+    if (expDaysEl) expDaysEl.value = 30;
   }
 
   $("#productModal").on("hidden.bs.modal", function () {

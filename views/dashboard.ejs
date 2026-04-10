@@ -243,6 +243,17 @@
               </div>
             </div>
             </div>
+          <!-- Card: Produtos a vencer -->
+          <div id="expiryCard" class="card shadow mb-4" style="display:none;">
+            <div class="card-header py-3 d-flex align-items-center justify-content-between">
+              <h6 class="m-0 font-weight-bold text-warning">
+                <i class="fas fa-clock mr-1"></i>Produtos a vencer prazo de validade
+              </h6>
+              <a href="/products" class="btn btn-outline-warning btn-sm">Ver todos</a>
+            </div>
+            <div class="card-body p-0" id="expiryBody"></div>
+          </div>
+
           </div>
           <!-- /.container-fluid -->
         <!-- End of Main Content -->
@@ -342,6 +353,35 @@
           })
           .catch(() => {});
       } catch (_) {}
+    })();
+
+    // Produtos a vencer prazo de validade
+    (function loadExpiringProducts() {
+      fetch('/api/dashboard/expiring-products', { cache: 'no-store' })
+        .then(r => r.ok ? r.json() : null)
+        .then(data => {
+          if (!data || !data.success) return;
+          const items = [...(data.expired || []), ...(data.expiring || [])];
+          if (!items.length) return;
+
+          document.getElementById('expiryCard').style.display = '';
+          document.getElementById('expiryBody').innerHTML = `
+            <div class="table-responsive">
+              <table class="table table-sm mb-0">
+                <thead class="thead-light"><tr><th>Produto</th><th class="text-center">Validade</th><th class="text-center">Dias</th><th class="text-center">Stock</th></tr></thead>
+                <tbody>${items.slice(0, 10).map(p => {
+                  const expired = p.daysLeft <= 0;
+                  return `<tr class="${expired ? 'table-danger' : ''}">
+                    <td><strong>${p.description}</strong>${p.sku ? ' <small class="text-muted">(' + p.sku + ')</small>' : ''}</td>
+                    <td class="text-center">${new Date(p.expiryDate).toLocaleDateString('pt-PT')}</td>
+                    <td class="text-center"><span class="badge badge-${expired ? 'danger' : 'warning'}">${expired ? 'VENCIDO há ' + Math.abs(p.daysLeft) + 'd' : p.daysLeft + ' dias'}</span></td>
+                    <td class="text-center">${p.stockQty}</td>
+                  </tr>`;
+                }).join('')}</tbody>
+              </table>
+            </div>`;
+        })
+        .catch(() => {});
     })();
 
     // Verificar estado da subscrição ao carregar o dashboard

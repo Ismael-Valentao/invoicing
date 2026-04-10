@@ -9,6 +9,7 @@ const Invoice = require('../models/invoice');
 const Sale = require('../models/sale');
 const Client = require('../models/client');
 const RecurringInvoice = require('../models/recurringInvoice');
+const Product = require('../models/product');
 const { getNextInvoiceNumber } = require('./numerationGenerator');
 const { generateNotifications } = require('../controllers/notificationController');
 const { getPlan } = require('./plans');
@@ -195,6 +196,62 @@ async function runNotificationGeneration() {
 }
 
 /**
+ * Alerta de prazo de validade — gera notificações para produtos a vencer ou já vencidos.
+ */
+async function runExpiryProductAlerts() {
+    try {
+        const now = new Date();
+        const companies = await Company.find({}, '_id');
+
+        let total = 0;
+        for (const company of companies) {
+            const products = await Product.find({
+                companyId: company._id,
+                active: true,
+                type: 'product',
+                expiryDate: { $ne: null },
+            }).select('description expiryDate expiryAlertDays stock').lean();
+
+            for (const p of products) {
+                const exp = new Date(p.expiryDate);
+                const daysLeft = Math.ceil((exp - now) / MS_PER_DAY);
+                const alertDays = p.expiryAlertDays || 30;
+
+                if (daysLeft > alertDays) continue;
+
+                // Evita duplicados: não criar se já existe notificação nas últimas 24h
+                const existing = await Notification.findOne({
+                    companyId: company._id,
+                    type: 'expiry',
+                    'metadata.productId': p._id,
+                    createdAt: { $gte: new Date(now.getTime() - 24 * 60 * 60 * 1000) }
+                });
+                if (existing) continue;
+
+                const isExpired = daysLeft <= 0;
+                await Notification.create({
+                    companyId: company._id,
+                    type: 'expiry',
+                    title: isExpired ? 'Produto vencido' : 'Produto a vencer',
+                    message: isExpired
+                        ? `"${p.description}" venceu há ${Math.abs(daysLeft)} dia(s). Stock actual: ${p.stock?.quantity || 0}.`
+                        : `"${p.description}" vence em ${daysLeft} dia(s) (${exp.toLocaleDateString('pt-PT')}). Stock actual: ${p.stock?.quantity || 0}.`,
+                    icon: isExpired ? 'fas fa-exclamation-circle' : 'fas fa-clock',
+                    color: isExpired ? 'danger' : 'warning',
+                    link: '/products',
+                    metadata: { productId: p._id }
+                });
+                total++;
+            }
+        }
+
+        if (total > 0) console.log(`[Cron] ${total} alerta(s) de prazo de validade gerado(s).`);
+    } catch (err) {
+        console.error('[Cron] Erro nos alertas de validade:', err.message);
+    }
+}
+
+/**
  * Processa facturas recorrentes que atingiram a nextRunDate.
  */
 async function runRecurringInvoices() {
@@ -365,12 +422,14 @@ function startCronJobs() {
     runMonthlySummary();
     runNotificationGeneration();
     runRecurringInvoices();
+    runExpiryProductAlerts();
 
     setInterval(runExpiryCheck, 12 * 60 * 60 * 1000);  // 12h
     setInterval(runLimitCheck, 6 * 60 * 60 * 1000);    // 6h
     setInterval(runMonthlySummary, 24 * 60 * 60 * 1000); // 24h
     setInterval(runNotificationGeneration, 4 * 60 * 60 * 1000); // 4h
     setInterval(runRecurringInvoices, 6 * 60 * 60 * 1000); // 6h
+    setInterval(runExpiryProductAlerts, 12 * 60 * 60 * 1000); // 12h
     setInterval(runPaymentReminders, 24 * 60 * 60 * 1000); // 24h
     setInterval(runDailySummary, 24 * 60 * 60 * 1000); // 24h
 

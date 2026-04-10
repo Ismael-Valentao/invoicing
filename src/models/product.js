@@ -59,6 +59,16 @@ const productSchema = new mongoose.Schema({
         default: 'un'
     },
 
+    expiryDate: {
+        type: Date,
+        default: null
+    },
+
+    expiryAlertDays: {
+        type: Number,
+        default: 30
+    },
+
     active: {
         type: Boolean,
         default: true

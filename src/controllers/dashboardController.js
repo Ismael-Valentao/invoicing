@@ -288,6 +288,53 @@ exports.getGreeting = async (req, res) => {
 };
 
 // Profit overview (revenue - expenses)
+// Produtos a vencer prazo de validade
+exports.getExpiringProducts = async (req, res) => {
+    try {
+        const companyId = req.user.company._id;
+        const now = new Date();
+
+        // Produtos com expiryDate definido, activos, ordenados do mais urgente
+        const products = await Product.find({
+            companyId,
+            active: true,
+            type: 'product',
+            expiryDate: { $ne: null },
+        }).select('description sku expiryDate expiryAlertDays stock unitPrice').lean();
+
+        const expiring = [];
+        const expired = [];
+
+        for (const p of products) {
+            const exp = new Date(p.expiryDate);
+            const daysLeft = Math.ceil((exp - now) / (1000 * 60 * 60 * 24));
+            const alertDays = p.expiryAlertDays || 30;
+            const item = {
+                _id: p._id,
+                description: p.description,
+                sku: p.sku || '',
+                expiryDate: p.expiryDate,
+                daysLeft,
+                stockQty: p.stock?.quantity || 0,
+                unitPrice: p.unitPrice || 0,
+            };
+            if (daysLeft <= 0) {
+                expired.push(item);
+            } else if (daysLeft <= alertDays) {
+                expiring.push(item);
+            }
+        }
+
+        // Ordenar: mais urgente primeiro
+        expiring.sort((a, b) => a.daysLeft - b.daysLeft);
+        expired.sort((a, b) => a.daysLeft - b.daysLeft);
+
+        return res.json({ success: true, expiring, expired });
+    } catch (err) {
+        return res.status(500).json({ success: false, message: err.message });
+    }
+};
+
 // Análise de margem por produto (usa unitPrice e costPrice do Product)
 exports.getProductMargins = async (req, res) => {
     try {

@@ -25,6 +25,8 @@ exports.createProduct = async (req, res) => {
       stockMin,
       active,
       type,
+      expiryDate,
+      expiryAlertDays,
     } = req.body;
 
     const itemType = type === 'service' ? 'service' : 'product';
@@ -57,6 +59,8 @@ exports.createProduct = async (req, res) => {
         ? { quantity: 0, min: 0 }
         : { quantity: toNumber(stockQuantity, 0), min: toNumber(stockMin, 0) },
       active: active === undefined ? true : Boolean(active),
+      expiryDate: expiryDate ? new Date(expiryDate) : null,
+      expiryAlertDays: toNumber(expiryAlertDays, 30),
     });
 
     logActivity({
@@ -158,6 +162,12 @@ exports.updateProduct = async (req, res) => {
     if (active !== undefined) update.active = Boolean(active);
     if (req.body.type !== undefined) {
       update.type = req.body.type === 'service' ? 'service' : 'product';
+    }
+    if (req.body.expiryDate !== undefined) {
+      update.expiryDate = req.body.expiryDate ? new Date(req.body.expiryDate) : null;
+    }
+    if (req.body.expiryAlertDays !== undefined) {
+      update.expiryAlertDays = toNumber(req.body.expiryAlertDays, 30);
     }
 
     if (costPrice !== undefined) {
