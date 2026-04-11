@@ -3,34 +3,238 @@
 <head>
   <meta charset="utf-8">
   <meta content="width=device-width, initial-scale=1.0" name="viewport">
-  <title>Invoicing — Novidades</title>
-  <meta name="description" content="Últimas actualizações, melhorias e novas funcionalidades da plataforma Invoicing.">
+  <title>Invoicing — Novidades e actualizações</title>
+  <meta name="description" content="Últimas actualizações, melhorias e novas funcionalidades da plataforma Invoicing. Acompanha a evolução do sistema de facturação para PMEs em Moçambique.">
+  <meta name="keywords" content="invoicing, novidades, actualizações, changelog, facturação, Moçambique">
   <link href="/images/invoicing-logo-simple.png" rel="icon">
+  <link href="/images/invoicing-logo-simple.png" rel="apple-touch-icon">
+
   <link href="https://fonts.googleapis.com" rel="preconnect">
   <link href="https://fonts.gstatic.com" rel="preconnect" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Raleway:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&family=Raleway:wght@400;500;600;700&display=swap" rel="stylesheet">
+
   <link href="/site-assets/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
   <link href="/site-assets/vendor/bootstrap-icons/bootstrap-icons.css" rel="stylesheet">
   <link href="/site-assets/css/main.css" rel="stylesheet">
   <link href="/site-assets/css/custom.css" rel="stylesheet">
+
   <style>
-    body { padding-top: 90px; }
-    .release-card { border-left: 4px solid #228CDF; background:#fff; border-radius:8px; padding:24px; margin-bottom:20px; box-shadow:0 2px 10px rgba(0,0,0,.04); }
-    .release-card.feature { border-left-color:#1cc88a; }
-    .release-card.fix { border-left-color:#e74a3b; }
-    .release-card.improvement { border-left-color:#36b9cc; }
-    .release-card.announcement { border-left-color:#f6c23e; }
-    .release-badge { display:inline-block; font-size:.75rem; padding:3px 10px; border-radius:999px; font-weight:600; margin-right:6px; }
-    .rb-feature { background:#d1fae5; color:#065f46; }
-    .rb-fix { background:#fee2e2; color:#991b1b; }
-    .rb-improvement { background:#cffafe; color:#155e75; }
-    .rb-announcement { background:#fef3c7; color:#92400e; }
-    .release-version { background:#f1f5f9; color:#475569; font-weight:600; }
-    .release-body { white-space: pre-wrap; line-height:1.7; color:#4a5568; margin-top:10px; }
-    .release-date { color:#94a3b8; font-size:.85rem; }
-    .page-header { text-align:center; padding:40px 0 30px; }
-    .page-header h1 { font-weight:800; color:#1a1e2e; }
-    .page-header p { color:#6c757d; font-size:1.1rem; }
+    :root {
+      --wn-primary: #228CDF;
+      --wn-dark: #1a1e2e;
+      --wn-bg: #f8f9fc;
+    }
+    body { padding-top: 90px; background: var(--wn-bg); font-family: 'Poppins', sans-serif; }
+
+    /* Hero */
+    .wn-hero {
+      background: linear-gradient(135deg, #1a1e2e 0%, #228CDF 100%);
+      color: #fff;
+      padding: 80px 0 100px;
+      margin-bottom: -60px;
+      position: relative;
+      overflow: hidden;
+    }
+    .wn-hero::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: radial-gradient(circle at 20% 50%, rgba(255,255,255,.1) 0%, transparent 50%);
+    }
+    .wn-hero-content { position: relative; z-index: 2; text-align: center; }
+    .wn-hero h1 { font-size: 3rem; font-weight: 800; margin-bottom: 16px; letter-spacing: -.5px; }
+    .wn-hero p { font-size: 1.15rem; opacity: .9; max-width: 620px; margin: 0 auto; line-height: 1.6; }
+
+    /* Stats bar */
+    .wn-stats {
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 12px 40px rgba(0,0,0,.08);
+      padding: 24px;
+      margin-bottom: 40px;
+      display: flex;
+      justify-content: space-around;
+      flex-wrap: wrap;
+      gap: 20px;
+    }
+    .wn-stat { text-align: center; flex: 1; min-width: 140px; }
+    .wn-stat-value { font-size: 2rem; font-weight: 800; color: var(--wn-dark); line-height: 1; }
+    .wn-stat-label { font-size: .78rem; color: #94a3b8; text-transform: uppercase; letter-spacing: .5px; margin-top: 6px; font-weight: 600; }
+
+    /* Filters */
+    .wn-filters {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 24px;
+      align-items: center;
+    }
+    .wn-filter-btn {
+      background: #fff;
+      border: 1px solid #e3e6f0;
+      border-radius: 999px;
+      padding: 8px 18px;
+      font-size: .88rem;
+      font-weight: 600;
+      color: #64748b;
+      cursor: pointer;
+      transition: all .2s;
+    }
+    .wn-filter-btn:hover { border-color: var(--wn-primary); color: var(--wn-primary); }
+    .wn-filter-btn.active {
+      background: var(--wn-primary);
+      color: #fff;
+      border-color: var(--wn-primary);
+      box-shadow: 0 4px 12px rgba(34,140,223,.25);
+    }
+    .wn-search {
+      margin-left: auto;
+      position: relative;
+    }
+    .wn-search input {
+      background: #fff;
+      border: 1px solid #e3e6f0;
+      border-radius: 999px;
+      padding: 8px 14px 8px 38px;
+      font-size: .88rem;
+      min-width: 220px;
+      outline: none;
+      transition: border-color .2s;
+    }
+    .wn-search input:focus { border-color: var(--wn-primary); }
+    .wn-search i {
+      position: absolute;
+      left: 14px; top: 50%;
+      transform: translateY(-50%);
+      color: #94a3b8;
+      font-size: .9rem;
+    }
+
+    /* Timeline */
+    .wn-month-label {
+      font-size: .8rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: #94a3b8;
+      font-weight: 700;
+      margin: 24px 0 16px;
+      display: flex;
+      align-items: center;
+    }
+    .wn-month-label::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: #e3e6f0;
+      margin-left: 14px;
+    }
+
+    /* Release card */
+    .wn-card {
+      background: #fff;
+      border-radius: 14px;
+      padding: 26px 28px;
+      margin-bottom: 18px;
+      box-shadow: 0 2px 10px rgba(0,0,0,.04);
+      border-left: 4px solid var(--wn-primary);
+      transition: transform .2s, box-shadow .2s;
+      position: relative;
+    }
+    .wn-card:hover {
+      transform: translateX(4px);
+      box-shadow: 0 6px 20px rgba(0,0,0,.08);
+    }
+    .wn-card.feature { border-left-color: #1cc88a; }
+    .wn-card.fix { border-left-color: #e74a3b; }
+    .wn-card.improvement { border-left-color: #36b9cc; }
+    .wn-card.announcement { border-left-color: #f6c23e; }
+    .wn-card.pinned::before {
+      content: '\F5E0';
+      font-family: 'bootstrap-icons';
+      position: absolute;
+      top: 18px; right: 18px;
+      color: #f6c23e;
+      font-size: 1.1rem;
+    }
+
+    .wn-card-header { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-bottom: 14px; }
+    .wn-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: .72rem;
+      padding: 4px 12px;
+      border-radius: 999px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .4px;
+    }
+    .wn-badge-feature { background: #d1fae5; color: #065f46; }
+    .wn-badge-fix { background: #fee2e2; color: #991b1b; }
+    .wn-badge-improvement { background: #cffafe; color: #155e75; }
+    .wn-badge-announcement { background: #fef3c7; color: #92400e; }
+    .wn-badge-version { background: #f1f5f9; color: #475569; font-family: monospace; }
+
+    .wn-card-date { margin-left: auto; font-size: .82rem; color: #94a3b8; font-weight: 500; }
+    .wn-card-title {
+      font-size: 1.35rem;
+      font-weight: 700;
+      color: var(--wn-dark);
+      margin: 0 0 10px;
+      line-height: 1.3;
+    }
+    .wn-card-body {
+      color: #475569;
+      line-height: 1.7;
+      font-size: .96rem;
+      white-space: pre-wrap;
+    }
+    .wn-card-body strong { color: var(--wn-dark); }
+    .wn-card-author {
+      font-size: .78rem;
+      color: #94a3b8;
+      margin-top: 14px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* Empty state */
+    .wn-empty {
+      text-align: center;
+      padding: 60px 20px;
+      color: #94a3b8;
+    }
+    .wn-empty i { font-size: 3rem; opacity: .4; margin-bottom: 14px; }
+
+    /* CTA */
+    .wn-cta {
+      background: linear-gradient(135deg, #228CDF 0%, #1cc88a 100%);
+      border-radius: 16px;
+      padding: 40px;
+      text-align: center;
+      color: #fff;
+      margin: 60px 0 20px;
+    }
+    .wn-cta h3 { font-weight: 800; margin-bottom: 12px; }
+    .wn-cta p { opacity: .9; max-width: 520px; margin: 0 auto 20px; }
+    .wn-cta .btn {
+      background: #fff;
+      color: var(--wn-primary);
+      font-weight: 700;
+      padding: 12px 32px;
+      border-radius: 999px;
+      border: none;
+    }
+    .wn-cta .btn:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0,0,0,.2); }
+
+    @media (max-width: 768px) {
+      .wn-hero h1 { font-size: 2rem; }
+      .wn-hero p { font-size: 1rem; }
+      .wn-search { margin-left: 0; width: 100%; }
+      .wn-search input { width: 100%; }
+      .wn-card { padding: 20px; }
+      .wn-card-title { font-size: 1.15rem; }
+    }
   </style>
 </head>
 <body>
@@ -53,19 +257,69 @@
   </div>
 </header>
 
-<main class="main">
-  <section class="section">
-    <div class="container">
-      <div class="page-header">
-        <h1><i class="bi bi-megaphone-fill text-primary mr-2"></i>Novidades</h1>
-        <p>Acompanha as últimas actualizações, melhorias e novas funcionalidades da plataforma.</p>
-      </div>
+<!-- Hero -->
+<section class="wn-hero">
+  <div class="wn-hero-content container">
+    <div class="mb-3"><i class="bi bi-megaphone-fill" style="font-size:2.5rem; opacity:.9;"></i></div>
+    <h1>Novidades e actualizações</h1>
+    <p>Acompanha a evolução da plataforma. Aqui partilhamos tudo o que lançamos: novas funcionalidades, melhorias de desempenho, correcções e anúncios importantes.</p>
+  </div>
+</section>
 
+<main class="main">
+  <section class="section pt-0">
+    <div class="container">
       <div class="row justify-content-center">
-        <div class="col-lg-8">
-          <div id="releases">
-            <div class="text-center py-5 text-muted">A carregar...</div>
+        <div class="col-lg-10">
+
+          <!-- Stats -->
+          <div class="wn-stats" id="wnStats">
+            <div class="wn-stat">
+              <div class="wn-stat-value" id="statTotal">—</div>
+              <div class="wn-stat-label">Actualizações</div>
+            </div>
+            <div class="wn-stat">
+              <div class="wn-stat-value" id="statFeatures">—</div>
+              <div class="wn-stat-label">Novidades</div>
+            </div>
+            <div class="wn-stat">
+              <div class="wn-stat-value" id="statImprovements">—</div>
+              <div class="wn-stat-label">Melhorias</div>
+            </div>
+            <div class="wn-stat">
+              <div class="wn-stat-value" id="statThisMonth">—</div>
+              <div class="wn-stat-label">Este mês</div>
+            </div>
           </div>
+
+          <!-- Filtros + Pesquisa -->
+          <div class="wn-filters">
+            <button class="wn-filter-btn active" data-filter="all">Todas</button>
+            <button class="wn-filter-btn" data-filter="feature"><i class="bi bi-stars mr-1"></i> Novidades</button>
+            <button class="wn-filter-btn" data-filter="improvement"><i class="bi bi-arrow-up-circle mr-1"></i> Melhorias</button>
+            <button class="wn-filter-btn" data-filter="fix"><i class="bi bi-wrench mr-1"></i> Correcções</button>
+            <button class="wn-filter-btn" data-filter="announcement"><i class="bi bi-megaphone mr-1"></i> Anúncios</button>
+            <div class="wn-search">
+              <i class="bi bi-search"></i>
+              <input type="text" id="wnSearchInput" placeholder="Pesquisar..."/>
+            </div>
+          </div>
+
+          <!-- Lista -->
+          <div id="releases">
+            <div class="wn-empty">
+              <i class="bi bi-hourglass-split d-block"></i>
+              A carregar...
+            </div>
+          </div>
+
+          <!-- CTA -->
+          <div class="wn-cta">
+            <h3>Ainda não és utilizador?</h3>
+            <p>Experimenta o Invoicing grátis durante 30 dias e descobre como pode simplificar a gestão da tua empresa.</p>
+            <a href="/register" class="btn">Começar agora <i class="bi bi-arrow-right ml-1"></i></a>
+          </div>
+
         </div>
       </div>
     </div>
@@ -73,8 +327,34 @@
 </main>
 
 <footer id="footer" class="footer dark-background">
-  <div class="container text-center py-4">
-    <p class="mb-0">© <span id="year"></span> <strong>Invoicing</strong>. Todos os direitos reservados.</p>
+  <div class="container footer-top">
+    <div class="row gy-4">
+      <div class="col-lg-6 col-md-6 footer-about">
+        <a href="/" class="logo d-flex align-items-center">
+          <span class="sitename">Invoicing</span>
+        </a>
+        <p class="mt-2">Gestão, facturação e controlo de stock para micro, pequenas e médias empresas em Moçambique.</p>
+      </div>
+      <div class="col-lg-3 col-md-6 footer-links">
+        <h4>Plataforma</h4>
+        <ul>
+          <li><a href="/">Início</a></li>
+          <li><a href="/#features">Funcionalidades</a></li>
+          <li><a href="/whats-new">Novidades</a></li>
+          <li><a href="/#pricing">Planos</a></li>
+        </ul>
+      </div>
+      <div class="col-lg-3 col-md-6 footer-links">
+        <h4>Conta</h4>
+        <ul>
+          <li><a href="/login">Entrar</a></li>
+          <li><a href="/register">Criar conta</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="container copyright text-center mt-4">
+    <p>© <span id="year"></span> <strong>Invoicing</strong>. Todos os direitos reservados.</p>
   </div>
 </footer>
 
@@ -82,41 +362,141 @@
 document.getElementById('year').textContent = new Date().getFullYear();
 
 const TYPE = {
-  feature: { label:'Nova funcionalidade', cls:'feature', icon:'bi-stars' },
-  fix: { label:'Correcção', cls:'fix', icon:'bi-wrench' },
-  improvement: { label:'Melhoria', cls:'improvement', icon:'bi-arrow-up-circle' },
-  announcement: { label:'Anúncio', cls:'announcement', icon:'bi-megaphone' },
+  feature:      { label:'Novidade',   cls:'feature',      badge:'wn-badge-feature',      icon:'bi-stars' },
+  fix:          { label:'Correcção',  cls:'fix',          badge:'wn-badge-fix',          icon:'bi-wrench' },
+  improvement:  { label:'Melhoria',   cls:'improvement',  badge:'wn-badge-improvement',  icon:'bi-arrow-up-circle' },
+  announcement: { label:'Anúncio',    cls:'announcement', badge:'wn-badge-announcement', icon:'bi-megaphone' },
 };
+
+const MONTHS_PT = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+
+let allReleases = [];
+let currentFilter = 'all';
+let currentSearch = '';
+
+function renderStats(releases) {
+  const now = new Date();
+  document.getElementById('statTotal').textContent = releases.length;
+  document.getElementById('statFeatures').textContent = releases.filter(r => r.type === 'feature').length;
+  document.getElementById('statImprovements').textContent = releases.filter(r => r.type === 'improvement').length;
+  document.getElementById('statThisMonth').textContent = releases.filter(r => {
+    const d = new Date(r.publishedAt);
+    return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+  }).length;
+}
+
+function renderList() {
+  const box = document.getElementById('releases');
+  let filtered = allReleases;
+
+  if (currentFilter !== 'all') {
+    filtered = filtered.filter(r => r.type === currentFilter);
+  }
+  if (currentSearch) {
+    const q = currentSearch.toLowerCase();
+    filtered = filtered.filter(r =>
+      r.title.toLowerCase().includes(q) ||
+      (r.body || '').toLowerCase().includes(q) ||
+      (r.version || '').toLowerCase().includes(q)
+    );
+  }
+
+  if (!filtered.length) {
+    box.innerHTML = `
+      <div class="wn-empty">
+        <i class="bi bi-search d-block"></i>
+        <p class="mb-0">Nenhuma novidade encontrada com os filtros seleccionados.</p>
+      </div>`;
+    return;
+  }
+
+  // Agrupa por mês (mantendo ordem de pinned primeiro)
+  const pinned = filtered.filter(r => r.pinned);
+  const rest = filtered.filter(r => !r.pinned);
+
+  const byMonth = {};
+  for (const r of rest) {
+    const d = new Date(r.publishedAt);
+    const key = `${d.getFullYear()}-${String(d.getMonth()).padStart(2,'0')}`;
+    if (!byMonth[key]) byMonth[key] = { label: `${MONTHS_PT[d.getMonth()]} ${d.getFullYear()}`, items: [] };
+    byMonth[key].items.push(r);
+  }
+
+  const sortedKeys = Object.keys(byMonth).sort().reverse();
+
+  let html = '';
+  if (pinned.length) {
+    html += '<div class="wn-month-label"><i class="bi bi-pin-angle-fill mr-2" style="color:#f6c23e;"></i> Fixados</div>';
+    html += pinned.map(renderCard).join('');
+  }
+  for (const k of sortedKeys) {
+    html += `<div class="wn-month-label">${byMonth[k].label}</div>`;
+    html += byMonth[k].items.map(renderCard).join('');
+  }
+  box.innerHTML = html;
+}
+
+function renderCard(r) {
+  const t = TYPE[r.type] || TYPE.feature;
+  const d = new Date(r.publishedAt);
+  const date = d.toLocaleDateString('pt-PT', { day:'2-digit', month:'short', year:'numeric' });
+  return `
+    <div class="wn-card ${t.cls} ${r.pinned ? 'pinned' : ''}">
+      <div class="wn-card-header">
+        <span class="wn-badge ${t.badge}"><i class="bi ${t.icon}"></i> ${t.label}</span>
+        ${r.version ? '<span class="wn-badge wn-badge-version">' + r.version + '</span>' : ''}
+        <span class="wn-card-date">${date}</span>
+      </div>
+      <h3 class="wn-card-title">${r.title}</h3>
+      <div class="wn-card-body">${r.body}</div>
+      ${r.authorName ? '<div class="wn-card-author"><i class="bi bi-person-circle"></i> ' + r.authorName + '</div>' : ''}
+    </div>
+  `;
+}
 
 fetch('/api/admin/releases/public')
   .then(r => r.json())
   .then(d => {
-    const box = document.getElementById('releases');
     if (!d.success || !d.releases?.length) {
-      box.innerHTML = '<div class="text-center py-5 text-muted">Ainda não há novidades publicadas.</div>';
+      document.getElementById('releases').innerHTML = `
+        <div class="wn-empty">
+          <i class="bi bi-inbox d-block"></i>
+          <p class="mb-0">Ainda não há novidades publicadas. Volta em breve!</p>
+        </div>`;
+      document.getElementById('wnStats').style.display = 'none';
       return;
     }
-    box.innerHTML = d.releases.map(r => {
-      const t = TYPE[r.type] || TYPE.feature;
-      const date = new Date(r.publishedAt).toLocaleDateString('pt-PT', { day:'2-digit', month:'long', year:'numeric' });
-      return `
-        <div class="release-card ${t.cls}">
-          <div class="mb-2">
-            <span class="release-badge rb-${t.cls}"><i class="bi ${t.icon} mr-1"></i>${t.label}</span>
-            ${r.version ? '<span class="release-badge release-version">' + r.version + '</span>' : ''}
-            ${r.pinned ? '<i class="bi bi-pin-angle-fill text-warning ml-1" title="Fixado"></i>' : ''}
-            <span class="float-right release-date">${date}</span>
-          </div>
-          <h3 class="font-weight-bold mb-0" style="color:#1a1e2e;">${r.title}</h3>
-          <div class="release-body">${r.body}</div>
-          ${r.authorName ? '<small class="release-date d-block mt-3">— ' + r.authorName + '</small>' : ''}
-        </div>
-      `;
-    }).join('');
+    allReleases = d.releases;
+    renderStats(allReleases);
+    renderList();
   })
   .catch(() => {
-    document.getElementById('releases').innerHTML = '<div class="text-center py-5 text-danger">Erro ao carregar.</div>';
+    document.getElementById('releases').innerHTML = `
+      <div class="wn-empty text-danger">
+        <i class="bi bi-exclamation-triangle d-block"></i>
+        <p class="mb-0">Erro ao carregar. Tenta actualizar a página.</p>
+      </div>`;
   });
+
+// Filtros
+document.querySelectorAll('.wn-filter-btn').forEach(btn => {
+  btn.addEventListener('click', function () {
+    document.querySelectorAll('.wn-filter-btn').forEach(b => b.classList.remove('active'));
+    this.classList.add('active');
+    currentFilter = this.dataset.filter;
+    renderList();
+  });
+});
+
+// Pesquisa
+let searchT;
+document.getElementById('wnSearchInput').addEventListener('input', function () {
+  clearTimeout(searchT);
+  searchT = setTimeout(() => {
+    currentSearch = this.value.trim();
+    renderList();
+  }, 150);
+});
 </script>
 </body>
 </html>
