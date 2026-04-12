@@ -392,9 +392,8 @@
           if (!data || !data.success) return;
           const s = data.subscription;
           const days = typeof s.daysLeft === 'number' ? s.daysLeft : 0;
-          const isExpired = s.status === 'expired' || days === 0;
-          console.log(isExpired)
-          const showWarning = !isExpired && days > 0 && days <= 7;
+          const isExpired = s.status === 'expired' || days < 0;
+          const showWarning = !isExpired && days >= 0 && days <= 7;
           document.getElementById('subExpiredBanner').style.display = isExpired ? 'flex' : 'none';
           document.getElementById('subWarningBanner').style.display = showWarning ? 'flex' : 'none';
           if (showWarning) {
