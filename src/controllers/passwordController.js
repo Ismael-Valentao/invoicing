@@ -24,7 +24,7 @@ exports.forgotPassword = async (req, res) => {
         // Resposta genérica (não revelar se existe ou não)
         const generic = {
             status: "success",
-            message: "Se este e-mail existir no sistema, você receberá um link de redefinição."
+            message: "Se este e-mail existir no sistema, receberá um link de redefinição."
         };
 
         if (!user) return res.status(200).json(generic);
@@ -46,15 +46,12 @@ exports.forgotPassword = async (req, res) => {
         // Cria/usa uma API tua de email para reset:
         // MAIL_RESET_PASSWORD_API_URL
 
-        console.log({
-            MAIL_RESET_PASSWORD_API_URL: process.env.MAIL_RESET_PASSWORD_API_URL, user_email: user.email, user_name: user.name, resetUrl
-        })
         fetch(process.env.MAIL_RESET_PASSWORD_API_URL, {
             method: "POST",
             headers: { "Content-Type": "application/x-www-form-urlencoded" },
             body: new URLSearchParams({
                 user_email: user.email,
-                user_name: user.name || "Usuário",
+                user_name: user.name || "Utilizador",
                 reset_url: resetUrl
             })
         }).catch(console.error);

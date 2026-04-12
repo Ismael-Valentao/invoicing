@@ -1,3 +1,4 @@
+<script src="/assets/js/ui-helpers.js"></script>
 <!-- PWA: manifest + theme -->
 <script>
 (function () {
@@ -278,7 +279,7 @@ fetch('/api/admin/banner/public', { cache:'no-store' })
         class="dropdown-menu dropdown-menu-right shadow animated--grow-in"
         aria-labelledby="userDropdown"
       >
-        <a class="dropdown-item" href="#">
+        <a class="dropdown-item" href="/profile">
           <i class="fas fa-user fa-sm fa-fw mr-2 text-gray-400"></i>
           Perfil
         </a>
@@ -291,7 +292,7 @@ fetch('/api/admin/banner/public', { cache:'no-store' })
           Novidades
           <span id="releasesBadge" class="badge badge-danger badge-pill ml-1" style="display:none;"></span>
         </a>
-        <a class="dropdown-item" href="#">
+        <a class="dropdown-item" href="/activities">
           <i class="fas fa-list fa-sm fa-fw mr-2 text-gray-400"></i>
           Actividades
         </a>

@@ -156,11 +156,11 @@ exports.deleteClient = async (req, res) => {
             return res.status(404).json({ error: 'Cliente não encontrado' });
         }
 
-        return res.json({ status: 'success', message: 'Cliente excluído com sucesso' });
+        return res.json({ status: 'success', message: 'Cliente eliminado com sucesso' });
     } catch (error) {
         return res.status(500).json({
             success: false,
-            error: 'Erro ao excluir cliente'
+            error: 'Erro ao eliminar cliente'
         });
     }
 };

@@ -77,6 +77,14 @@ router.get('/dashboard', authMiddleware2, ensureHasActiveModule, (req, res) => {
     res.render('dashboard', buildViewData(req, 'Dashboard'));
 });
 
+router.get('/profile', authMiddleware2, (req, res) => {
+    res.render('profile', buildViewData(req, 'Meu Perfil'));
+});
+
+router.get('/activities', authMiddleware2, (req, res) => {
+    res.render('activities', buildViewData(req, 'Actividades'));
+});
+
 router.get('/sales-dashboard', authMiddleware2, requirePermission('dashboard'), (req, res) => {
     res.render('sales-dashboard', buildViewData(req, 'Dashboard de Vendas'));
 });

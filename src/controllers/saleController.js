@@ -367,7 +367,7 @@ exports.exportSalesExcel = async (req, res) => {
 
       totalItens += itemsCount;
 
-      // ✅ para análise do usuário: soma só vendas completas (faz mais sentido)
+      // ✅ para análise do utilizador: soma só vendas completas (faz mais sentido)
       if (String(s.status).toLowerCase() === "confirmed") {
         totalVendas += total;
         totalPago += paid;

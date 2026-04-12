@@ -81,11 +81,10 @@ const sendExpiryWarningEmail = async (toEmail, userName, companyName, daysLeft, 
       ${btn('Renovar Subscrição', `${APP_URL}/upgrade`)}
       <p><strong>Métodos de pagamento disponíveis:</strong></p>
       <ul style="padding-left:18px;">
-        <li>M-Pesa: <strong>84 XXX XXXX</strong></li>
-        <li>E-mola: <strong>86 XXX XXXX</strong></li>
+        <li>E-mola — dados na página de upgrade</li>
         <li>Transferência bancária — NIB disponível na página de upgrade</li>
       </ul>
-      <p>Após o pagamento, entra em contacto connosco para activarmos o teu plano.</p>
+      <p>Após o pagamento, a activação é <strong>instantânea</strong>.</p>
       <p>Com os melhores cumprimentos,<br><strong>Equipa Invoicing</strong></p>
     `);
     await send(toEmail, `⚠️ A tua subscrição expira em ${daysLeft} dia(s) — Renova agora`, html);

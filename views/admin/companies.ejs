@@ -138,7 +138,7 @@ async function loadCompanies() {
         <td><span class="${statusCls}">${statusLbl}</span></td>
         <td>${expDate}</td>
         <td><span class="badge badge-light">${c.userCount}</span></td>
-        <td>${new Date(c.createdAt).toLocaleDateString('pt-PT')}</td>
+        <td>${formatDatePT(c.createdAt)}</td>
         <td class="text-center text-nowrap">
           <button class="btn btn-outline-primary btn-sm" onclick="viewCompany('${c._id}','${c.name.replace(/'/g,'\\\'')}')" title="Detalhes e acções">
             <i class="fas fa-eye"></i>

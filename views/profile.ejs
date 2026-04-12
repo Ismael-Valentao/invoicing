@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"/>
+  <title>Invoicing — <%- title %></title>
+  <link rel="icon" type="image/png" href="/images/invoicing-logo-simple.png"/>
+  <link href="/assets/vendor/fontawesome-free/css/all.min.css" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css?family=Nunito:400,600,700,800" rel="stylesheet"/>
+  <link href="/assets/css/sb-admin-2.min.css" rel="stylesheet"/>
+  <link href="/assets/css/custom.css" rel="stylesheet"/>
+</head>
+<body id="page-top">
+<div id="wrapper">
+  <%- include('partials/sidebar') %>
+  <div id="content-wrapper" class="d-flex flex-column">
+    <div id="content">
+      <%- include('partials/topbar') %>
+      <div class="container-fluid py-4">
+
+        <h4 class="font-weight-bold text-gray-800 mb-4">
+          <i class="fas fa-user text-primary mr-2"></i>Meu Perfil
+        </h4>
+
+        <div class="row">
+          <div class="col-lg-6 mb-4">
+            <div class="card shadow">
+              <div class="card-header"><strong>Informações pessoais</strong></div>
+              <div class="card-body">
+                <div class="form-group">
+                  <label class="small font-weight-bold">Nome</label>
+                  <input type="text" class="form-control" id="profileName" value="<%= user.name || '' %>"/>
+                </div>
+                <div class="form-group">
+                  <label class="small font-weight-bold">Email</label>
+                  <input type="email" class="form-control" id="profileEmail" value="<%= user.email || '' %>" readonly/>
+                  <small class="text-muted">O email não pode ser alterado.</small>
+                </div>
+                <div class="form-group">
+                  <label class="small font-weight-bold">Cargo</label>
+                  <input type="text" class="form-control" value="<%= user.role || '' %>" readonly/>
+                </div>
+                <button class="btn btn-primary" id="btnSaveProfile"><i class="fas fa-save mr-1"></i>Guardar</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-lg-6 mb-4">
+            <div class="card shadow">
+              <div class="card-header"><strong>Alterar password</strong></div>
+              <div class="card-body">
+                <div class="form-group">
+                  <label class="small font-weight-bold">Password actual</label>
+                  <input type="password" class="form-control" id="currentPwd"/>
+                </div>
+                <div class="form-group">
+                  <label class="small font-weight-bold">Nova password</label>
+                  <input type="password" class="form-control" id="newPwd"/>
+                </div>
+                <div class="form-group">
+                  <label class="small font-weight-bold">Confirmar nova password</label>
+                  <input type="password" class="form-control" id="confirmPwd"/>
+                </div>
+                <button class="btn btn-warning" id="btnChangePwd"><i class="fas fa-key mr-1"></i>Alterar password</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+    <%- include('partials/footer') %>
+  </div>
+</div>
+
+<script src="/assets/vendor/jquery/jquery.min.js"></script>
+<script src="/assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+<script src="/assets/js/sb-admin-2.min.js"></script>
+<script>
+document.getElementById('btnSaveProfile').addEventListener('click', async function () {
+  const name = document.getElementById('profileName').value.trim();
+  if (!name) return alert('Nome é obrigatório.');
+  this.disabled = true;
+  try {
+    const r = await fetch('/api/users/profile', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name })
+    });
+    const d = await r.json();
+    alert(d.message || (d.success ? 'Perfil actualizado.' : 'Erro.'));
+    if (d.success) {
+      // Refresh token para actualizar o nome no topbar
+      await fetch('/api/auth/refresh', { method: 'POST' });
+      location.reload();
+    }
+  } finally { this.disabled = false; }
+});
+
+document.getElementById('btnChangePwd').addEventListener('click', async function () {
+  const currentPassword = document.getElementById('currentPwd').value;
+  const newPassword = document.getElementById('newPwd').value;
+  const confirmPassword = document.getElementById('confirmPwd').value;
+  if (!currentPassword || !newPassword) return alert('Preenche todos os campos.');
+  if (newPassword.length < 8) return alert('A nova password deve ter pelo menos 8 caracteres.');
+  if (newPassword !== confirmPassword) return alert('As passwords não coincidem.');
+  this.disabled = true;
+  try {
+    const r = await fetch('/api/users/profile/password', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ currentPassword, newPassword })
+    });
+    const d = await r.json();
+    alert(d.message || (d.success ? 'Password alterada.' : 'Erro.'));
+    if (d.success) {
+      document.getElementById('currentPwd').value = '';
+      document.getElementById('newPwd').value = '';
+      document.getElementById('confirmPwd').value = '';
+    }
+  } finally { this.disabled = false; }
+});
+</script>
+</body>
+</html>

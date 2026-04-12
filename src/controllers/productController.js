@@ -226,10 +226,10 @@ exports.deleteProduct = async (req, res) => {
       return res.status(404).json({ status: "error", message: "Produto não encontrado" });
     }
 
-    return res.json({ status: "success", message: "Produto excluído com sucesso" });
+    return res.json({ status: "success", message: "Produto eliminado com sucesso" });
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ status: "error", message: "Erro ao excluir produto" });
+    return res.status(500).json({ status: "error", message: "Erro ao eliminar produto" });
   }
 };
 
@@ -307,7 +307,7 @@ exports.adjustStock = async (req, res) => {
 
     return res.json({
       status: "success",
-      message: "Stock atualizado com sucesso",
+      message: "Stock actualizado com sucesso",
       product,
     });
   } catch (error) {
@@ -317,7 +317,7 @@ exports.adjustStock = async (req, res) => {
 };
 
 /**
- * ✅ Ativar / Desativar produto (soft)
+ * ✅ Activar / Desactivar produto (soft)
  * body: { active: true|false }
  */
 exports.setActive = async (req, res) => {
@@ -356,10 +356,10 @@ exports.deactivateProduct = async (req, res) => {
       return res.status(404).json({ status: "error", message: "Produto não encontrado" });
     }
 
-    return res.json({ status: "success", message: "Produto desativado com sucesso", product });
+    return res.json({ status: "success", message: "Produto desactivado com sucesso", product });
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ status: "error", message: "Erro ao desativar produto" });
+    return res.status(500).json({ status: "error", message: "Erro ao desactivar produto" });
   }
 };
 
@@ -390,7 +390,7 @@ exports.adjustStockWithReason = async (req, res) => {
     }
 
     if (!product.active) {
-      return res.status(400).json({ status: "error", message: "Produto desativado." });
+      return res.status(400).json({ status: "error", message: "Produto desactivado." });
     }
 
     if (t === "OUT" && product.stock.quantity < q) {
@@ -429,7 +429,7 @@ exports.adjustStockWithReason = async (req, res) => {
       createdBy: userId,
     });
 
-    return res.json({ status: "success", message: "Stock atualizado com sucesso", product });
+    return res.json({ status: "success", message: "Stock actualizado com sucesso", product });
   } catch (error) {
     console.error(error);
     return res.status(500).json({ status: "error", message: "Erro ao ajustar stock" });

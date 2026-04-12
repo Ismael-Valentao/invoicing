@@ -140,10 +140,6 @@
                 <form id="paymentSettingsForm">
                   <div class="row">
                     <div class="col-md-4 mb-3">
-                      <label class="small font-weight-bold">Número M-Pesa</label>
-                      <input type="text" class="form-control form-control-sm" id="ps_mpesa" placeholder="Ex: 84 123 4567"/>
-                    </div>
-                    <div class="col-md-4 mb-3">
                       <label class="small font-weight-bold">Número E-mola</label>
                       <input type="text" class="form-control form-control-sm" id="ps_emola" placeholder="Ex: 86 123 4567"/>
                     </div>
@@ -300,7 +296,6 @@ loadExpiringSoon();
     const data = await res.json();
     if (!data.success) return;
     const s = data.settings;
-    document.getElementById('ps_mpesa').value      = s.mpesa      || '';
     document.getElementById('ps_emola').value      = s.emola      || '';
     document.getElementById('ps_bankName').value   = s.bankName   || '';
     document.getElementById('ps_bankHolder').value = s.bankHolder || '';
@@ -312,7 +307,6 @@ document.getElementById('paymentSettingsForm').addEventListener('submit', async 
   e.preventDefault();
   const msg = document.getElementById('psMsg');
   const body = {
-    mpesa:      document.getElementById('ps_mpesa').value.trim(),
     emola:      document.getElementById('ps_emola').value.trim(),
     bankName:   document.getElementById('ps_bankName').value.trim(),
     bankHolder: document.getElementById('ps_bankHolder').value.trim(),

@@ -133,7 +133,7 @@ async function loadUsers() {
       <td><span class="badge badge-${ROLE_COLORS[u.role]||'secondary'}">${u.role}</span></td>
       <td><span class="badge ${blocked?'badge-danger':'badge-success'}">${u.status}</span></td>
       <td><small class="text-muted">${u.lastLoginAt ? new Date(u.lastLoginAt).toLocaleString('pt-PT') : '—'}</small></td>
-      <td>${new Date(u.createdAt).toLocaleDateString('pt-PT')}</td>
+      <td>${formatDatePT(u.createdAt)}</td>
       <td class="text-center text-nowrap">
         ${isSA ? '<small class="text-muted">protegido</small>' : `
           <button class="btn btn-${blocked?'success':'warning'} btn-sm" title="${blocked?'Desbloquear':'Bloquear'}" onclick="setStatus('${u._id}','${blocked?'active':'blocked'}')">

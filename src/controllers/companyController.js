@@ -62,7 +62,7 @@ exports.createCompany = async (req, res) => {
             const existingUser = await User.findOne({ email: useremail }).session(session);
             if (existingUser) {
                 await session.abortTransaction();
-                return res.status(400).json({ message: "Usuário já existe" });
+                return res.status(400).json({ message: "Utilizador já existe" });
             }
 
             const newCompany = await company.create([{
@@ -174,7 +174,7 @@ exports.createCompany = async (req, res) => {
 
             const existingUser = await User.findOne({ email: useremail });
             if (existingUser) {
-                return res.status(400).json({ message: "Usuário já existe" });
+                return res.status(400).json({ message: "Utilizador já existe" });
             }
 
             const newCompany = await company.create({
@@ -613,7 +613,7 @@ exports.updateBankDetailsVisibility = async (req, res) => {
             showBankDetails: updatedCompany.showBankDetails
         });
     } catch (error) {
-        console.log(error)
+        console.error(error)
         res.status(500).json({
             message: "Erro ao actualizar visibilidade dos dados bancários",
             error
@@ -639,7 +639,7 @@ exports.getBankDetailsVisibility = async (req, res) => {
         });
 
     } catch (error) {
-        console.log(error)
+        console.error(error)
         res.status(500).json({
             message: 'Erro ao buscar visibilidade',
             error

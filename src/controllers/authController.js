@@ -33,7 +33,7 @@ exports.register = async (req, res) => {
 
   const existingUser = await User.find({ email: email, companyId: companyId });
   if (existingUser.length > 0) {
-    return res.status(400).json({ error: 'Usuário já existe' });
+    return res.status(400).json({ error: 'Utilizador já existe' });
   }
 
   const hashedPassword = bcrypt.hashSync(password, 10);
@@ -41,7 +41,7 @@ exports.register = async (req, res) => {
   const user = new User({ ...req.body, password: hashedPassword });
   await user.save();
 
-  res.status(201).json({ message: 'Usuário registrado com sucesso' });
+  res.status(201).json({ message: 'Utilizador registado com sucesso' });
 };
 
 
