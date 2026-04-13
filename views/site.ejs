@@ -1123,9 +1123,12 @@
       var period = plan.name === 'FREE' ? ' / 30 dias' : (isAnnual ? ' / ano' : ' / mês');
       var priceFormatted = price === 0 ? '0' : price.toLocaleString('pt-MZ');
 
+      var originalHtml = '';
       var savingsHtml = '';
       if (isAnnual && monthlyPrice > 0 && annualPrice > 0) {
-        var savings = (monthlyPrice * 12) - annualPrice;
+        var fullPrice = monthlyPrice * 12;
+        var savings = fullPrice - annualPrice;
+        originalHtml = '<p class="text-center mb-1" style="font-size:1.1rem; color:#b0b0b0; text-decoration:line-through;">' + fullPrice.toLocaleString('pt-MZ') + ' MZN/ano</p>';
         if (savings > 0) savingsHtml = '<p class="text-center small" style="color:#1cc88a; font-weight:700;"><i class="bi bi-tag-fill"></i> Poupas ' + savings.toLocaleString('pt-MZ') + ' MZN/ano</p>';
       }
 
@@ -1136,6 +1139,7 @@
         + (info.popular ? '<p class="popular">' + info.popular + '</p>' : '')
         + '<h3>' + info.title + '</h3>'
         + '<p class="description">' + info.desc + '</p>'
+        + originalHtml
         + '<h4><sup>MT</sup>' + priceFormatted + '<span>' + period + '</span></h4>'
         + savingsHtml
         + '<a href="/register" class="cta-btn">' + info.cta + '</a>'

@@ -245,10 +245,13 @@
       var label = isAnnual ? (p.priceAnnualLabel || '') : (p.priceLabel || '');
       var l = p.limits;
 
-      // Mostrar economia anual
+      // Preço rasurado + economia anual
+      var originalHtml = '';
       var savingsHtml = '';
       if (isAnnual && monthlyPrice > 0 && annualPrice > 0) {
-        var savingsValue = (monthlyPrice * 12) - annualPrice;
+        var fullPrice = monthlyPrice * 12;
+        var savingsValue = fullPrice - annualPrice;
+        originalHtml = '<div style="font-size:1.1rem; color:#b0b0b0; text-decoration:line-through; margin-bottom:2px;">' + fullPrice.toLocaleString('pt-MZ') + ' MZN/ano</div>';
         if (savingsValue > 0) savingsHtml = '<div class="text-success small font-weight-bold mt-1"><i class="fas fa-tag mr-1"></i>Poupas ' + savingsValue.toLocaleString('pt-MZ') + ' MZN/ano</div>';
       }
 
@@ -259,6 +262,7 @@
         + (isCurrent ? '<span class="plan-badge bg-secondary text-white">ACTUAL</span>' : '')
         + (isRecommended && !isCurrent ? '<span class="plan-badge bg-success text-white">RECOMENDADO</span>' : '')
         + '</div>'
+        + originalHtml
         + '<div class="price-big mb-1">' + (price === 0 ? '0' : price.toLocaleString('pt-MZ')) + ' <small style="font-size:1rem; color:#858796">' + unit + '</small></div>'
         + '<p class="text-muted small mb-1">' + label + '</p>'
         + savingsHtml
