@@ -78,7 +78,7 @@ exports.getMySubscription = async (req, res) => {
  */
 exports.requestUpgrade = async (req, res) => {
     try {
-        const { plan, paymentMethod, paymentRef } = req.body;
+        const { plan, paymentMethod, paymentRef, billingCycle } = req.body;
 
         if (!plan || !PLANS[plan]) {
             return res.status(400).json({ success: false, message: 'Plano inválido.' });
@@ -91,20 +91,23 @@ exports.requestUpgrade = async (req, res) => {
         const companyId = req.user.company._id;
         const company = await Company.findById(companyId);
         const selectedPlan = getPlan(plan);
+        const cycle = billingCycle === 'annual' ? 'annual' : 'monthly';
+        const price = cycle === 'annual' ? (selectedPlan.priceAnnualMZN || selectedPlan.priceMZN * 10) : selectedPlan.priceMZN;
+        const cycleLabel = cycle === 'annual' ? 'Anual' : 'Mensal';
 
         await sendUpgradeRequestEmail({
             companyName: company.name,
             companyEmail: company.email,
             userName: req.user.name,
-            plan: selectedPlan.label,
-            priceMZN: selectedPlan.priceMZN,
+            plan: `${selectedPlan.label} (${cycleLabel})`,
+            priceMZN: price,
             paymentMethod: paymentMethod || 'Não especificado',
             paymentRef: paymentRef || 'Não especificado'
         });
 
         return res.json({
             success: true,
-            message: 'Pedido de upgrade enviado com sucesso. Activaremos o teu plano em até 24 horas após confirmação do pagamento.'
+            message: 'Pedido de upgrade enviado com sucesso. Activação instantânea após confirmação do pagamento.'
         });
     } catch (err) {
         console.error('Erro ao solicitar upgrade:', err);
@@ -172,6 +175,8 @@ exports.getPlans = async (req, res) => {
         label: p.label,
         priceLabel: p.priceLabel,
         priceMZN: p.priceMZN,
+        priceAnnualLabel: p.priceAnnualLabel || '',
+        priceAnnualMZN: p.priceAnnualMZN || 0,
         limits: {
             maxInvoicesPerMonth: p.maxInvoicesPerMonth === Infinity ? 'Ilimitado' : p.maxInvoicesPerMonth,
             maxSalesPerMonth: p.maxSalesPerMonth === Infinity ? 'Ilimitado' : p.maxSalesPerMonth,

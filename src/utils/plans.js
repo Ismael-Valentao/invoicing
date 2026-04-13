@@ -14,14 +14,18 @@ const DEFAULTS = {
         maxInvoicesPerMonth: 50, maxSalesPerMonth: 150,
         maxClients: 100, maxProducts: 200, maxUsers: 3,
         excelExport: true, advancedReports: false,
-        trialDays: 0, priceLabel: '799 MZN/mês', priceMZN: 799,
+        trialDays: 0,
+        priceLabel: '799 MZN/mês', priceMZN: 799,
+        priceAnnualLabel: '7.990 MZN/ano (poupa 2 meses)', priceAnnualMZN: 7990,
     },
     PREMIUM: {
         name: 'PREMIUM', label: 'Premium',
         maxInvoicesPerMonth: 999999, maxSalesPerMonth: 999999,
         maxClients: 999999, maxProducts: 999999, maxUsers: 999999,
         excelExport: true, advancedReports: true,
-        trialDays: 0, priceLabel: '1.299 MZN/mês', priceMZN: 1299,
+        trialDays: 0,
+        priceLabel: '1.299 MZN/mês', priceMZN: 1299,
+        priceAnnualLabel: '12.990 MZN/ano (poupa 2 meses)', priceAnnualMZN: 12990,
     }
 };
 
@@ -81,9 +85,9 @@ const getFreePlanExpiration = () => {
     return date;
 };
 
-const getPaidPlanExpiration = () => {
+const getPaidPlanExpiration = (billingCycle = 'monthly') => {
     const date = new Date();
-    date.setDate(date.getDate() + 30);
+    date.setDate(date.getDate() + (billingCycle === 'annual' ? 365 : 30));
     return date;
 };
 

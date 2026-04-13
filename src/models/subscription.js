@@ -15,6 +15,12 @@ const subscriptionSchema = new mongoose.Schema({
         default: 'FREE'
     },
 
+    billingCycle: {
+        type: String,
+        enum: ['monthly', 'annual'],
+        default: 'monthly'
+    },
+
     startDate: {
         type: Date,
         default: Date.now

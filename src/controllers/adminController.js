@@ -133,7 +133,7 @@ exports.listSubscriptions = async (req, res) => {
 // ─── ACTIVAR / ALTERAR PLANO ──────────────────────────────────────────────────
 exports.activatePlan = async (req, res) => {
     try {
-        const { companyId, plan, months } = req.body;
+        const { companyId, plan, months, billingCycle } = req.body;
 
         if (!companyId || !plan || !PLANS[plan]) {
             return res.status(400).json({ success: false, message: 'companyId e plan válido são obrigatórios.' });
@@ -142,11 +142,13 @@ exports.activatePlan = async (req, res) => {
         const sub = await Subscription.findOne({ companyId });
         if (!sub) return res.status(404).json({ success: false, message: 'Subscrição não encontrada.' });
 
-        const numMonths = parseInt(months) || 1;
+        const cycle = billingCycle === 'annual' ? 'annual' : 'monthly';
+        const numMonths = parseInt(months) || (cycle === 'annual' ? 12 : 1);
         const expiry = new Date();
         expiry.setDate(expiry.getDate() + numMonths * 30);
 
         sub.plan = plan;
+        sub.billingCycle = cycle;
         sub.status = 'active';
         sub.startDate = new Date();
         sub.expiresAt = expiry;
@@ -487,7 +489,8 @@ exports.updatePlan = async (req, res) => {
             return res.status(400).json({ success: false, message: 'Plano inválido.' });
         }
         const fields = ['label', 'maxInvoicesPerMonth', 'maxSalesPerMonth', 'maxClients',
-            'maxProducts', 'maxUsers', 'excelExport', 'advancedReports', 'trialDays', 'priceMZN', 'priceLabel'];
+            'maxProducts', 'maxUsers', 'excelExport', 'advancedReports', 'trialDays',
+            'priceMZN', 'priceLabel', 'priceAnnualMZN', 'priceAnnualLabel'];
         const update = {};
         for (const f of fields) {
             if (req.body[f] !== undefined) update[f] = req.body[f];

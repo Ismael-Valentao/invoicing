@@ -545,6 +545,18 @@
           <span>Escolha o</span>
           <span class="description-title">plano ideal para o seu negócio</span>
         </div>
+
+        <!-- Toggle Mensal / Anual -->
+        <div class="d-inline-flex align-items-center mt-3 px-4 py-2" style="background:#f1f5f9; border-radius:999px;">
+          <span id="siteLblMonthly" class="small" style="font-weight:700; cursor:pointer;">Mensal</span>
+          <label class="mx-2 mb-0" style="position:relative; width:44px; height:24px; cursor:pointer;">
+            <input type="checkbox" id="siteBillingToggle" style="opacity:0; width:0; height:0;">
+            <span id="siteToggleBg" style="position:absolute; inset:0; background:#ccc; border-radius:999px; transition:.3s;"></span>
+            <span id="siteToggleDot" style="position:absolute; top:2px; left:2px; width:20px; height:20px; background:#fff; border-radius:50%; transition:.3s;"></span>
+          </label>
+          <span id="siteLblAnnual" class="small text-muted" style="cursor:pointer;">Anual</span>
+          <span class="ms-2 badge" style="background:#1cc88a; color:#fff; font-size:.7rem;">Poupa 2 meses</span>
+        </div>
       </div>
 
       <div class="container">
@@ -1069,12 +1081,53 @@
       return '<li class="na"><i class="bi bi-x"></i> <span>' + label + '</span></li>';
     }
 
+    var siteBillingCycle = 'monthly';
+    var sitePlansCache = [];
+
+    // Toggle
+    var siteToggle = document.getElementById('siteBillingToggle');
+    var siteToggleDot = document.getElementById('siteToggleDot');
+    var siteToggleBg = document.getElementById('siteToggleBg');
+    var siteLblM = document.getElementById('siteLblMonthly');
+    var siteLblA = document.getElementById('siteLblAnnual');
+
+    function updateSiteToggle() {
+      if (siteBillingCycle === 'annual') {
+        siteToggleDot.style.left = '22px';
+        siteToggleBg.style.background = '#1cc88a';
+        siteLblA.style.fontWeight = '700';
+        siteLblA.classList.remove('text-muted');
+        siteLblM.style.fontWeight = '400';
+        siteLblM.classList.add('text-muted');
+      } else {
+        siteToggleDot.style.left = '2px';
+        siteToggleBg.style.background = '#ccc';
+        siteLblM.style.fontWeight = '700';
+        siteLblM.classList.remove('text-muted');
+        siteLblA.style.fontWeight = '400';
+        siteLblA.classList.add('text-muted');
+      }
+    }
+
+    siteToggle.addEventListener('change', function () { siteBillingCycle = this.checked ? 'annual' : 'monthly'; updateSiteToggle(); renderSitePricing(); });
+    siteLblM.addEventListener('click', function () { siteToggle.checked = false; siteBillingCycle = 'monthly'; updateSiteToggle(); renderSitePricing(); });
+    siteLblA.addEventListener('click', function () { siteToggle.checked = true; siteBillingCycle = 'annual'; updateSiteToggle(); renderSitePricing(); });
+
     function buildCard(plan) {
       var info = descriptions[plan.name] || { title: plan.label, desc: '', cta: 'Registar', sub: '' };
       var delay = delays[plan.name] || 100;
-      var price = plan.priceMZN || 0;
-      var period = plan.name === 'FREE' ? ' / 30 dias' : ' / mês';
+      var isAnnual = siteBillingCycle === 'annual';
+      var monthlyPrice = plan.priceMZN || 0;
+      var annualPrice = plan.priceAnnualMZN || 0;
+      var price = plan.name === 'FREE' ? 0 : (isAnnual ? annualPrice : monthlyPrice);
+      var period = plan.name === 'FREE' ? ' / 30 dias' : (isAnnual ? ' / ano' : ' / mês');
       var priceFormatted = price === 0 ? '0' : price.toLocaleString('pt-MZ');
+
+      var savingsHtml = '';
+      if (isAnnual && monthlyPrice > 0 && annualPrice > 0) {
+        var savings = (monthlyPrice * 12) - annualPrice;
+        if (savings > 0) savingsHtml = '<p class="text-center small" style="color:#1cc88a; font-weight:700;"><i class="bi bi-tag-fill"></i> Poupas ' + savings.toLocaleString('pt-MZ') + ' MZN/ano</p>';
+      }
 
       var l = plan.limits;
 
@@ -1084,6 +1137,7 @@
         + '<h3>' + info.title + '</h3>'
         + '<p class="description">' + info.desc + '</p>'
         + '<h4><sup>MT</sup>' + priceFormatted + '<span>' + period + '</span></h4>'
+        + savingsHtml
         + '<a href="/register" class="cta-btn">' + info.cta + '</a>'
         + '<p class="text-center small">' + info.sub + '</p>'
         + '<ul>'
@@ -1098,13 +1152,17 @@
         + '</ul></div></div>';
     }
 
+    function renderSitePricing() {
+      document.getElementById('pricingCards').innerHTML = sitePlansCache.map(buildCard).join('');
+    }
+
     fetch('/api/subscriptions/plans')
       .then(function(r) { return r.json(); })
       .then(function(data) {
         if (!data.success || !data.plans.length) return;
         var order = ['FREE', 'BASIC', 'PREMIUM'];
-        var sorted = order.map(function(n) { return data.plans.find(function(p) { return p.name === n; }); }).filter(Boolean);
-        document.getElementById('pricingCards').innerHTML = sorted.map(buildCard).join('');
+        sitePlansCache = order.map(function(n) { return data.plans.find(function(p) { return p.name === n; }); }).filter(Boolean);
+        renderSitePricing();
       })
       .catch(function() {});
   })();

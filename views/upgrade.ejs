@@ -52,6 +52,18 @@
         <div class="text-center mb-5">
           <h2 class="h3 font-weight-bold text-gray-800">Escolhe o teu plano</h2>
           <p class="text-muted">Sem contratos. Cancela quando quiseres.</p>
+
+          <!-- Toggle Mensal / Anual -->
+          <div class="d-inline-flex align-items-center mt-3 px-4 py-2" style="background:#f1f5f9; border-radius:999px;">
+            <span id="lblMonthly" class="small font-weight-bold" style="cursor:pointer;">Mensal</span>
+            <label class="mx-2 mb-0" style="position:relative; width:44px; height:24px; cursor:pointer;">
+              <input type="checkbox" id="billingToggle" style="opacity:0; width:0; height:0;">
+              <span style="position:absolute; inset:0; background:#ccc; border-radius:999px; transition:.3s;"></span>
+              <span id="toggleDot" style="position:absolute; top:2px; left:2px; width:20px; height:20px; background:#fff; border-radius:50%; transition:.3s;"></span>
+            </label>
+            <span id="lblAnnual" class="small text-muted" style="cursor:pointer;">Anual</span>
+            <span class="ml-2 badge badge-success" style="font-size:.7rem;">Poupa 2 meses</span>
+          </div>
         </div>
 
         <!-- Planos (carregados dinamicamente) -->
@@ -161,6 +173,40 @@
 
   let selectedPlan = null;
   let currentPlan = 'FREE';
+  let billingCycle = 'monthly';
+  let plansCache = [];
+
+  // Toggle styling
+  const billingToggle = document.getElementById('billingToggle');
+  const toggleDot = document.getElementById('toggleDot');
+  const lblMonthly = document.getElementById('lblMonthly');
+  const lblAnnual = document.getElementById('lblAnnual');
+
+  function updateToggleUI() {
+    if (billingCycle === 'annual') {
+      toggleDot.style.left = '22px';
+      toggleDot.parentElement.querySelector('span').style.background = '#1cc88a';
+      lblAnnual.classList.remove('text-muted');
+      lblAnnual.classList.add('font-weight-bold');
+      lblMonthly.classList.add('text-muted');
+      lblMonthly.classList.remove('font-weight-bold');
+    } else {
+      toggleDot.style.left = '2px';
+      toggleDot.parentElement.querySelector('span').style.background = '#ccc';
+      lblMonthly.classList.remove('text-muted');
+      lblMonthly.classList.add('font-weight-bold');
+      lblAnnual.classList.add('text-muted');
+      lblAnnual.classList.remove('font-weight-bold');
+    }
+  }
+
+  billingToggle.addEventListener('change', function () {
+    billingCycle = this.checked ? 'annual' : 'monthly';
+    updateToggleUI();
+    renderPlanCards(plansCache);
+  });
+  lblMonthly.addEventListener('click', function () { billingToggle.checked = false; billingCycle = 'monthly'; updateToggleUI(); renderPlanCards(plansCache); });
+  lblAnnual.addEventListener('click', function () { billingToggle.checked = true; billingCycle = 'annual'; updateToggleUI(); renderPlanCards(plansCache); });
 
   function isUnlimited(v) { return v === 'Ilimitado' || v >= 999999; }
   function limitText(v, unit) {
@@ -182,23 +228,41 @@
     currentPlan = subData?.subscription?.plan || 'FREE';
 
     var order = ['FREE', 'BASIC', 'PREMIUM'];
-    var sorted = order.map(n => plansData.plans.find(p => p.name === n)).filter(Boolean);
+    plansCache = order.map(n => plansData.plans.find(p => p.name === n)).filter(Boolean);
+    renderPlanCards(plansCache);
+  }).catch(() => {});
+
+  function renderPlanCards(sorted) {
+    var isAnnual = billingCycle === 'annual';
 
     document.getElementById('planCards').innerHTML = sorted.map(p => {
       var isCurrent = p.name === currentPlan;
       var isRecommended = p.name === 'PREMIUM';
-      var price = p.priceMZN || 0;
+      var monthlyPrice = p.priceMZN || 0;
+      var annualPrice = p.priceAnnualMZN || 0;
+      var price = (p.name === 'FREE') ? 0 : (isAnnual ? annualPrice : monthlyPrice);
+      var unit = p.name === 'FREE' ? 'MZN' : (isAnnual ? 'MZN/ano' : 'MZN/mês');
+      var label = isAnnual ? (p.priceAnnualLabel || '') : (p.priceLabel || '');
       var l = p.limits;
 
+      // Mostrar economia anual
+      var savingsHtml = '';
+      if (isAnnual && monthlyPrice > 0 && annualPrice > 0) {
+        var savingsValue = (monthlyPrice * 12) - annualPrice;
+        if (savingsValue > 0) savingsHtml = '<div class="text-success small font-weight-bold mt-1"><i class="fas fa-tag mr-1"></i>Poupas ' + savingsValue.toLocaleString('pt-MZ') + ' MZN/ano</div>';
+      }
+
       return '<div class="col-lg-3 col-md-6 mb-4">'
-        + '<div class="plan-card' + (isRecommended ? ' recommended' : '') + ' card h-100 p-4" data-plan="' + p.name + '" data-price="' + price + '" data-label="' + p.label + '">'
+        + '<div class="plan-card' + (isRecommended ? ' recommended' : '') + ' card h-100 p-4" data-plan="' + p.name + '" data-price="' + price + '" data-label="' + p.label + ' (' + (isAnnual ? 'Anual' : 'Mensal') + ')">'
         + '<div class="d-flex justify-content-between align-items-center mb-3">'
         + '<h5 class="font-weight-bold mb-0">' + p.label + '</h5>'
         + (isCurrent ? '<span class="plan-badge bg-secondary text-white">ACTUAL</span>' : '')
         + (isRecommended && !isCurrent ? '<span class="plan-badge bg-success text-white">RECOMENDADO</span>' : '')
         + '</div>'
-        + '<div class="price-big mb-1">' + (price === 0 ? '0' : price.toLocaleString('pt-MZ')) + ' <small style="font-size:1rem; color:#858796">' + (p.name === 'FREE' ? 'MZN' : 'MZN/mês') + '</small></div>'
-        + '<p class="text-muted small mb-3">' + (p.priceLabel || '') + '</p><hr/>'
+        + '<div class="price-big mb-1">' + (price === 0 ? '0' : price.toLocaleString('pt-MZ')) + ' <small style="font-size:1rem; color:#858796">' + unit + '</small></div>'
+        + '<p class="text-muted small mb-1">' + label + '</p>'
+        + savingsHtml
+        + '<hr/>'
         + '<ul class="list-unstyled small mb-0">'
         + '<li class="mb-2">' + limitText(l.maxInvoicesPerMonth, 'facturas/mês') + '</li>'
         + '<li class="mb-2">' + limitText(l.maxSalesPerMonth, 'vendas/mês') + '</li>'
@@ -225,7 +289,7 @@
         document.getElementById('upgradeMsg').style.display = 'none';
       });
     });
-  }).catch(() => {});
+  }
 
   // Troca detalhes de pagamento
   document.querySelectorAll('input[name="paymentMethod"]').forEach(radio => {
@@ -242,6 +306,7 @@
     if (!selectedPlan) return;
     const paymentMethod = document.querySelector('input[name="paymentMethod"]:checked')?.value || '';
     const paymentRef = document.getElementById('paymentRef').value.trim();
+    const cycle = billingCycle;
     const btn = this;
 
     btn.disabled = true;
@@ -251,7 +316,7 @@
       const res = await fetch('/api/subscriptions/request-upgrade', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ plan: selectedPlan, paymentMethod, paymentRef })
+        body: JSON.stringify({ plan: selectedPlan, paymentMethod, paymentRef, billingCycle: cycle })
       });
       const data = await res.json();
       const msgEl = document.getElementById('upgradeMsg');

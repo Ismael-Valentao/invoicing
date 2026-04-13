@@ -13,6 +13,8 @@ const planConfigSchema = new mongoose.Schema({
     trialDays: { type: Number, default: 0 },
     priceMZN: { type: Number, default: 0 },
     priceLabel: { type: String, default: '' },
+    priceAnnualMZN: { type: Number, default: 0 },
+    priceAnnualLabel: { type: String, default: '' },
 }, { timestamps: true });
 
 module.exports = mongoose.model('PlanConfig', planConfigSchema);
