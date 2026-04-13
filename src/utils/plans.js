@@ -16,7 +16,7 @@ const DEFAULTS = {
         excelExport: true, advancedReports: false,
         trialDays: 0,
         priceLabel: '799 MZN/mês', priceMZN: 799,
-        priceAnnualLabel: '7.990 MZN/ano (poupa 2 meses)', priceAnnualMZN: 7990,
+        priceAnnualLabel: '4.794 MZN/ano (50% de desconto)', priceAnnualMZN: 4794,
     },
     PREMIUM: {
         name: 'PREMIUM', label: 'Premium',
@@ -25,7 +25,7 @@ const DEFAULTS = {
         excelExport: true, advancedReports: true,
         trialDays: 0,
         priceLabel: '1.299 MZN/mês', priceMZN: 1299,
-        priceAnnualLabel: '12.990 MZN/ano (poupa 2 meses)', priceAnnualMZN: 12990,
+        priceAnnualLabel: '7.794 MZN/ano (50% de desconto)', priceAnnualMZN: 7794,
     }
 };
 
