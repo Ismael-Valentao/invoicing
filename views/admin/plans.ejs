@@ -74,8 +74,18 @@ function buildPlanCard(plan) {
     + '<input type="number" class="form-control form-control-sm" data-plan="' + plan.name + '" data-field="priceMZN" value="' + (plan.priceMZN||0) + '" min="0"/></div>'
     + '</div>'
 
-    + '<div class="plan-field mb-2"><label>Label de preço</label>'
+    + '<div class="plan-field mb-2"><label>Label de preço (mensal)</label>'
     + '<input type="text" class="form-control form-control-sm" data-plan="' + plan.name + '" data-field="priceLabel" value="' + (plan.priceLabel||'') + '"/></div>'
+
+    + '<hr class="my-2"/>'
+    + '<h6 class="font-weight-bold small text-uppercase text-gray-600 mb-2"><i class="fas fa-calendar-alt mr-1"></i>Preço Anual</h6>'
+
+    + '<div class="row">'
+    + '<div class="col-6 plan-field mb-2"><label>Preço anual (MZN)</label>'
+    + '<input type="number" class="form-control form-control-sm" data-plan="' + plan.name + '" data-field="priceAnnualMZN" value="' + (plan.priceAnnualMZN||0) + '" min="0"/></div>'
+    + '<div class="col-6 plan-field mb-2"><label>Label anual</label>'
+    + '<input type="text" class="form-control form-control-sm" data-plan="' + plan.name + '" data-field="priceAnnualLabel" value="' + (plan.priceAnnualLabel||'') + '"/></div>'
+    + '</div>'
 
     + '<hr class="my-2"/>'
     + '<h6 class="font-weight-bold small text-uppercase text-gray-600 mb-2">Limites</h6>'
