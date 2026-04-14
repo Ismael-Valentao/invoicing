@@ -25,7 +25,7 @@ function emailWrapper(content) {
     <hr style="margin-top:40px; border:none; border-top:1px solid #eee;" />
     <p style="font-size:12px; color:#999; text-align:center;">
       Este e-mail foi enviado automaticamente. Por favor, não respondas a esta mensagem.<br>
-      <a href="${APP_URL}" style="color:#999;">invoicing.bitiray.com</a>
+      <a href="${APP_URL}" style="color:#999;">${APP_URL.replace(/^https?:\/\//, '')}</a>
     </p>
   </div>
 </div>`;
