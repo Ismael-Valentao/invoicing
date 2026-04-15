@@ -234,10 +234,22 @@ fetch('/api/admin/banner/public', { cache:'no-store' })
 
     <!-- Nav Item - Indicações -->
     <li class="nav-item mx-1">
-      <a class="nav-link" href="/referrals" title="Programa de Indicações">
+      <a class="nav-link" href="/referrals" title="Programa de Indicações" style="position:relative;">
         <i class="fas fa-gift fa-fw"></i>
+        <span id="refsNewBadge" class="badge badge-danger" style="display:none; position:absolute; top:6px; right:2px; font-size:.55rem; padding:2px 5px; font-weight:700;">NOVO</span>
       </a>
     </li>
+    <script>
+    (function () {
+      var uid = '<%= currentUser && currentUser._id %>';
+      if (!uid) return;
+      var visited = localStorage.getItem('invoicing_refs_visited_' + uid);
+      if (!visited) {
+        var b = document.getElementById('refsNewBadge');
+        if (b) b.style.display = '';
+      }
+    })();
+    </script>
 
     <!-- Nav Item - Notifications -->
     <li class="nav-item dropdown no-arrow mx-1">

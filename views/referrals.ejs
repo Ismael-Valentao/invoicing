@@ -224,6 +224,15 @@ async function loadReferrals() {
 }
 
 loadReferrals();
+
+// Marca como visitado — esconde badge "Novo", banner e modal em futuras visitas
+(function () {
+  var uid = '<%= currentUser && currentUser._id %>';
+  if (!uid) return;
+  localStorage.setItem('invoicing_refs_visited_' + uid, '1');
+  localStorage.setItem('invoicing_refs_modal_' + uid, '1');
+  localStorage.setItem('invoicing_refs_banner_' + uid, '1');
+})();
 </script>
 </body>
 </html>

@@ -1,0 +1,93 @@
+<%# Modal + banner de anúncio do programa de indicações. Requer: currentUser %>
+
+<!-- Banner (aparece depois de "Mais tarde" ou ignorar modal) -->
+<div id="refAnnounceBanner" class="alert alert-primary alert-dismissible shadow-sm mb-4" style="display:none; border-left:4px solid #228CDF;">
+  <div class="d-flex align-items-center flex-wrap" style="gap:10px;">
+    <i class="fas fa-gift fa-lg text-primary"></i>
+    <div style="flex:1; min-width:200px;">
+      <strong>Novo: Programa de Indicações</strong> — ganha <strong>+30 dias Premium</strong> por cada empresa que indicares e pagar a primeira subscrição. Sem limite.
+    </div>
+    <a href="/referrals" class="btn btn-primary btn-sm">Ver o meu link</a>
+  </div>
+  <button type="button" class="close" data-dismiss="alert" aria-label="Fechar" id="refAnnounceBannerClose">
+    <span aria-hidden="true">&times;</span>
+  </button>
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="refAnnounceModal" tabindex="-1" role="dialog" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-content" style="border:none; border-radius:14px; overflow:hidden;">
+      <div style="background:linear-gradient(135deg,#228CDF 0%, #1a6fb8 100%); color:#fff; padding:28px 28px 22px; text-align:center; position:relative;">
+        <button type="button" class="close text-white" data-dismiss="modal" aria-label="Fechar" id="refAnnounceModalClose"
+          style="position:absolute; top:12px; right:16px; color:#fff; opacity:.8;">
+          <span aria-hidden="true">&times;</span>
+        </button>
+        <div style="font-size:3rem; margin-bottom:8px;">🎁</div>
+        <h4 style="font-weight:800; margin:0;">Novidade — Programa de Indicações</h4>
+        <p style="opacity:.95; margin:8px 0 0; font-size:.95rem;">Ganha <strong>+30 dias Premium grátis</strong> por cada empresa que indicares</p>
+      </div>
+      <div class="modal-body" style="padding:24px 28px;">
+        <p class="text-muted small mb-3">
+          Agora podes partilhar o Invoicing com outras empresas e ser recompensado. É simples:
+        </p>
+        <ol class="mb-3" style="padding-left:20px; font-size:.92rem;">
+          <li class="mb-2">Copias o teu <strong>link único</strong> em Indicações.</li>
+          <li class="mb-2">Partilhas por WhatsApp, email ou redes sociais.</li>
+          <li class="mb-2">Quando a empresa indicada <strong>pagar a primeira subscrição</strong>, ganhas 30 dias Premium, empilhados a seguir ao teu plano actual.</li>
+        </ol>
+        <div class="alert alert-light mb-0" style="background:#f8f9fc; border:1px solid #e3e6f0; border-radius:8px;">
+          <i class="fas fa-infinity text-primary mr-1"></i>
+          <strong>Sem limite de indicações.</strong> Indicas 5, ganhas 5 meses. Indicas 12, ganhas 12.
+        </div>
+      </div>
+      <div class="modal-footer" style="border-top:none; padding:12px 28px 22px;">
+        <button type="button" class="btn btn-outline-secondary btn-sm" id="refAnnounceLater">Mais tarde</button>
+        <a href="/referrals" class="btn btn-primary" id="refAnnounceCta">
+          <i class="fas fa-gift mr-1"></i>Ver o meu link agora
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  var uid = '<%= currentUser && currentUser._id %>';
+  if (!uid) return;
+
+  var MODAL_KEY   = 'invoicing_refs_modal_'   + uid;
+  var BANNER_KEY  = 'invoicing_refs_banner_'  + uid;
+  var VISITED_KEY = 'invoicing_refs_visited_' + uid;
+
+  var modalSeen    = localStorage.getItem(MODAL_KEY);
+  var bannerDone   = localStorage.getItem(BANNER_KEY);
+  var userVisited  = localStorage.getItem(VISITED_KEY);
+
+  // Se já visitou /referrals, nada a fazer
+  if (userVisited) return;
+
+  // 1) Mostrar modal uma única vez
+  if (!modalSeen) {
+    setTimeout(function () {
+      try { $('#refAnnounceModal').modal({ backdrop: 'static', keyboard: true }); } catch (e) {}
+    }, 900);
+
+    var markModal = function () { localStorage.setItem(MODAL_KEY, '1'); };
+    document.getElementById('refAnnounceCta').addEventListener('click', markModal);
+    document.getElementById('refAnnounceModalClose').addEventListener('click', markModal);
+    document.getElementById('refAnnounceLater').addEventListener('click', function () {
+      markModal();
+      try { $('#refAnnounceModal').modal('hide'); } catch (e) {}
+    });
+    $('#refAnnounceModal').on('hidden.bs.modal', markModal);
+  } else if (!bannerDone) {
+    // 2) Modal já visto mas banner ainda não foi dispensado
+    var banner = document.getElementById('refAnnounceBanner');
+    if (banner) banner.style.display = '';
+    document.getElementById('refAnnounceBannerClose').addEventListener('click', function () {
+      localStorage.setItem(BANNER_KEY, '1');
+    });
+  }
+})();
+</script>
