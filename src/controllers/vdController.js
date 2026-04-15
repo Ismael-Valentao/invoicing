@@ -147,7 +147,8 @@ exports.generateVDPDF = async (req, res) => {
     });
   }
   try {
-    const pdfBuffer = await generateVDPDF(req.user.company, vd);
+    const baseUrl = `${req.protocol}://${req.get('host')}`;
+    const pdfBuffer = await generateVDPDF(req.user.company, vd, baseUrl);
     res.set({
       "Content-Type": "application/pdf",
       "Content-Disposition": `attachment; filename=vd-${vd.invoiceNumber}.pdf`,

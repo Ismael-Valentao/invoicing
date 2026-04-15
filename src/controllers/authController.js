@@ -74,13 +74,13 @@ exports.login = async (req, res) => {
   await user.save();
   await auditLogin({ user, email, req, success: true, reason: 'ok' });
 
-  const token = jwt.sign({ id: user._id, name: user.name, email: user.email, permissions:user.permissions, role:user.role, company: user.companyId, tokenVersion: user.tokenVersion || 0 }, SECRET, { expiresIn: '1h' });
+  const token = jwt.sign({ id: user._id, name: user.name, email: user.email, permissions:user.permissions, role:user.role, company: user.companyId, tokenVersion: user.tokenVersion || 0 }, SECRET, { expiresIn: '24h' });
 
   res.cookie('token', token, {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
     sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
-    maxAge: 3600000
+    maxAge: 24 * 60 * 60 * 1000
   });
 
   if (user.role === 'SUPERADMIN') {
@@ -131,14 +131,14 @@ exports.refreshToken = async (req, res) => {
 
     const token = jwt.sign(
       { id: user._id, name: user.name, email: user.email, permissions: user.permissions, role: user.role, company: user.companyId, tokenVersion: user.tokenVersion || 0 },
-      SECRET, { expiresIn: '1h' }
+      SECRET, { expiresIn: '24h' }
     );
 
     res.cookie('token', token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
-      maxAge: 3600000
+      maxAge: 24 * 60 * 60 * 1000
     });
 
     res.json({ success: true, message: 'Token renovado.' });

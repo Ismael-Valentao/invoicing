@@ -181,7 +181,8 @@ exports.downloadQuotationPDF = async (req, res) => {
             });
         }
 
-        const pdfBuffer = await generateQuotationPDF(companyInfo, quotation);
+        const baseUrl = `${req.protocol}://${req.get('host')}`;
+        const pdfBuffer = await generateQuotationPDF(companyInfo, quotation, baseUrl);
 
         res.set({
             'Content-Type': 'application/pdf',

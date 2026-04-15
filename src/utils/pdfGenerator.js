@@ -522,16 +522,20 @@ async function renderA4Pdf(html) {
   return pdfBuffer;
 }
 
-async function generateInvoicePDF(companyInfo, invoice, baseUrl) {
-  // Generate QR code linking to the client portal
-  let qrCodeDataUrl = "";
+async function buildShareQR(doc, baseUrl) {
   try {
     const resolvedBase = baseUrl || process.env.BASE_URL || "";
-    if (resolvedBase) {
-      const portalUrl = `${resolvedBase.replace(/\/$/, '')}/p/${invoice._id}`;
-      qrCodeDataUrl = await QRCode.toDataURL(portalUrl, { width: 120, margin: 1 });
-    }
-  } catch (e) { /* QR code is optional */ }
+    if (!resolvedBase || !doc) return "";
+    const { ensureShareToken } = require('./shareDocument');
+    const token = await ensureShareToken(doc);
+    if (!token) return "";
+    const url = `${resolvedBase.replace(/\/$/, '')}/share/${token}`;
+    return await QRCode.toDataURL(url, { width: 120, margin: 1 });
+  } catch (e) { return ""; }
+}
+
+async function generateInvoicePDF(companyInfo, invoice, baseUrl) {
+  const qrCodeDataUrl = await buildShareQR(invoice, baseUrl);
 
   const html = buildA4DocumentHtml({
     companyInfo,
@@ -559,7 +563,9 @@ async function generateInvoicePDF(companyInfo, invoice, baseUrl) {
   return await renderA4Pdf(html);
 }
 
-async function generateQuotationPDF(companyInfo, quotation) {
+async function generateQuotationPDF(companyInfo, quotation, baseUrl) {
+  const qrCodeDataUrl = await buildShareQR(quotation, baseUrl);
+
   const html = buildA4DocumentHtml({
     companyInfo,
     title: "COTAÇÃO",
@@ -576,6 +582,7 @@ async function generateQuotationPDF(companyInfo, quotation) {
       totalAmount: quotation.totalAmount,
     },
     bankBlock: renderBankDetailsBlock(companyInfo, "quotation"),
+    qrCodeDataUrl,
     footerNotes: [
       "Esta cotação representa uma proposta comercial de fornecimento de bens e/ou serviços.",
       `Em caso de dúvidas, contacte o departamento financeiro: ${companyInfo.email || "-"} | ${companyInfo.contact || "-"}`,
@@ -585,7 +592,9 @@ async function generateQuotationPDF(companyInfo, quotation) {
   return await renderA4Pdf(html);
 }
 
-async function generateVDPDF(companyInfo, vd) {
+async function generateVDPDF(companyInfo, vd, baseUrl) {
+  const qrCodeDataUrl = await buildShareQR(vd, baseUrl);
+
   const html = buildA4DocumentHtml({
     companyInfo,
     title: "VENDA A DINHEIRO",
@@ -602,6 +611,7 @@ async function generateVDPDF(companyInfo, vd) {
       totalAmount: vd.totalAmount,
     },
     bankBlock: renderBankDetailsBlock(companyInfo, "vd"),
+    qrCodeDataUrl,
     footerNotes: [
       "Este documento comprova o pagamento imediato dos bens ou serviços descritos acima.",
       "Não necessita de factura adicional. Conserve este documento como comprovativo legal.",
@@ -612,7 +622,9 @@ async function generateVDPDF(companyInfo, vd) {
   return await renderA4Pdf(html);
 }
 
-async function generateReciboPDF(companyInfo, invoice) {
+async function generateReciboPDF(companyInfo, invoice, baseUrl) {
+  const qrCodeDataUrl = await buildShareQR(invoice, baseUrl);
+
   const html = buildA4DocumentHtml({
     companyInfo,
     title: "RECIBO",
@@ -629,6 +641,7 @@ async function generateReciboPDF(companyInfo, invoice) {
       totalAmount: invoice.totalAmount,
     },
     bankBlock: renderBankDetailsBlock(companyInfo, "receipt"),
+    qrCodeDataUrl,
     footerNotes: [
       "Este recibo confirma o pagamento referente aos bens ou serviços descritos acima.",
       `Data do pagamento: ${formatedDate(new Date().toISOString())}`,
@@ -924,7 +937,9 @@ async function generateSaleReceiptPDF(companyInfo, sale) {
   return pdfBuffer;
 }
 
-async function generateCreditNotePDF(companyInfo, note, relatedInvoiceNumber, _baseUrl) {
+async function generateCreditNotePDF(companyInfo, note, relatedInvoiceNumber, baseUrl) {
+  const qrCodeDataUrl = await buildShareQR(note, baseUrl);
+
   const html = buildA4DocumentHtml({
     companyInfo,
     title: "NOTA DE CRÉDITO",
@@ -941,6 +956,7 @@ async function generateCreditNotePDF(companyInfo, note, relatedInvoiceNumber, _b
       totalAmount: note.totalAmount,
     },
     bankBlock: "",
+    qrCodeDataUrl,
     footerNotes: [
       `Referente à Factura: ${relatedInvoiceNumber || "—"}`,
       `Motivo: ${note.reason || "—"}`,
@@ -952,7 +968,9 @@ async function generateCreditNotePDF(companyInfo, note, relatedInvoiceNumber, _b
   return await renderA4Pdf(html);
 }
 
-async function generateDebitNotePDF(companyInfo, note, relatedInvoiceNumber, _baseUrl) {
+async function generateDebitNotePDF(companyInfo, note, relatedInvoiceNumber, baseUrl) {
+  const qrCodeDataUrl = await buildShareQR(note, baseUrl);
+
   const html = buildA4DocumentHtml({
     companyInfo,
     title: "NOTA DE DÉBITO",
@@ -969,6 +987,7 @@ async function generateDebitNotePDF(companyInfo, note, relatedInvoiceNumber, _ba
       totalAmount: note.totalAmount,
     },
     bankBlock: renderBankDetailsBlock(companyInfo, "invoice"),
+    qrCodeDataUrl,
     footerNotes: [
       `Referente à Factura: ${relatedInvoiceNumber || "—"}`,
       `Motivo: ${note.reason || "—"}`,

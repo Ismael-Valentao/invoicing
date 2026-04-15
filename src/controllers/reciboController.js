@@ -91,7 +91,8 @@ exports.generateReciboPDF = async (req, res) => {
     });
   }
   try {
-    const pdfBuffer = await generateReciboPDF(req.user.company, recibo);
+    const baseUrl = `${req.protocol}://${req.get('host')}`;
+    const pdfBuffer = await generateReciboPDF(req.user.company, recibo, baseUrl);
     res.set({
       "Content-Type": "application/pdf",
       "Content-Disposition": `attachment; filename=recibo-${recibo.reciboNumber}.pdf`,
@@ -197,7 +198,8 @@ exports.downloadReciboPDF = async (req, res) => {
   }
 
   try {
-    const pdfBuffer = await generateReciboPDF(req.user.company, recibo);
+    const baseUrl = `${req.protocol}://${req.get('host')}`;
+    const pdfBuffer = await generateReciboPDF(req.user.company, recibo, baseUrl);
     res.set({
       "Content-Type": "application/pdf",
       "Content-Disposition": `attachment; filename=recibo-${recibo.reciboNumber}.pdf`,
