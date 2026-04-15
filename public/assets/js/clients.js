@@ -148,11 +148,41 @@ $(document).ready(function () {
     reloadClients();
 
     // ===== IMPORT EXCEL =====
+    function isValidXlsx(file) {
+        const name = (file?.name || '').toLowerCase();
+        return name.endsWith('.xlsx') || name.endsWith('.xls');
+    }
+
+    document.getElementById('importClientsFile')?.addEventListener('change', function () {
+        const resultBox = document.getElementById('importClientsResult');
+        const file = this.files?.[0];
+        if (!file) { resultBox.innerHTML = ''; return; }
+        if (!isValidXlsx(file)) {
+            resultBox.innerHTML = '<div class="alert alert-danger mb-0 py-2"><i class="fas fa-exclamation-triangle mr-1"></i>Ficheiro inválido. Apenas <strong>.xlsx</strong> ou <strong>.xls</strong> são permitidos.</div>';
+            this.value = '';
+            return;
+        }
+        const sizeMB = (file.size / 1024 / 1024).toFixed(2);
+        resultBox.innerHTML = '<div class="alert alert-info mb-0 py-2"><i class="fas fa-check-circle mr-1"></i>Seleccionado: <strong>' + file.name + '</strong> (' + sizeMB + ' MB)</div>';
+    });
+
+    $('#importClientsModal').on('hidden.bs.modal', function () {
+        const fi = document.getElementById('importClientsFile');
+        const rb = document.getElementById('importClientsResult');
+        if (fi) fi.value = '';
+        if (rb) rb.innerHTML = '';
+    });
+
     document.getElementById('btn-import-clients')?.addEventListener('click', async function () {
         const fileInput = document.getElementById('importClientsFile');
         const resultBox = document.getElementById('importClientsResult');
         const file = fileInput?.files?.[0];
-        if (!file) { resultBox.innerHTML = '<div class="text-danger">Selecciona um ficheiro primeiro.</div>'; return; }
+        if (!file) { resultBox.innerHTML = '<div class="alert alert-warning mb-0 py-2">Selecciona um ficheiro primeiro.</div>'; return; }
+        if (!isValidXlsx(file)) {
+            resultBox.innerHTML = '<div class="alert alert-danger mb-0 py-2">Apenas ficheiros .xlsx ou .xls são permitidos.</div>';
+            fileInput.value = '';
+            return;
+        }
 
         const fd = new FormData();
         fd.append('file', file);
