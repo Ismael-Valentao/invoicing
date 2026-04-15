@@ -5,7 +5,9 @@ const vdSchema = new mongoose.Schema({
     companyName: { type: String, required: true },
     clientName: { type: String, required: true },
     clientNUIT: { type: String, required: true },
+    clientPhone: { type: String, default: '' },
     invoiceNumber: { type: String, required: true, unique: false },
+    shareToken: { type: String, unique: true, sparse: true, index: true },
     date: { type: Date, default: Date.now() },
     items: [{
         description: { type: String, required: true },

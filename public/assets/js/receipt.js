@@ -4,6 +4,7 @@ fetch('/api/recibos')
     .then(data => {
         data.recibos.forEach(invoice => {
             const actualArray = [invoice.reciboNumber, invoice.clientName, invoice.totalAmount, new Date(invoice.date).toLocaleDateString(), `<a href="/api/recibos/${invoice._id}/pdf" class="btn btn-primary btn-sm text-center btn-download"><i class="fa-solid fa-download"></i></a>
+            <button type="button" class="btn btn-success btn-sm btn-share-whatsapp ml-1" data-doc-type="recibo" data-doc-id="${invoice._id}" title="Partilhar por WhatsApp"><i class="fab fa-whatsapp"></i></button>
             `];
             $('#dataTable').DataTable().row.add(actualArray).draw(false);
         });

@@ -26,9 +26,9 @@ function actionButtons(quotation) {
         </a>
     `;
     const whatsappBtn = `
-        <a href="https://wa.me/?text=${encodeURIComponent('Cotação ' + (quotation.quotationNumber||'') + ' — ' + formatAmount(quotation.totalAmount) + ' MZN. Ver: ' + window.location.origin + '/p/' + quotation._id)}" class="btn btn-success btn-sm" target="_blank" title="WhatsApp">
+        <button type="button" class="btn btn-success btn-sm btn-share-whatsapp" data-doc-type="quotation" data-doc-id="${quotation._id}" title="Partilhar por WhatsApp">
             <i class="fab fa-whatsapp"></i>
-        </a>
+        </button>
     `;
     const duplicateBtn = `
         <button class="btn btn-info btn-sm btn-duplicate-quotation" data-id="${quotation._id}" title="Duplicar">

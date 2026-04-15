@@ -28,6 +28,8 @@ const notificationRoutes = require('./src/routes/notifications');
 const dashboardRoutes = require('./src/routes/dashboard');
 const featuresRoutes = require('./src/routes/features');
 const referralRoutes = require('./src/routes/referrals');
+const shareRoutes = require('./src/routes/share');
+const { renderPublicView } = require('./src/controllers/shareController');
 const { startCronJobs } = require('./src/utils/cronJobs');
 const { loadPlans } = require('./src/utils/plans');
 
@@ -66,6 +68,8 @@ app.use('/api/notifications', notificationRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/features', featuresRoutes);
 app.use('/api/referrals', referralRoutes);
+app.use('/api/share', shareRoutes);
+app.get('/share/:token', renderPublicView);
 app.use('/', pagesRoutes);
 app.use((req, res) => {
   return res.status(404).render("404", {

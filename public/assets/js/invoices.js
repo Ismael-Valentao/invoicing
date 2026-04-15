@@ -33,9 +33,9 @@ function actionButtons(invoice) {
         </a>
     `;
     const whatsappBtn = `
-        <a href="https://wa.me/?text=${encodeURIComponent('Factura ' + (invoice.invoiceNumber||'') + ' — ' + formatAmount(invoice.totalAmount) + ' MZN. Ver: ' + window.location.origin + '/p/' + invoice._id)}" class="btn btn-success btn-sm" target="_blank" title="WhatsApp">
+        <button type="button" class="btn btn-success btn-sm btn-share-whatsapp" data-doc-type="invoice" data-doc-id="${invoice._id}" title="Partilhar por WhatsApp">
             <i class="fab fa-whatsapp"></i>
-        </a>
+        </button>
     `;
     const duplicateBtn = `
         <button class="btn btn-info btn-sm btn-duplicate-invoice" data-id="${invoice._id}" title="Duplicar">

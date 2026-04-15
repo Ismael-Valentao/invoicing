@@ -16,6 +16,7 @@ fetch('/api/vd')
     .then(data => {
         data.vds.forEach(vd => {
             const actualArray = [vd.invoiceNumber, vd.clientName, vd.totalAmount, new Date(vd.date).toLocaleDateString(), statusBadge(vd.status), `<a href="/api/vd/${vd._id}/pdf" class="btn btn-primary btn-sm text-center btn-download"><i class="fa-solid fa-download"></i></a>
+            <button type="button" class="btn btn-success btn-sm btn-share-whatsapp ml-1" data-doc-type="vd" data-doc-id="${vd._id}" title="Partilhar por WhatsApp"><i class="fab fa-whatsapp"></i></button>
             `];
             $('#dataTable').DataTable().row.add(actualArray).draw(false);
         });

@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"/>
+  <title><%= title %></title>
+  <link rel="icon" type="image/png" href="/images/invoicing-logo-simple.png"/>
+  <link href="https://fonts.googleapis.com/css?family=Nunito:400,600,700,800" rel="stylesheet"/>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Nunito', sans-serif; background: #f4f6f9; color: #333; line-height: 1.5; }
+    .portal-header { background: linear-gradient(135deg, #228CDF 0%, #1a6fb8 100%); padding: 34px 20px; text-align: center; color: #fff; }
+    .portal-header h2 { font-weight: 800; margin-bottom: 6px; font-size: 1.4rem; }
+    .portal-header p { opacity: .92; font-size: .95rem; }
+    .portal-card { max-width: 760px; margin: -30px auto 24px; background: #fff; border-radius: 12px; box-shadow: 0 8px 30px rgba(0,0,0,0.08); overflow: hidden; }
+    .portal-body { padding: 28px; }
+    .info-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 18px; margin-bottom: 22px; }
+    .info-block h6 { font-size: .72rem; text-transform: uppercase; color: #858796; margin-bottom: 4px; font-weight: 700; letter-spacing: .4px; }
+    .info-block p { font-weight: 600; margin: 0; }
+    table { width: 100%; border-collapse: collapse; margin: 16px 0; }
+    th { background: #f8f9fc; text-align: left; padding: 10px 12px; font-size: .78rem; text-transform: uppercase; color: #858796; border-bottom: 2px solid #e3e6f0; }
+    td { padding: 10px 12px; border-bottom: 1px solid #eee; font-size: .92rem; }
+    td.num { text-align: right; font-variant-numeric: tabular-nums; }
+    .totals { margin-top: 12px; }
+    .totals-row { display: flex; justify-content: space-between; padding: 6px 0; font-size: .95rem; }
+    .totals-row.total { font-weight: 800; font-size: 1.15rem; color: #228CDF; border-top: 2px solid #e3e6f0; padding-top: 10px; margin-top: 6px; }
+    .status-badge { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: .78rem; font-weight: 700; }
+    .status-paid { background: #d4edda; color: #155724; }
+    .status-unpaid { background: #fff3cd; color: #856404; }
+    .status-overdue { background: #f8d7da; color: #721c24; }
+    .status-partial { background: #d1ecf1; color: #0c5460; }
+    .status-pending { background: #fff3cd; color: #856404; }
+    .status-approved { background: #d4edda; color: #155724; }
+    .status-converted { background: #cfe2ff; color: #084298; }
+    .actions { text-align: center; padding: 18px; background: #f8f9fc; border-top: 1px solid #e3e6f0; }
+    .btn-cta { display: inline-block; background: #228CDF; color: #fff; padding: 10px 22px; border-radius: 25px; text-decoration: none; font-weight: 700; margin: 6px 4px; border: none; cursor: pointer; }
+    .btn-cta:hover { background: #1a6fb0; color: #fff; }
+    .btn-whats { background: #25d366; }
+    .btn-whats:hover { background: #1da851; }
+    .bank-details { background: #f8f9fc; border-radius: 8px; padding: 14px 18px; margin-top: 16px; font-size: .9rem; }
+    .bank-details h6 { font-size: .8rem; color: #228CDF; margin-bottom: 8px; text-transform: uppercase; letter-spacing: .4px; }
+    .viral-footer {
+      text-align: center; padding: 22px 16px; margin: 12px auto 40px; max-width: 760px;
+      font-size: .82rem; color: #858796;
+    }
+    .viral-footer a { color: #228CDF; font-weight: 700; text-decoration: none; }
+    .viral-footer a:hover { text-decoration: underline; }
+    .viral-footer .brand-cta {
+      display: inline-block; background: #fff; border: 1px solid #e3e6f0; border-radius: 20px;
+      padding: 6px 16px; margin-top: 8px; color: #228CDF; font-weight: 700;
+    }
+    @media print {
+      .actions, .viral-footer { display: none; }
+      body { background: #fff; }
+      .portal-card { box-shadow: none; margin: 0; }
+    }
+  </style>
+</head>
+<body>
+
+<%
+  var numberField = docType === 'quotation' ? 'quotationNumber'
+                   : docType === 'recibo' ? 'reciboNumber'
+                   : 'invoiceNumber';
+  var docNumber = doc[numberField] || '';
+  var docTypeLabel = docLabel.charAt(0).toUpperCase() + docLabel.slice(1);
+  var statusClass = 'status-' + (doc.status || (docType === 'recibo' ? 'paid' : 'unpaid'));
+  var statusLabel = (function(s) {
+    var map = { paid: 'Pago', unpaid: 'Pendente', overdue: 'Vencido', partial: 'Parcial',
+                pending: 'Pendente', approved: 'Aprovada', converted: 'Convertida', cancelled: 'Anulada' };
+    return map[s] || s || '';
+  })(doc.status);
+  var subTotal = Number(doc.subTotal || 0);
+  var tax = Number(doc.tax || 0);
+  var totalAmount = Number(doc.totalAmount || 0);
+  var paidAmount = Number(doc.paidAmount || 0);
+  var remaining = Math.max(0, totalAmount - paidAmount);
+  function fmt(v) { return Number(v || 0).toLocaleString('pt-MZ', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+%>
+
+<div class="portal-header">
+  <h2><%= doc.companyName %></h2>
+  <p><%= docTypeLabel %> nº <%= docNumber %></p>
+</div>
+
+<div class="portal-card">
+  <div class="portal-body">
+    <div class="info-row">
+      <div class="info-block">
+        <h6>Cliente</h6>
+        <p><%= doc.clientName %></p>
+        <% if (doc.clientNUIT && doc.clientNUIT !== 'N/A') { %>
+          <small style="color:#858796;">NUIT: <%= doc.clientNUIT %></small>
+        <% } %>
+      </div>
+      <div class="info-block">
+        <h6>Emissão</h6>
+        <p><%= new Date(doc.date).toLocaleDateString('pt-PT') %></p>
+      </div>
+      <% if (doc.dueDate) { %>
+        <div class="info-block">
+          <h6>Vencimento</h6>
+          <p><%= new Date(doc.dueDate).toLocaleDateString('pt-PT') %></p>
+        </div>
+      <% } %>
+      <% if (statusLabel) { %>
+        <div class="info-block">
+          <h6>Estado</h6>
+          <span class="status-badge <%= statusClass %>"><%= statusLabel %></span>
+        </div>
+      <% } %>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Descrição</th>
+          <th class="num">Qtd</th>
+          <th class="num">Preço</th>
+          <th class="num">Total</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% (doc.items || []).forEach(function(it) { %>
+          <tr>
+            <td><%= it.description %></td>
+            <td class="num"><%= it.quantity %></td>
+            <td class="num"><%= fmt(it.unitPrice) %></td>
+            <td class="num"><%= fmt((it.quantity || 0) * (it.unitPrice || 0)) %></td>
+          </tr>
+        <% }); %>
+      </tbody>
+    </table>
+
+    <div class="totals">
+      <div class="totals-row"><span>Subtotal</span><span><%= fmt(subTotal) %> MZN</span></div>
+      <% if (tax > 0) { %>
+        <div class="totals-row"><span>IVA</span><span><%= fmt(tax) %> MZN</span></div>
+      <% } %>
+      <div class="totals-row total"><span>Total</span><span><%= fmt(totalAmount) %> MZN</span></div>
+      <% if (docType === 'invoice' && paidAmount > 0 && paidAmount < totalAmount) { %>
+        <div class="totals-row" style="color:#1cc88a;"><span>Pago</span><span>-<%= fmt(paidAmount) %> MZN</span></div>
+        <div class="totals-row" style="color:#e74a3b; font-weight:700;"><span>Em dívida</span><span><%= fmt(remaining) %> MZN</span></div>
+      <% } %>
+    </div>
+
+    <% if (doc.showBankDetails && doc.bankDetails && doc.bankDetails.length) { %>
+      <div class="bank-details">
+        <h6><i class="fas fa-university"></i>&nbsp;Dados bancários</h6>
+        <% doc.bankDetails.forEach(function(b) { %>
+          <div style="margin-bottom:6px;">
+            <strong><%= b.bank %></strong> — <%= b.account_name %> — NIB: <code><%= b.nib %></code>
+          </div>
+        <% }); %>
+      </div>
+    <% } %>
+  </div>
+
+  <div class="actions">
+    <button class="btn-cta" onclick="window.print()">
+      <span style="margin-right:6px;">&#128424;</span>Imprimir / Guardar PDF
+    </button>
+  </div>
+</div>
+
+<div class="viral-footer">
+  <div>Documento gerado com <strong>Invoicing</strong> — a plataforma de facturação para empresas moçambicanas.</div>
+  <a href="https://invoicing.co.mz" target="_blank" rel="noopener" class="brand-cta">Experimenta grátis 30 dias</a>
+</div>
+
+</body>
+</html>
