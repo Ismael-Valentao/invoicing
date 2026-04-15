@@ -131,7 +131,6 @@
     <section class="section" style="padding: 16px 0; background: #f8f9fc; border-bottom: 1px solid #e3e6f0;">
       <div class="container">
         <div class="d-flex justify-content-center align-items-center flex-wrap" style="gap: 24px; font-size: .88rem; color: #555;" id="socialProofBar">
-          <span><i class="bi bi-people-fill" style="color:#228CDF; margin-right:4px;"></i> <strong id="recentSignups">—</strong> empresas registaram-se esta semana</span>
           <span><i class="bi bi-shield-lock-fill" style="color:#1cc88a; margin-right:4px;"></i> Dados encriptados e seguros</span>
           <span><i class="bi bi-clock-fill" style="color:#f6c23e; margin-right:4px;"></i> Registo em menos de 1 minuto</span>
         </div>
@@ -1050,13 +1049,6 @@
   <!-- Main JS File -->
   <script src="site-assets/js/main.js"></script>
   <script src="/assets/js/datehandler.js"></script>
-
-  <!-- Recent signups counter -->
-  <script>
-  fetch('/api/company/recent-count').then(function(r){return r.json();}).then(function(d) {
-    if (d.success) document.getElementById('recentSignups').textContent = d.count;
-  }).catch(function(){});
-  </script>
 
   <!-- Dynamic Pricing -->
   <script>
