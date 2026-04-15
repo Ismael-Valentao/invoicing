@@ -18,8 +18,8 @@ router.get('/recent-count', async (req, res) => {
         const Company = require('../models/company');
         const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
         const count = await Company.countDocuments({ createdAt: { $gte: weekAgo } });
-        res.json({ success: true, count: Math.max(count, 3) }); // minimum 3 for social proof
-    } catch (e) { res.json({ success: true, count: 3 }); }
+        res.json({ success: true, count: Math.max(count, 10) }); // minimum 10 for social proof
+    } catch (e) { res.json({ success: true, count: 10 }); }
 });
 router.post('/logo', authMiddleware, logoUploadMiddleware, logoHandler);
 router.get('/', authMiddleware, getCompanies);
