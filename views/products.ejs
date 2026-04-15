@@ -214,11 +214,50 @@
                                 <!-- Page Heading -->
                                 <div class="d-sm-flex align-items-center justify-content-between mb-4">
                                     <h5 class="mb-0 text-gray-800">Produtos</h5>
-                                    <button class="btn btn-primary btn-sm" id="btn-create-product" type="button"
-                                        data-toggle="modal" data-target="#productModal">
-                                        <i class="fas fa-plus fa-sm text-white-50"></i> Adicionar Produto
-                                    </button>
+                                    <div class="d-flex" style="gap:8px;">
+                                        <button class="btn btn-outline-secondary btn-sm" type="button"
+                                            data-toggle="modal" data-target="#importProductsModal" title="Importar de Excel">
+                                            <i class="fas fa-file-excel mr-1"></i>Importar
+                                        </button>
+                                        <button class="btn btn-primary btn-sm" id="btn-create-product" type="button"
+                                            data-toggle="modal" data-target="#productModal">
+                                            <i class="fas fa-plus fa-sm text-white-50"></i> Adicionar Produto
+                                        </button>
+                                    </div>
 
+                                </div>
+
+                                <!-- Modal importar produtos de Excel -->
+                                <div class="modal fade" id="importProductsModal" tabindex="-1">
+                                    <div class="modal-dialog">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h6 class="modal-title"><strong><i class="fas fa-file-excel text-success mr-2"></i>Importar Produtos de Excel</strong></h6>
+                                                <button class="close" type="button" data-dismiss="modal"><span>×</span></button>
+                                            </div>
+                                            <div class="modal-body">
+                                                <ol class="small text-muted pl-3 mb-3">
+                                                    <li>Descarrega o template e preenche os teus produtos.</li>
+                                                    <li>Guarda o ficheiro (.xlsx).</li>
+                                                    <li>Envia aqui e pronto.</li>
+                                                </ol>
+                                                <a href="/api/products/import/template" class="btn btn-info btn-sm btn-block mb-3">
+                                                    <i class="fas fa-download mr-1"></i>Descarregar template
+                                                </a>
+                                                <div class="form-group">
+                                                    <label class="small font-weight-bold">Ficheiro Excel (.xlsx)</label>
+                                                    <input type="file" class="form-control form-control-sm" id="importProductsFile" accept=".xlsx,.xls"/>
+                                                </div>
+                                                <div id="importProductsResult" class="small"></div>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button class="btn btn-secondary btn-sm" type="button" data-dismiss="modal">Fechar</button>
+                                                <button id="btn-import-products" class="btn btn-success btn-sm" type="button">
+                                                    <i class="fas fa-upload mr-1"></i>Importar
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
 
                                 <!-- DataTales Example -->

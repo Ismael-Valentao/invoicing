@@ -288,6 +288,34 @@ exports.getGreeting = async (req, res) => {
 };
 
 // Profit overview (revenue - expenses)
+// Progresso de onboarding — verifica estado real da BD
+exports.getOnboardingProgress = async (req, res) => {
+    try {
+        const companyId = req.user.company._id;
+        const Company = require('../models/company');
+
+        const [company, productCount, clientCount, invoiceCount, saleCount] = await Promise.all([
+            Company.findById(companyId).select('logoUrl bankDetails').lean(),
+            Product.countDocuments({ companyId }),
+            Client.countDocuments({ companyId }),
+            Invoice.countDocuments({ companyId, docType: 'invoice' }),
+            Sale.countDocuments({ companyId }),
+        ]);
+
+        const steps = [
+            { key: 'logo',     done: !!(company?.logoUrl && company.logoUrl.trim()) },
+            { key: 'bank',     done: !!(company?.bankDetails && company.bankDetails.length > 0) },
+            { key: 'product',  done: productCount > 0 },
+            { key: 'client',   done: clientCount > 0 },
+            { key: 'document', done: (invoiceCount + saleCount) > 0 },
+        ];
+        const completed = steps.filter(s => s.done).length;
+        return res.json({ success: true, steps, completed, total: steps.length });
+    } catch (err) {
+        return res.status(500).json({ success: false, message: err.message });
+    }
+};
+
 // Produtos a vencer prazo de validade
 exports.getExpiringProducts = async (req, res) => {
     try {

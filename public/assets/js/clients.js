@@ -133,16 +133,54 @@ $(document).ready(function () {
         }
     });
 
-    fetch('/api/clients')
-        .then(response => response.json())
-        .then(data => {
-            if (!data.clients || !Array.isArray(data.clients)) return;
-            loadClients(data.clients);
-        })
-        .catch(error => {
-            console.error('Error fetching clients:', error);
-            showToast('Erro ao carregar clientes', 'error');
-        });
+    function reloadClients() {
+        return fetch('/api/clients')
+            .then(response => response.json())
+            .then(data => {
+                if (!data.clients || !Array.isArray(data.clients)) return;
+                loadClients(data.clients);
+            })
+            .catch(error => {
+                console.error('Error fetching clients:', error);
+                if (typeof showToast === 'function') showToast('Erro ao carregar clientes', 'error');
+            });
+    }
+    reloadClients();
+
+    // ===== IMPORT EXCEL =====
+    document.getElementById('btn-import-clients')?.addEventListener('click', async function () {
+        const fileInput = document.getElementById('importClientsFile');
+        const resultBox = document.getElementById('importClientsResult');
+        const file = fileInput?.files?.[0];
+        if (!file) { resultBox.innerHTML = '<div class="text-danger">Selecciona um ficheiro primeiro.</div>'; return; }
+
+        const fd = new FormData();
+        fd.append('file', file);
+
+        const btn = this;
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i>A importar...';
+        resultBox.innerHTML = '';
+
+        try {
+            const r = await fetch('/api/clients/import', { method: 'POST', body: fd });
+            const d = await r.json();
+            if (d.status === 'success') {
+                resultBox.innerHTML = '<div class="alert alert-success mb-0"><strong>' + d.created + '</strong> cliente(s) importado(s).' + (d.skipped ? ' <strong>' + d.skipped + '</strong> ignorado(s).' : '') + '</div>';
+                if (d.details && d.details.length) {
+                    resultBox.innerHTML += '<ul class="small mt-2">' + d.details.map(function(dt){ return '<li>Linha ' + dt.row + ' (' + (dt.name || '') + '): ' + dt.reason + '</li>'; }).join('') + '</ul>';
+                }
+                setTimeout(function(){ $("#importClientsModal").modal('hide'); reloadClients(); }, 2000);
+            } else {
+                resultBox.innerHTML = '<div class="alert alert-danger mb-0">' + (d.message || 'Erro ao importar.') + '</div>';
+            }
+        } catch (e) {
+            resultBox.innerHTML = '<div class="alert alert-danger mb-0">Erro de ligação.</div>';
+        }
+
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-upload mr-1"></i>Importar';
+    });
 });
 
 $(document).on('click', '.btn-edit-client', function () {

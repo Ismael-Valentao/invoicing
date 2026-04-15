@@ -12,6 +12,9 @@
 
     <title>Invoicing - <%- title %></title>
 <link rel="icon" type="image/png" href="/images/invoicing-logo-simple.png"/>
+
+<!-- Shepherd.js para tour interactivo -->
+<link rel="stylesheet" href="/vendor/shepherd/css/shepherd.css"/>
     <!-- Custom fonts for this template-->
     <link
       href="/assets/vendor/fontawesome-free/css/all.min.css"
@@ -402,6 +405,82 @@
         }).catch(() => {});
     }
     checkSubscriptionStatus();
+    </script>
+
+    <!-- Tour interactivo para novos utilizadores -->
+    <script src="/vendor/shepherd/js/shepherd.min.js"></script>
+    <script>
+    (function () {
+      const TOUR_KEY = 'invoicing_tour_done_<%= currentUser._id %>';
+      if (localStorage.getItem(TOUR_KEY)) return;
+      if (!window.Shepherd) return;
+
+      // Apenas mostra o tour se o utilizador ainda estiver no início do onboarding
+      fetch('/api/dashboard/onboarding-progress', { cache: 'no-store' })
+        .then(r => r.ok ? r.json() : null)
+        .then(data => {
+          if (!data?.success) return;
+          if ((data.completed || 0) >= 3) return; // se já fez muita coisa, pula o tour
+
+          const tour = new Shepherd.Tour({
+            useModalOverlay: true,
+            defaultStepOptions: {
+              classes: 'shadow-md',
+              scrollTo: { behavior: 'smooth', block: 'center' },
+              cancelIcon: { enabled: true },
+            }
+          });
+
+          const btnNext = { text: 'Próximo', action: () => tour.next(), classes: 'btn btn-primary btn-sm' };
+          const btnBack = { text: 'Voltar', action: () => tour.back(), classes: 'btn btn-secondary btn-sm' };
+          const btnEnd  = { text: 'Terminar', action: () => { localStorage.setItem(TOUR_KEY, '1'); tour.complete(); }, classes: 'btn btn-success btn-sm' };
+          const btnSkip = { text: 'Saltar', action: () => { localStorage.setItem(TOUR_KEY, '1'); tour.cancel(); }, classes: 'btn btn-link btn-sm' };
+
+          tour.addStep({
+            title: '👋 Bem-vindo ao Invoicing!',
+            text: 'Vamos fazer um tour rápido (30 segundos) para te mostrar o essencial. Podes saltar a qualquer momento.',
+            buttons: [btnSkip, btnNext],
+          });
+
+          tour.addStep({
+            title: '📊 O teu Dashboard',
+            text: 'Aqui vês o resumo do teu negócio: facturas emitidas, vendas, dívidas e muito mais. É a tua primeira paragem todos os dias.',
+            attachTo: { element: '#tour-dashboard', on: 'right' },
+            buttons: [btnBack, btnNext],
+          });
+
+          tour.addStep({
+            title: '✅ Checklist de primeiros passos',
+            text: 'Completa estes passos para configurar a tua conta. O progresso é automático — à medida que fazes cada coisa, o item fica verde.',
+            attachTo: { element: '#onboardingChecklist', on: 'bottom' },
+            buttons: [btnBack, btnNext],
+          });
+
+          tour.addStep({
+            title: '🔍 Pesquisa rápida',
+            text: 'Em qualquer página, carrega <strong>Ctrl+K</strong> para procurar facturas, clientes, produtos ou vendas em segundos.',
+            buttons: [btnBack, btnNext],
+          });
+
+          tour.addStep({
+            title: '📥 Tens dados num Excel?',
+            text: 'Em <strong>Produtos</strong> e <strong>Clientes</strong> tens um botão "Importar" que aceita ficheiros Excel. Descarrega o template e envia. Zero digitação.',
+            buttons: [btnBack, btnNext],
+          });
+
+          tour.addStep({
+            title: '🎉 Tudo pronto!',
+            text: 'Se precisares de ajuda, o dropdown do teu nome (canto superior direito) tem links para Novidades, Configurações e Perfil.',
+            buttons: [btnEnd],
+          });
+
+          tour.on('cancel', () => localStorage.setItem(TOUR_KEY, '1'));
+          tour.on('complete', () => localStorage.setItem(TOUR_KEY, '1'));
+
+          setTimeout(() => tour.start(), 800);
+        })
+        .catch(() => {});
+    })();
     </script>
   </body>
 </html>

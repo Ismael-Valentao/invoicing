@@ -486,6 +486,41 @@ document.addEventListener("DOMContentLoaded", function () {
   // estado inicial
   toggleAddStockFields(document.getElementById("add-product-type")?.value || 'product');
 
+  // ===== IMPORT EXCEL =====
+  document.getElementById("btn-import-products")?.addEventListener("click", async function () {
+    const fileInput = document.getElementById("importProductsFile");
+    const resultBox = document.getElementById("importProductsResult");
+    const file = fileInput?.files?.[0];
+    if (!file) { resultBox.innerHTML = '<div class="text-danger">Selecciona um ficheiro primeiro.</div>'; return; }
+
+    const fd = new FormData();
+    fd.append('file', file);
+
+    const btn = this;
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i>A importar...';
+    resultBox.innerHTML = '';
+
+    try {
+      const r = await fetch('/api/products/import', { method: 'POST', body: fd });
+      const d = await r.json();
+      if (d.status === 'success') {
+        resultBox.innerHTML = '<div class="alert alert-success mb-0"><strong>' + d.created + '</strong> produto(s) importado(s) com sucesso.' + (d.skipped ? ' <strong>' + d.skipped + '</strong> ignorado(s).' : '') + '</div>';
+        if (d.details && d.details.length) {
+          resultBox.innerHTML += '<ul class="small mt-2">' + d.details.map(function(dt){ return '<li>Linha ' + dt.row + ' (' + (dt.description || dt.name) + '): ' + dt.reason + '</li>'; }).join('') + '</ul>';
+        }
+        setTimeout(function(){ $("#importProductsModal").modal('hide'); loadProducts(); }, 2000);
+      } else {
+        resultBox.innerHTML = '<div class="alert alert-danger mb-0">' + (d.message || 'Erro ao importar.') + '</div>';
+      }
+    } catch (e) {
+      resultBox.innerHTML = '<div class="alert alert-danger mb-0">Erro de ligação.</div>';
+    }
+
+    btn.disabled = false;
+    btn.innerHTML = '<i class="fas fa-upload mr-1"></i>Importar';
+  });
+
   // init
   loadProducts().catch(console.error);
 });

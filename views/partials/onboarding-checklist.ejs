@@ -64,41 +64,11 @@
 <script>
 (function () {
   const STORAGE_KEY = 'invoicing_checklist_dismissed_<%= currentUser._id %>';
-  const DONE_KEY    = 'invoicing_checklist_done_<%= currentUser._id %>';
 
   if (localStorage.getItem(STORAGE_KEY)) {
     document.getElementById('onboardingChecklist').style.display = 'none';
     return;
   }
-
-  const done = JSON.parse(localStorage.getItem(DONE_KEY) || '[]');
-
-  function updateProgress() {
-    const total = 5;
-    const count = done.length;
-    document.getElementById('checklistProgress').style.width = (count / total * 100) + '%';
-    document.getElementById('checklistProgressLabel').textContent = count + ' / ' + total;
-    if (count >= total) {
-      setTimeout(() => {
-        document.getElementById('onboardingChecklist').style.display = 'none';
-        localStorage.setItem(STORAGE_KEY, '1');
-      }, 1200);
-    }
-  }
-
-  function markDone(key) {
-    if (!done.includes(key)) {
-      done.push(key);
-      localStorage.setItem(DONE_KEY, JSON.stringify(done));
-    }
-  }
-
-  // Restaurar estado guardado
-  document.querySelectorAll('.checklist-item').forEach(item => {
-    const key = item.dataset.key;
-    if (done.includes(key)) setItemDone(item);
-  });
-  updateProgress();
 
   function setItemDone(item) {
     item.querySelector('.checklist-icon').innerHTML = '<i class="fas fa-check-circle text-success"></i>';
@@ -108,33 +78,27 @@
     if (btn) btn.style.display = 'none';
   }
 
-  // Marca item ao clicar no botão "Ir"
-  document.querySelectorAll('.checklist-item a').forEach(link => {
-    link.addEventListener('click', function () {
-      const item = this.closest('.checklist-item');
-      const key = item.dataset.key;
-      markDone(key);
-      setItemDone(item);
-      updateProgress();
-    });
-  });
-
-  // Detecção automática pelo contexto da página
-  const path = window.location.pathname;
-  const autoMap = {
-    '/settings': ['logo', 'bank'],
-    '/products': ['product'],
-    '/clients': ['client'],
-    '/new-invoice': ['document'],
-    '/new-sale': ['document'],
-    '/new-vd': ['document'],
-  };
-  for (const [p, keys] of Object.entries(autoMap)) {
-    if (path.startsWith(p)) {
-      keys.forEach(k => markDone(k));
-    }
-  }
-  updateProgress();
+  fetch('/api/dashboard/onboarding-progress', { cache: 'no-store' })
+    .then(r => r.ok ? r.json() : null)
+    .then(data => {
+      if (!data || !data.success) return;
+      const total = data.total || 5;
+      const completed = data.completed || 0;
+      document.getElementById('checklistProgress').style.width = (completed / total * 100) + '%';
+      document.getElementById('checklistProgressLabel').textContent = completed + ' / ' + total;
+      (data.steps || []).forEach(s => {
+        if (!s.done) return;
+        const item = document.querySelector('.checklist-item[data-key="' + s.key + '"]');
+        if (item) setItemDone(item);
+      });
+      if (completed >= total) {
+        setTimeout(() => {
+          document.getElementById('onboardingChecklist').style.display = 'none';
+          localStorage.setItem(STORAGE_KEY, '1');
+        }, 1500);
+      }
+    })
+    .catch(() => {});
 })();
 
 function dismissChecklist() {

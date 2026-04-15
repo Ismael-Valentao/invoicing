@@ -12,6 +12,7 @@ router.get('/greeting', authMiddleware, dashboard.getGreeting);
 router.get('/search', authMiddleware, dashboard.globalSearch);
 router.get('/product-margins', authMiddleware, dashboard.getProductMargins);
 router.get('/expiring-products', authMiddleware, dashboard.getExpiringProducts);
+router.get('/onboarding-progress', authMiddleware, dashboard.getOnboardingProgress);
 router.get('/profit', authMiddleware, dashboard.getProfitOverview);
 router.get('/activities', authMiddleware, getActivities);
 
