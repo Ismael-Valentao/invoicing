@@ -27,6 +27,7 @@ const supplierRoutes = require('./src/routes/suppliers');
 const notificationRoutes = require('./src/routes/notifications');
 const dashboardRoutes = require('./src/routes/dashboard');
 const featuresRoutes = require('./src/routes/features');
+const referralRoutes = require('./src/routes/referrals');
 const { startCronJobs } = require('./src/utils/cronJobs');
 const { loadPlans } = require('./src/utils/plans');
 
@@ -64,6 +65,7 @@ app.use('/api/suppliers', supplierRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/features', featuresRoutes);
+app.use('/api/referrals', referralRoutes);
 app.use('/', pagesRoutes);
 app.use((req, res) => {
   return res.status(404).render("404", {

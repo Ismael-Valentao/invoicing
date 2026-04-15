@@ -44,7 +44,9 @@ const companySchema = new mongoose.Schema({
 
     currency: { type: String, enum: ['MZN', 'USD', 'ZAR', 'EUR'], default: 'MZN' },
 
-    invoiceTemplate: { type: String, enum: ['classic', 'modern', 'minimal'], default: 'classic' }
+    invoiceTemplate: { type: String, enum: ['classic', 'modern', 'minimal'], default: 'classic' },
+
+    referralCode: { type: String, unique: true, sparse: true, index: true }
 }, {
     timestamps: true,
 });

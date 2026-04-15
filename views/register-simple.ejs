@@ -63,6 +63,10 @@
           <input type="password" class="form-control" id="regPassword2" placeholder="Repita a password" required />
         </div>
 
+        <div id="referralBanner" class="mb-3" style="display:none; background:#e8f4fd; border:1px solid #b6dcf6; border-radius:8px; padding:10px 14px; font-size:.85rem; color:#1d4ed8;">
+          <i class="fas fa-gift mr-1"></i>Estás a registar-te com indicação de <strong id="referralName">uma empresa</strong>.
+        </div>
+
         <button type="submit" class="btn btn-register" id="btnRegister">
           <i class="fas fa-rocket mr-2"></i>Criar conta grátis
         </button>
@@ -90,6 +94,28 @@
 
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
   <script>
+  // Captura e valida ?ref= na URL — guarda em localStorage para sobreviver a recargas
+  (function () {
+    var urlRef = new URLSearchParams(window.location.search).get('ref');
+    if (urlRef) {
+      urlRef = urlRef.trim().toUpperCase();
+      localStorage.setItem('invoicing_ref', urlRef);
+    }
+    var ref = localStorage.getItem('invoicing_ref');
+    if (!ref) return;
+    fetch('/api/referrals/validate/' + encodeURIComponent(ref))
+      .then(function (r) { return r.json(); })
+      .then(function (d) {
+        if (d.success && d.valid) {
+          document.getElementById('referralBanner').style.display = 'block';
+          document.getElementById('referralName').textContent = d.referrerName;
+        } else {
+          localStorage.removeItem('invoicing_ref');
+        }
+      })
+      .catch(function () {});
+  })();
+
   function togglePw() {
     var pw = document.getElementById('regPassword');
     var icon = document.getElementById('pwIcon');
@@ -136,15 +162,19 @@
     btn.disabled = true;
     btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>A criar conta...';
 
+    var ref = new URLSearchParams(window.location.search).get('ref') ||
+              localStorage.getItem('invoicing_ref') || '';
+
     try {
       var res = await fetch('/api/company/quick-register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: name, email: email, password: pw })
+        body: JSON.stringify({ name: name, email: email, password: pw, ref: ref })
       });
       var data = await res.json();
 
       if (data.success) {
+        localStorage.removeItem('invoicing_ref');
         // Confetti
         confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 } });
 

@@ -1,6 +1,7 @@
 const Subscription = require('../models/subscription');
 const Company = require('../models/company');
 const User = require('../models/user');
+const Referral = require('../models/referral');
 const { PLANS, getPlan, getPaidPlanExpiration, loadPlans } = require('../utils/plans');
 const { sendUpgradeRequestEmail } = require('../utils/mailSender');
 
@@ -132,11 +133,49 @@ exports.adminActivatePlan = async (req, res) => {
             return res.status(404).json({ success: false, message: 'Subscrição não encontrada.' });
         }
 
+        const wasFreePlan = sub.plan === 'FREE';
+
         sub.plan = plan;
         sub.status = 'active';
         sub.startDate = new Date();
         sub.expiresAt = getPaidPlanExpiration();
         await sub.save();
+
+        // Trigger de conversão de indicação: só no primeiro upgrade de FREE para pago
+        if (wasFreePlan && plan !== 'FREE') {
+            try {
+                const referral = await Referral.findOne({ refereeCompanyId: companyId, status: 'pending' });
+                if (referral) {
+                    const referrerSub = await Subscription.findOne({ companyId: referral.referrerCompanyId });
+                    if (referrerSub) {
+                        const now = new Date();
+                        const activatesAt = referrerSub.status === 'active' && referrerSub.expiresAt && new Date(referrerSub.expiresAt) > now
+                            ? new Date(referrerSub.expiresAt)
+                            : now;
+
+                        referrerSub.pendingRewards = referrerSub.pendingRewards || [];
+                        referrerSub.pendingRewards.push({
+                            plan: 'PREMIUM',
+                            days: 30,
+                            activatesAt,
+                            appliedAt: null,
+                            referralId: referral._id
+                        });
+                        await referrerSub.save();
+
+                        referral.status = 'converted';
+                        referral.convertedAt = now;
+                        referral.reward = {
+                            plan: 'PREMIUM',
+                            days: 30,
+                            activatesAt,
+                            appliedAt: null
+                        };
+                        await referral.save();
+                    }
+                }
+            } catch (e) { console.error('[referral conversion]', e.message); }
+        }
 
         const company = await Company.findById(companyId);
 

@@ -8,6 +8,8 @@ const fs = require('fs');
 const mongoose = require('mongoose');
 const crypto = require('crypto');
 const { getFreePlanExpiration } = require("../utils/plans")
+const { generateUniqueReferralCode } = require('../utils/referralCode');
+const Referral = require('../models/referral');
 require('dotenv').config();
 
 const logoDir = path.join(path.dirname(path.dirname(__dirname)), 'public', 'images', 'logos');
@@ -263,7 +265,7 @@ exports.quickRegister = async (req, res) => {
     const { log: logActivity } = require('./activityLogController');
 
     try {
-        const { name, email, password } = req.body;
+        const { name, email, password, ref } = req.body;
         if (!name || !email || !password) {
             return res.status(400).json({ success: false, message: 'Nome, email e password são obrigatórios.' });
         }
@@ -276,8 +278,19 @@ exports.quickRegister = async (req, res) => {
             return res.status(400).json({ success: false, message: 'Já existe uma conta com este email.' });
         }
 
+        // Valida código de indicação se fornecido
+        let referrerCompany = null;
+        if (ref && typeof ref === 'string') {
+            const code = ref.trim().toUpperCase();
+            if (code.length > 0) {
+                referrerCompany = await company.findOne({ referralCode: code }).select('_id referralCode').lean();
+            }
+        }
+
         const verificationToken = crypto.randomBytes(32).toString('hex');
         const hashedToken = crypto.createHash('sha256').update(verificationToken).digest('hex');
+
+        const referralCode = await generateUniqueReferralCode();
 
         // Create company with placeholder data + both modules active
         const newCompany = await company.create({
@@ -288,7 +301,8 @@ exports.quickRegister = async (req, res) => {
             nuit: '000000000',
             showBankDetails: {},
             bankDetails: [],
-            modules: { sales: true, invoicing: true }
+            modules: { sales: true, invoicing: true },
+            referralCode
         });
 
         const hashedPassword = bcrypt.hashSync(password, 10);
@@ -317,6 +331,19 @@ exports.quickRegister = async (req, res) => {
             expiresAt: getFreePlanExpiration(),
             status: 'active'
         });
+
+        // Regista indicação (se veio com código válido)
+        if (referrerCompany && String(referrerCompany._id) !== String(newCompany._id)) {
+            try {
+                await Referral.create({
+                    code: referrerCompany.referralCode,
+                    referrerCompanyId: referrerCompany._id,
+                    refereeCompanyId: newCompany._id,
+                    refereeUserId: user._id,
+                    status: 'pending'
+                });
+            } catch (e) { console.error('[referral create]', e.message); }
+        }
 
         // Demo data
         await Product.insertMany([

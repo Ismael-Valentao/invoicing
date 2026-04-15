@@ -35,7 +35,15 @@ const subscriptionSchema = new mongoose.Schema({
         type: String,
         enum: ['active', 'expired', 'cancelled'],
         default: 'active'
-    }
+    },
+
+    pendingRewards: [{
+        plan: { type: String, enum: ['BASIC', 'PREMIUM'], default: 'PREMIUM' },
+        days: { type: Number, default: 30 },
+        activatesAt: { type: Date, required: true },
+        appliedAt: { type: Date, default: null },
+        referralId: { type: mongoose.Schema.Types.ObjectId, ref: 'Referral' }
+    }]
 
 }, {
     timestamps: true

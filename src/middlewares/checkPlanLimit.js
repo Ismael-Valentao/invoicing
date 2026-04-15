@@ -5,6 +5,7 @@ const Product = require('../models/product');
 const Client = require('../models/client');
 const User = require('../models/user');
 const { getPlan } = require('../utils/plans');
+const { applyPendingRewards } = require('../utils/applyPendingRewards');
 
 /**
  * Verifica se a subscrição da empresa está activa.
@@ -21,6 +22,8 @@ async function requireActiveSubscription(req, res, next) {
         if (!companyId) return next();
 
         const sub = await Subscription.findOne({ companyId });
+        if (sub) await applyPendingRewards(sub);
+
         if (!sub || sub.status !== 'active' || (sub.expiresAt && sub.expiresAt < new Date())) {
             if (sub && sub.status === 'active' && sub.expiresAt && sub.expiresAt < new Date()) {
                 sub.status = 'expired';
@@ -38,6 +41,7 @@ async function checkSubscriptionActive(req, res, next) {
     try {
         const companyId = req.user.company._id;
         const sub = await Subscription.findOne({ companyId });
+        if (sub) await applyPendingRewards(sub);
 
         if (!sub || sub.status !== 'active') {
             return res.status(403).json({

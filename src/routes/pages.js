@@ -240,6 +240,16 @@ router.get('/upgrade', authMiddleware2, (req, res) => {
     res.render('upgrade', buildViewData(req, 'Upgrade de Plano'));
 });
 
+// Programa de indicações (autenticado)
+router.get('/referrals', authMiddleware2, (req, res) => {
+    res.render('referrals', buildViewData(req, 'Indicações'));
+});
+
+// Página pública que explica o programa de indicações
+router.get('/como-funciona-indicacoes', (req, res) => {
+    res.render('referrals-info', { title: 'Como funciona o programa de indicações' });
+});
+
 // Setup do primeiro SUPERADMIN
 router.get('/admin/setup', (req, res) => {
     res.render('admin/setup', { title: 'Configurar SUPERADMIN' });

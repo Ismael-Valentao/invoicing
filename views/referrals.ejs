@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"/>
+  <title>Invoicing — Indicações</title>
+  <link rel="icon" type="image/png" href="/images/invoicing-logo-simple.png"/>
+  <link href="/assets/vendor/fontawesome-free/css/all.min.css" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css?family=Nunito:400,600,700,800" rel="stylesheet"/>
+  <link href="/assets/css/sb-admin-2.min.css" rel="stylesheet"/>
+  <link href="/assets/css/custom.css" rel="stylesheet"/>
+  <style>
+    body { background: #f4f6f9; }
+    .ref-card { border-radius: 12px; border: none; }
+    .stat-card { border-left: 4px solid #228CDF; }
+    .stat-value { font-size: 1.8rem; font-weight: 800; color: #2e3a59; }
+    .stat-label { font-size: .78rem; text-transform: uppercase; color: #6c757d; font-weight: 700; letter-spacing: .5px; }
+    .ref-link-box {
+      background: #f8f9fc; border: 1px dashed #cfd6e4; border-radius: 8px;
+      padding: 12px 14px; font-family: monospace; font-size: .95rem; word-break: break-all;
+    }
+    .status-pill { display: inline-block; padding: 3px 10px; border-radius: 16px; font-size: .72rem; font-weight: 700; }
+    .status-pending   { background: #fff3cd; color: #856404; }
+    .status-converted { background: #d4edda; color: #155724; }
+    .status-expired   { background: #f8d7da; color: #721c24; }
+  </style>
+</head>
+<body id="page-top">
+<div id="wrapper">
+  <%- include('partials/sidebar') %>
+  <div id="content-wrapper" class="d-flex flex-column">
+    <div id="content">
+      <%- include('partials/topbar') %>
+      <div class="container-fluid py-4">
+
+        <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap" style="gap:8px;">
+          <h4 class="font-weight-bold text-gray-800 mb-0">
+            <i class="fas fa-gift text-primary mr-2"></i>Programa de Indicações
+          </h4>
+          <a href="/como-funciona-indicacoes" target="_blank" class="btn btn-outline-primary btn-sm">
+            <i class="fas fa-question-circle mr-1"></i>Como funciona
+          </a>
+        </div>
+
+        <!-- Call to action + link -->
+        <div class="card ref-card shadow-sm mb-4">
+          <div class="card-body p-4">
+            <div class="row align-items-center">
+              <div class="col-lg-7">
+                <h5 class="mb-2 font-weight-bold">Indica uma empresa e ganha 30 dias Premium grátis</h5>
+                <p class="text-muted small mb-3">
+                  Partilha o teu link. Quando a empresa indicada pagar a primeira subscrição,
+                  ganhas <strong>30 dias de plano Premium</strong> activados assim que o teu plano actual expirar.
+                  Sem limite de indicações.
+                </p>
+                <label class="small text-muted mb-1">O teu link único:</label>
+                <div class="ref-link-box mb-3" id="refLinkBox">A carregar…</div>
+                <div class="d-flex flex-wrap" style="gap:8px;">
+                  <button class="btn btn-primary btn-sm" id="btnCopy">
+                    <i class="fas fa-copy mr-1"></i>Copiar link
+                  </button>
+                  <a class="btn btn-success btn-sm" id="btnWhats" href="#" target="_blank">
+                    <i class="fab fa-whatsapp mr-1"></i>Partilhar no WhatsApp
+                  </a>
+                  <button class="btn btn-outline-secondary btn-sm" id="btnCopyCode">
+                    <i class="fas fa-hashtag mr-1"></i>Copiar código
+                  </button>
+                </div>
+              </div>
+              <div class="col-lg-5 text-center d-none d-lg-block">
+                <i class="fas fa-users" style="font-size: 6rem; color: #228CDF; opacity:.2;"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Stats -->
+        <div class="row mb-4">
+          <div class="col-md-3 mb-3">
+            <div class="card stat-card shadow-sm"><div class="card-body py-3">
+              <div class="stat-label">Total Indicadas</div>
+              <div class="stat-value" id="statTotal">—</div>
+            </div></div>
+          </div>
+          <div class="col-md-3 mb-3">
+            <div class="card stat-card shadow-sm" style="border-left-color:#1cc88a;"><div class="card-body py-3">
+              <div class="stat-label">Convertidas</div>
+              <div class="stat-value" id="statConverted">—</div>
+            </div></div>
+          </div>
+          <div class="col-md-3 mb-3">
+            <div class="card stat-card shadow-sm" style="border-left-color:#f6c23e;"><div class="card-body py-3">
+              <div class="stat-label">Pendentes</div>
+              <div class="stat-value" id="statPending">—</div>
+            </div></div>
+          </div>
+          <div class="col-md-3 mb-3">
+            <div class="card stat-card shadow-sm" style="border-left-color:#e74a3b;"><div class="card-body py-3">
+              <div class="stat-label">Dias Premium Ganhos</div>
+              <div class="stat-value" id="statDays">—</div>
+            </div></div>
+          </div>
+        </div>
+
+        <!-- Pending rewards -->
+        <div class="card ref-card shadow-sm mb-4" id="pendingBlock" style="display:none;">
+          <div class="card-header bg-white">
+            <strong><i class="fas fa-hourglass-half text-warning mr-2"></i>Recompensas a activar</strong>
+          </div>
+          <div class="card-body py-3">
+            <ul class="mb-0 small" id="pendingList"></ul>
+          </div>
+        </div>
+
+        <!-- Tabela -->
+        <div class="card ref-card shadow-sm">
+          <div class="card-header bg-white">
+            <strong>Minhas indicações</strong>
+          </div>
+          <div class="card-body p-0">
+            <div class="table-responsive">
+              <table class="table table-sm mb-0">
+                <thead class="thead-light">
+                  <tr>
+                    <th>Empresa</th>
+                    <th>Email</th>
+                    <th>Registada</th>
+                    <th>Estado</th>
+                    <th>Convertida</th>
+                    <th class="text-right">Recompensa</th>
+                  </tr>
+                </thead>
+                <tbody id="tblBody">
+                  <tr><td colspan="6" class="text-center text-muted py-4">A carregar…</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="/assets/vendor/jquery/jquery.min.js"></script>
+<script src="/assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+<script src="/assets/vendor/jquery-easing/jquery.easing.min.js"></script>
+<script src="/assets/js/sb-admin-2.min.js"></script>
+
+<script>
+function fmtDate(iso) {
+  if (!iso) return '—';
+  const d = new Date(iso);
+  return d.toLocaleDateString('pt-PT') + ' ' + d.toLocaleTimeString('pt-PT', { hour: '2-digit', minute: '2-digit' });
+}
+
+function statusPill(s) {
+  const cls = s === 'converted' ? 'status-converted' : s === 'expired' ? 'status-expired' : 'status-pending';
+  const label = s === 'converted' ? 'Convertida' : s === 'expired' ? 'Expirada' : 'Pendente';
+  return '<span class="status-pill ' + cls + '">' + label + '</span>';
+}
+
+async function loadReferrals() {
+  try {
+    const r = await fetch('/api/referrals/me', { cache: 'no-store' });
+    const d = await r.json();
+    if (!d.success) throw new Error(d.message || 'Erro');
+
+    document.getElementById('refLinkBox').textContent = d.link;
+    document.getElementById('statTotal').textContent = d.stats.total;
+    document.getElementById('statConverted').textContent = d.stats.converted;
+    document.getElementById('statPending').textContent = d.stats.pending;
+    document.getElementById('statDays').textContent = d.stats.daysEarned;
+
+    const msg = 'Experimenta o Invoicing — a plataforma de facturação e gestão para empresas moçambicanas. ' +
+                'Primeiros 30 dias grátis. Usa o meu link: ' + d.link;
+    document.getElementById('btnWhats').href = 'https://wa.me/?text=' + encodeURIComponent(msg);
+
+    document.getElementById('btnCopy').onclick = function () {
+      navigator.clipboard.writeText(d.link).then(() => {
+        this.innerHTML = '<i class="fas fa-check mr-1"></i>Copiado!';
+        setTimeout(() => this.innerHTML = '<i class="fas fa-copy mr-1"></i>Copiar link', 1500);
+      });
+    };
+    document.getElementById('btnCopyCode').onclick = function () {
+      navigator.clipboard.writeText(d.code).then(() => {
+        this.innerHTML = '<i class="fas fa-check mr-1"></i>Código copiado!';
+        setTimeout(() => this.innerHTML = '<i class="fas fa-hashtag mr-1"></i>Copiar código', 1500);
+      });
+    };
+
+    // Pending rewards
+    if (d.pendingRewards && d.pendingRewards.length) {
+      document.getElementById('pendingBlock').style.display = '';
+      document.getElementById('pendingList').innerHTML = d.pendingRewards.map(function (pr) {
+        return '<li><strong>' + pr.days + ' dias</strong> de ' + pr.plan +
+               ' — activa em <strong>' + fmtDate(pr.activatesAt) + '</strong></li>';
+      }).join('');
+    }
+
+    // Tabela
+    const tbody = document.getElementById('tblBody');
+    if (!d.referrals.length) {
+      tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted py-4">Ainda não indicaste ninguém. Partilha o teu link!</td></tr>';
+      return;
+    }
+    tbody.innerHTML = d.referrals.map(function (r) {
+      const rew = r.rewardDays
+        ? r.rewardDays + ' dias' + (r.rewardAppliedAt ? ' (aplicada)' : r.rewardActivatesAt ? ' (activa em ' + fmtDate(r.rewardActivatesAt) + ')' : '')
+        : '—';
+      return '<tr>' +
+        '<td>' + r.refereeName + '</td>' +
+        '<td class="small text-muted">' + r.refereeEmail + '</td>' +
+        '<td class="small">' + fmtDate(r.createdAt) + '</td>' +
+        '<td>' + statusPill(r.status) + '</td>' +
+        '<td class="small">' + (r.convertedAt ? fmtDate(r.convertedAt) : '—') + '</td>' +
+        '<td class="text-right small">' + rew + '</td>' +
+      '</tr>';
+    }).join('');
+  } catch (err) {
+    document.getElementById('refLinkBox').textContent = 'Erro ao carregar: ' + err.message;
+  }
+}
+
+loadReferrals();
+</script>
+</body>
+</html>
