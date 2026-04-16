@@ -86,7 +86,10 @@ const userSchema = new mongoose.Schema({
     lastLoginAt: { type: Date, default: null },
     lastLoginIp: { type: String, default: '' },
 
-    lastReadReleasesAt: { type: Date, default: null }
+    lastReadReleasesAt: { type: Date, default: null },
+
+    // Marca o momento em que o utilizador recebeu o email de anúncio do programa de indicações
+    referralsAnnouncedAt: { type: Date, default: null }
 }, {
     timestamps: true,
 });
