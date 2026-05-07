@@ -70,14 +70,38 @@ const sendWelcomeEmail = async (toEmail, userName) => {
     await send(toEmail, 'Bem-vindo à Invoicing — Primeiros passos', html);
 };
 
-// ─── AVISO DE EXPIRAÇÃO (7 DIAS) ──────────────────────────────────────────────
-const sendExpiryWarningEmail = async (toEmail, userName, companyName, daysLeft, plan) => {
+// ─── AVISOS DE EXPIRAÇÃO (7d / 3d / 1d antes) ─────────────────────────────────
+const WARNING_COPY = {
+    '7d': {
+        subject: (n) => `⏳ Faltam ${n} dias para a tua subscrição expirar`,
+        title: '⏳ A tua subscrição expira em 7 dias',
+        intro: 'Para evitar surpresas, podes renovar com antecedência. A renovação adiciona ao tempo restante — não perdes nada.',
+        urgency: ''
+    },
+    '3d': {
+        subject: () => '⚠️ Faltam 3 dias para a tua subscrição expirar',
+        title: '⚠️ A tua subscrição expira em 3 dias',
+        intro: 'Estás à beira de perder acesso à plataforma. Renova agora para garantir continuidade dos teus dados, facturas e clientes.',
+        urgency: '<p style="color:#e67e22;"><strong>Não percas o teu trabalho — renova hoje.</strong></p>'
+    },
+    '1d': {
+        subject: () => '🚨 A tua subscrição expira AMANHÃ',
+        title: '🚨 A tua subscrição expira amanhã',
+        intro: 'Em menos de 24 horas, perdes o acesso à plataforma. Os teus dados ficam guardados, mas não consegues criar facturas, vendas ou aceder ao dashboard até renovar.',
+        urgency: '<p style="color:#e74a3b;"><strong>Renova hoje para não interromper o teu trabalho amanhã.</strong></p>'
+    }
+};
+
+const sendExpiryWarningEmail = async (toEmail, userName, companyName, daysLeft, plan, level) => {
+    const lvl = level || (daysLeft <= 1 ? '1d' : daysLeft <= 3 ? '3d' : '7d');
+    const copy = WARNING_COPY[lvl] || WARNING_COPY['7d'];
     const html = emailWrapper(`
-      <h2 style="color:#e67e22; margin-top:0; text-align:center;">⚠️ A tua subscrição expira em breve</h2>
+      <h2 style="color:#e67e22; margin-top:0; text-align:center;">${copy.title}</h2>
       <p>Olá, <strong>${userName}</strong>,</p>
       <p>A subscrição da empresa <strong>${companyName}</strong> (plano <strong>${plan}</strong>)
          expira em <strong>${daysLeft} dia(s)</strong>.</p>
-      <p>Para não perderes o acesso à plataforma, renova o teu plano agora.</p>
+      <p>${copy.intro}</p>
+      ${copy.urgency}
       ${btn('Renovar Subscrição', `${APP_URL}/upgrade`)}
       <p><strong>Métodos de pagamento disponíveis:</strong></p>
       <ul style="padding-left:18px;">
@@ -87,7 +111,51 @@ const sendExpiryWarningEmail = async (toEmail, userName, companyName, daysLeft, 
       <p>Após o pagamento, a activação é <strong>instantânea</strong>.</p>
       <p>Com os melhores cumprimentos,<br><strong>Equipa Invoicing</strong></p>
     `);
-    await send(toEmail, `⚠️ A tua subscrição expira em ${daysLeft} dia(s) — Renova agora`, html);
+    await send(toEmail, copy.subject(daysLeft), html);
+};
+
+// ─── EMAILS DE WINBACK (1d / 3d / 7d depois da expiração) ─────────────────────
+const EXPIRED_COPY = {
+    '1d': {
+        subject: () => '⏰ A tua subscrição expirou ontem — renova em 30 segundos',
+        title: '⏰ A tua subscrição expirou ontem',
+        intro: 'Acabaste de perder o acesso à plataforma. Os teus dados estão a salvo. Para voltar a usar normalmente, renova o plano.',
+        urgency: '<p>A activação após o pagamento é <strong>imediata</strong>.</p>',
+        cta: 'Renovar agora'
+    },
+    '3d': {
+        subject: () => '🔄 A tua subscrição expirou há 3 dias — voltamos a contar contigo?',
+        title: '🔄 Já passaram 3 dias',
+        intro: 'A tua conta está parada há 3 dias. Sabemos que pode ter sido distracção — voltar é simples e os teus dados estão intactos.',
+        urgency: '<p>Se houve algum problema com o nosso serviço, responde a este email — queremos ouvir-te.</p>',
+        cta: 'Voltar à plataforma'
+    },
+    '7d': {
+        subject: () => '⚠️ Última semana — depois disto a tua conta fica em modo só leitura',
+        title: '⚠️ Última chamada',
+        intro: 'A tua subscrição expirou há 7 dias. Em breve a conta passa para <strong>modo só leitura</strong> — vais conseguir consultar dados antigos mas não criar nada novo.',
+        urgency: '<p style="color:#e74a3b;"><strong>Renova esta semana para evitar a transição.</strong></p>',
+        cta: 'Renovar agora'
+    }
+};
+
+const sendExpiredEmail = async (toEmail, userName, companyName, plan, level) => {
+    const copy = EXPIRED_COPY[level] || EXPIRED_COPY['1d'];
+    const html = emailWrapper(`
+      <h2 style="color:#e74a3b; margin-top:0; text-align:center;">${copy.title}</h2>
+      <p>Olá, <strong>${userName}</strong>,</p>
+      <p>A subscrição da empresa <strong>${companyName}</strong> (plano <strong>${plan}</strong>) já expirou.</p>
+      <p>${copy.intro}</p>
+      ${copy.urgency}
+      ${btn(copy.cta, `${APP_URL}/upgrade`)}
+      <p><strong>Como pagar:</strong></p>
+      <ul style="padding-left:18px;">
+        <li>E-mola — dados na página de upgrade</li>
+        <li>Transferência bancária — NIB na página de upgrade</li>
+      </ul>
+      <p>Com os melhores cumprimentos,<br><strong>Equipa Invoicing</strong></p>
+    `);
+    await send(toEmail, copy.subject(), html);
 };
 
 // ─── AVISO DE LIMITE A 80% ────────────────────────────────────────────────────
@@ -216,6 +284,7 @@ module.exports = {
     sendGeneric,
     sendWelcomeEmail,
     sendExpiryWarningEmail,
+    sendExpiredEmail,
     sendLimitWarningEmail,
     sendMonthlySummaryEmail,
     sendUpgradeRequestEmail,

@@ -15,6 +15,7 @@ const { generateNotifications } = require('../controllers/notificationController
 const { getPlan } = require('./plans');
 const {
     sendExpiryWarningEmail,
+    sendExpiredEmail,
     sendLimitWarningEmail,
     sendMonthlySummaryEmail,
 } = require('./mailSender');
@@ -27,48 +28,97 @@ function startOfMonth() {
 }
 
 /**
- * Marca subscrições expiradas e envia avisos de 7 dias.
+ * Marca subscrições expiradas e envia avisos por marco (7d/3d/1d antes,
+ * 1d/3d/7d depois). Cada marco só dispara uma vez por subscrição.
  */
+function pickWarningLevel(daysLeft) {
+    if (daysLeft <= 1) return '1d';
+    if (daysLeft <= 3) return '3d';
+    if (daysLeft <= 7) return '7d';
+    return null;
+}
+
+function pickExpiredLevel(daysExpired) {
+    if (daysExpired >= 7) return '7d';
+    if (daysExpired >= 3) return '3d';
+    if (daysExpired >= 1) return '1d';
+    return null;
+}
+
 async function runExpiryCheck() {
     try {
         const now = new Date();
         const in7Days = new Date(now.getTime() + 7 * MS_PER_DAY);
+        const minus7Days = new Date(now.getTime() - 7 * MS_PER_DAY);
 
         // 1. Expirar subscrições vencidas
-        const expired = await Subscription.updateMany(
+        const expiredUpdate = await Subscription.updateMany(
             { status: 'active', expiresAt: { $lt: now } },
             { $set: { status: 'expired' } }
         );
-        if (expired.modifiedCount > 0) {
-            console.log(`[Cron] ${expired.modifiedCount} subscrição(ões) marcada(s) como expirada(s).`);
+        if (expiredUpdate.modifiedCount > 0) {
+            console.log(`[Cron] ${expiredUpdate.modifiedCount} subscrição(ões) marcada(s) como expirada(s).`);
         }
 
-        // 2. Avisos de expiração em 7 dias
+        // 2. Avisos PRÉ-expiração (7d/3d/1d): subscrições activas a expirar em 0..7d
         const expiringSoon = await Subscription.find({
             status: 'active',
             expiresAt: { $gte: now, $lte: in7Days }
         }).populate('companyId');
 
+        let warned = 0;
         for (const sub of expiringSoon) {
             const company = sub.companyId;
             if (!company) continue;
-
             const adminUser = await User.findOne({ companyId: company._id, role: 'ADMIN' });
             if (!adminUser) continue;
 
             const daysLeft = Math.ceil((sub.expiresAt - now) / MS_PER_DAY);
-            const plan = getPlan(sub.plan);
+            const level = pickWarningLevel(daysLeft);
+            if (!level) continue;
 
-            await sendExpiryWarningEmail(
-                adminUser.email,
-                adminUser.name,
-                company.name,
-                daysLeft,
-                plan.label
-            );
+            const fieldKey = `warning${level}`;
+            sub.expiryNotifications = sub.expiryNotifications || {};
+            if (sub.expiryNotifications[fieldKey]) continue; // já enviado
+
+            const plan = getPlan(sub.plan);
+            await sendExpiryWarningEmail(adminUser.email, adminUser.name, company.name, daysLeft, plan.label, level);
+
+            sub.expiryNotifications[fieldKey] = new Date();
+            await sub.save();
+            warned++;
         }
 
-        console.log(`[Cron] Expiração verificada. ${expiringSoon.length} aviso(s) enviado(s).`);
+        // 3. Winback PÓS-expiração (1d/3d/7d): expiradas há 1..7 dias
+        const recentlyExpired = await Subscription.find({
+            status: 'expired',
+            expiresAt: { $gte: minus7Days, $lt: now }
+        }).populate('companyId');
+
+        let winback = 0;
+        for (const sub of recentlyExpired) {
+            const company = sub.companyId;
+            if (!company) continue;
+            const adminUser = await User.findOne({ companyId: company._id, role: 'ADMIN' });
+            if (!adminUser) continue;
+
+            const daysExpired = Math.floor((now - sub.expiresAt) / MS_PER_DAY);
+            const level = pickExpiredLevel(daysExpired);
+            if (!level) continue;
+
+            const fieldKey = `expired${level}`;
+            sub.expiryNotifications = sub.expiryNotifications || {};
+            if (sub.expiryNotifications[fieldKey]) continue;
+
+            const plan = getPlan(sub.plan);
+            await sendExpiredEmail(adminUser.email, adminUser.name, company.name, plan.label, level);
+
+            sub.expiryNotifications[fieldKey] = new Date();
+            await sub.save();
+            winback++;
+        }
+
+        console.log(`[Cron] Expiração: ${warned} aviso(s) pré + ${winback} winback enviados.`);
     } catch (err) {
         console.error('[Cron] Erro no expiryCheck:', err.message);
     }

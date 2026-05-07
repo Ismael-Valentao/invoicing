@@ -43,7 +43,17 @@ const subscriptionSchema = new mongoose.Schema({
         activatesAt: { type: Date, required: true },
         appliedAt: { type: Date, default: null },
         referralId: { type: mongoose.Schema.Types.ObjectId, ref: 'Referral' }
-    }]
+    }],
+
+    // Marcos de envios de aviso de expiração — null = ainda não enviado
+    expiryNotifications: {
+        warning7d: { type: Date, default: null },
+        warning3d: { type: Date, default: null },
+        warning1d: { type: Date, default: null },
+        expired1d: { type: Date, default: null },
+        expired3d: { type: Date, default: null },
+        expired7d: { type: Date, default: null }
+    }
 
 }, {
     timestamps: true
