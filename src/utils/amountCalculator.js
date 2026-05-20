@@ -13,11 +13,18 @@ const normalizeNumber = (value) => {
 };
 
 const normalizeItems = (items) => {
-  return items.map(item => ({
-    ...item,
-    quantity: normalizeNumber(item.quantity),
-    unitPrice: normalizeNumber(item.unitPrice),
-  }));
+  return items.map(item => {
+    const out = {
+      ...item,
+      quantity: normalizeNumber(item.quantity),
+      unitPrice: normalizeNumber(item.unitPrice),
+    };
+    // productId vazio ("" ou "null" string) → null para evitar CastError do Mongoose
+    if (!out.productId || out.productId === 'null' || out.productId === 'undefined') {
+      out.productId = null;
+    }
+    return out;
+  });
 };
 
 const amounts = (items, taxRate = 0.16) => {
