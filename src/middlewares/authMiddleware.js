@@ -68,6 +68,10 @@ async function authMiddleware2(req, res, next) {
     if (maint) {
       return res.status(maint.code).send(`<h1>Manutenção</h1><p>${maint.message}</p>`);
     }
+    // Páginas autenticadas nunca devem ser cacheadas pelo browser/CDN —
+    // evita servir HTML desactualizado (ex.: banners de subscrição antigos).
+    res.set('Cache-Control', 'no-store, no-cache, must-revalidate, private');
+    res.set('Pragma', 'no-cache');
     req.user = decoded;
     next();
   } catch (err) {
