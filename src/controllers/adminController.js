@@ -31,6 +31,15 @@ const { logError } = require('../middlewares/errorLogger');
 const JWT_SECRET = process.env.JWT_SECRET;
 const APP_URL = process.env.APP_URL || process.env.BASE_URL || '';
 
+// Repõe os marcos de aviso de expiração (7d/3d/1d antes e depois) a null,
+// para que voltem a disparar no novo ciclo após uma renovação/extensão.
+function resetExpiryNotifications() {
+    return {
+        warning7d: null, warning3d: null, warning1d: null,
+        expired1d: null, expired3d: null, expired7d: null
+    };
+}
+
 // ─── STATS (Dashboard) ────────────────────────────────────────────────────────
 exports.getDashboardStats = async (req, res) => {
     try {
@@ -152,6 +161,8 @@ exports.activatePlan = async (req, res) => {
         sub.status = 'active';
         sub.startDate = new Date();
         sub.expiresAt = expiry;
+        // Novo ciclo → limpa os marcos de aviso para que voltem a disparar
+        sub.expiryNotifications = resetExpiryNotifications();
         await sub.save();
 
         // Enviar email de confirmação ao admin da empresa
@@ -620,6 +631,8 @@ exports.extendSubscription = async (req, res) => {
         newExpiry.setDate(newExpiry.getDate() + d);
         sub.expiresAt = newExpiry;
         if (d > 0 && sub.status === 'expired') sub.status = 'active';
+        // Estender para a frente reabre a janela de avisos
+        if (d > 0) sub.expiryNotifications = resetExpiryNotifications();
         await sub.save();
 
         return res.json({ success: true, message: `Subscrição estendida em ${d} dias.`, subscription: sub });
@@ -638,8 +651,19 @@ exports.changePlanKeepExpiry = async (req, res) => {
         if (!sub) return res.status(404).json({ success: false, message: 'Subscrição não encontrada.' });
 
         sub.plan = plan;
+
+        const isValid = sub.expiresAt && sub.expiresAt > new Date();
+        // Mudar de plano não deve deixar uma subscrição ainda válida marcada como expirada.
+        if (isValid && sub.status === 'expired') sub.status = 'active';
+
         await sub.save();
-        return res.json({ success: true, message: `Plano alterado para ${plan} (data de expiração mantida).`, subscription: sub });
+
+        // Se a validade já passou, mudar o plano NÃO renova — avisa explicitamente o admin.
+        const message = isValid
+            ? `Plano alterado para ${plan} (data de expiração mantida).`
+            : `Plano alterado para ${plan}, mas a subscrição continua EXPIRADA — use "Estender" ou "Activar plano" para renovar.`;
+
+        return res.json({ success: true, message, subscription: sub });
     } catch (err) {
         return res.status(500).json({ success: false, message: err.message });
     }

@@ -139,6 +139,11 @@ exports.adminActivatePlan = async (req, res) => {
         sub.status = 'active';
         sub.startDate = new Date();
         sub.expiresAt = getPaidPlanExpiration();
+        // Novo ciclo → limpa os marcos de aviso para que voltem a disparar
+        sub.expiryNotifications = {
+            warning7d: null, warning3d: null, warning1d: null,
+            expired1d: null, expired3d: null, expired7d: null
+        };
         await sub.save();
 
         // Trigger de conversão de indicação: só no primeiro upgrade de FREE para pago

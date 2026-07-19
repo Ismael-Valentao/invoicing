@@ -263,7 +263,7 @@ async function viewCompany(id, name) {
           </div>
           <div class="form-row align-items-end">
             <div class="form-group col-md-4">
-              <label class="small">Mudar plano (mantém expiração)</label>
+              <label class="small">Mudar plano (mantém expiração — NÃO renova)</label>
               <select id="newPlan" class="form-control form-control-sm">
                 <option value="FREE">FREE</option>
                 <option value="BASIC">BASIC</option>
@@ -361,7 +361,7 @@ async function extendSub() {
 
 async function changePlan() {
   const plan = document.getElementById('newPlan').value;
-  if (!confirm(`Mudar plano para ${plan}, mantendo a data de expiração actual?`)) return;
+  if (!confirm(`Mudar plano para ${plan}, mantendo a data de expiração actual?\n\nAtenção: isto NÃO renova a subscrição. Se estiver expirada, use "Estender" ou "Activar plano".`)) return;
   const r = await fetch(`/api/admin/companies/${currentCompanyId}/change-plan`, {
     method:'PATCH', headers:{'Content-Type':'application/json'},
     body: JSON.stringify({ plan })
