@@ -1,5 +1,7 @@
 // Service Worker — Invoicing PWA
-const CACHE = 'invoicing-v1';
+// v2: HTML nunca é servido de cache (páginas autenticadas são sempre frescas).
+//     A cache serve apenas estáticos + a página offline como recurso sem rede.
+const CACHE = 'invoicing-v2';
 const OFFLINE_URL = '/offline.html';
 
 const PRECACHE = [
@@ -23,51 +25,45 @@ self.addEventListener('install', (event) => {
 
 self.addEventListener('activate', (event) => {
   event.waitUntil(
-    caches.keys().then((keys) =>
-      Promise.all(keys.filter((k) => k !== CACHE).map((k) => caches.delete(k)))
-    )
+    caches.keys()
+      .then((keys) => Promise.all(keys.filter((k) => k !== CACHE).map((k) => caches.delete(k))))
+      .then(() => self.clients.claim())
   );
-  self.clients.claim();
 });
 
-// Network-first para HTML, cache-first para estáticos
 self.addEventListener('fetch', (event) => {
   const req = event.request;
   if (req.method !== 'GET') return;
 
   const url = new URL(req.url);
 
-  // Não interceptar APIs (deixar o app gerir offline via IndexedDB)
+  // Nunca interceptar APIs (o app gere offline via IndexedDB).
   if (url.pathname.startsWith('/api/')) return;
 
-  // HTML: tenta rede, fallback offline page
-  if (req.headers.get('accept')?.includes('text/html')) {
+  const isHTML = req.mode === 'navigate' || (req.headers.get('accept') || '').includes('text/html');
+
+  // HTML (páginas): SEMPRE rede. Nunca cacheado nem servido de cache —
+  // evita servir dashboards/estados antigos. Sem rede → página offline.
+  if (isHTML) {
     event.respondWith(
-      fetch(req)
-        .then((res) => {
-          const copy = res.clone();
-          caches.open(CACHE).then((c) => c.put(req, copy)).catch(() => {});
-          return res;
-        })
-        .catch(() => caches.match(req).then((r) => r || caches.match(OFFLINE_URL)))
+      fetch(req).catch(() => caches.match(OFFLINE_URL))
     );
     return;
   }
 
-  // Estáticos: cache-first
+  // Estáticos: cache-first, com revalidação em segundo plano.
   event.respondWith(
     caches.match(req).then((cached) => {
-      if (cached) return cached;
-      return fetch(req).then((res) => {
+      const network = fetch(req).then((res) => {
         const copy = res.clone();
         caches.open(CACHE).then((c) => c.put(req, copy)).catch(() => {});
         return res;
       }).catch(() => cached);
+      return cached || network;
     })
   );
 });
 
-// Mensagens do app (para sincronização manual)
 self.addEventListener('message', (event) => {
   if (event.data?.type === 'SKIP_WAITING') self.skipWaiting();
 });
