@@ -24,20 +24,20 @@
           <%- include('partials/topbar') %>
 
             <div class="container-fluid">
-              <!-- Banner de subscrição expirada -->
-              <div id="subExpiredBanner" class="alert alert-danger align-items-center justify-content-between mb-3"
-                style="display:none;">
-                <span><i class="fas fa-lock mr-2"></i><strong>Subscrição expirada.</strong> Renova o teu plano para
-                  continuar a criar vendas.</span>
-                <a href="/upgrade" class="btn btn-danger btn-sm ml-3">Renovar agora</a>
-              </div>
-
-              <div id="subWarningBanner" class="alert alert-warning align-items-center justify-content-between mb-3"
-                style="display:none;">
-                <span><i class="fas fa-exclamation-triangle mr-2"></i>A tua subscrição expira em <strong
-                    id="subDaysLeft"></strong> dias.</span>
-                <a href="/upgrade" class="btn btn-warning btn-sm ml-3">Renovar</a>
-              </div>
+              <!-- Aviso de subscrição — renderizado no servidor a partir dos dados reais (uma só decisão) -->
+              <% if (typeof subNotice !== 'undefined' && subNotice) { %>
+                <% if (subNotice.state === 'expired') { %>
+                  <div class="alert alert-danger d-flex align-items-center justify-content-between mb-3">
+                    <span><i class="fas fa-lock mr-2"></i><strong>Subscrição expirada.</strong> Renova o teu plano para continuar a criar vendas.</span>
+                    <a href="/upgrade" class="btn btn-danger btn-sm ml-3">Renovar agora</a>
+                  </div>
+                <% } else if (subNotice.state === 'expiring') { %>
+                  <div class="alert alert-warning d-flex align-items-center justify-content-between mb-3">
+                    <span><i class="fas fa-exclamation-triangle mr-2"></i>A tua subscrição expira em <strong><%= subNotice.days %></strong> dia<%= subNotice.days === 1 ? '' : 's' %>.</span>
+                    <a href="/upgrade" class="btn btn-warning btn-sm ml-3">Renovar</a>
+                  </div>
+                <% } %>
+              <% } %>
               <%- include('partials/onboarding-checklist') %>
               <%- include('partials/referrals-announcement') %>
                 <div class="d-sm-flex align-items-center justify-content-between mb-4">
@@ -294,34 +294,7 @@
     <script src="/assets/vendor/chart.js/Chart.min.js"></script>
     <script src="/assets/js/sales-dashboard.js"></script>
     <script>
-      function checkSubscriptionStatus() {
-        fetch('/api/subscriptions/my', { cache: 'no-store' })
-          .then(r => r.ok ? r.json() : null)
-          .then(data => {
-            if (!data || !data.success) return;
-
-            const s = data.subscription || {};
-            const days = Number(s.daysLeft || 0);
-
-            const expiredBanner = document.getElementById('subExpiredBanner');
-            const warningBanner = document.getElementById('subWarningBanner');
-
-            const isExpired = s.status === 'expired' || days <= 0;
-            const showWarning = s.status === 'active' && days > 0 && days <= 7;
-
-            expiredBanner.style.display = 'none';
-            warningBanner.style.display = 'none';
-
-            if (isExpired) {
-              expiredBanner.style.display = 'flex';
-            } else if (showWarning) {
-              document.getElementById('subDaysLeft').textContent = days;
-              warningBanner.style.display = 'flex';
-            }
-          })
-          .catch(console.error);
-      }
-      checkSubscriptionStatus();
+      // Aviso de subscrição agora é renderizado no servidor (ver topo da página).
 
       // Sales Goal
       fetch('/api/features/sales-goal').then(function(r){return r.json();}).then(function(d) {

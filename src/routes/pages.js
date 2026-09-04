@@ -39,6 +39,26 @@ function buildViewData(req, title, extra = {}) {
 }
 
 // Rotas principais do sistema
+const Subscription = require('../models/subscription');
+
+// Aviso de subscrição calculado no servidor a partir dos dados reais.
+// Devolve null (nada a mostrar), { state: 'expired' } ou { state: 'expiring', days }.
+async function getSubNotice(req) {
+    try {
+        if (req.user?.role === 'SUPERADMIN') return null;
+        const companyId = req.user?.company?._id;
+        if (!companyId) return null;
+        const sub = await Subscription.findOne({ companyId }).lean();
+        if (!sub || !sub.expiresAt) return null;
+        const now = new Date();
+        const exp = new Date(sub.expiresAt);
+        if (sub.status === 'expired' || exp < now) return { state: 'expired' };
+        const days = Math.ceil((exp - now) / 86400000);
+        if (days >= 0 && days <= 7) return { state: 'expiring', days };
+        return null;
+    } catch (e) { return null; }
+}
+
 router.get('/', (req, res) => {
     res.render("site", { title: 'Website' });
 });
@@ -63,7 +83,7 @@ router.get('/setup-company', authMiddleware2, (req, res) => {
     res.render('setup-company', buildViewData(req, 'Configurar Empresa'));
 });
 
-router.get('/dashboard', authMiddleware2, ensureHasActiveModule, (req, res) => {
+router.get('/dashboard', authMiddleware2, ensureHasActiveModule, async (req, res) => {
     // Redirect to setup wizard if company still has ALL placeholder data (never configured)
     const c = req.user.company;
     if (c && c.nuit === '000000000' && c.address === 'A definir' && c.contact === 'A definir') {
@@ -74,7 +94,8 @@ router.get('/dashboard', authMiddleware2, ensureHasActiveModule, (req, res) => {
         return res.redirect("/sales-dashboard");
     }
 
-    res.render('dashboard', buildViewData(req, 'Dashboard'));
+    const subNotice = await getSubNotice(req);
+    res.render('dashboard', buildViewData(req, 'Dashboard', { subNotice }));
 });
 
 router.get('/profile', authMiddleware2, (req, res) => {
@@ -85,8 +106,9 @@ router.get('/activities', authMiddleware2, (req, res) => {
     res.render('activities', buildViewData(req, 'Actividades'));
 });
 
-router.get('/sales-dashboard', authMiddleware2, requirePermission('dashboard'), (req, res) => {
-    res.render('sales-dashboard', buildViewData(req, 'Dashboard de Vendas'));
+router.get('/sales-dashboard', authMiddleware2, requirePermission('dashboard'), async (req, res) => {
+    const subNotice = await getSubNotice(req);
+    res.render('sales-dashboard', buildViewData(req, 'Dashboard de Vendas', { subNotice }));
 });
 
 router.get('/invoices-dashboard', authMiddleware2, requirePermission('dashboard'), (req, res) => {

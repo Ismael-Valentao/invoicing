@@ -53,17 +53,20 @@
           <!-- Begin Page Content -->
           <div class="container-fluid">
 
-            <!-- Banner de subscrição expirada -->
-            <div id="subExpiredBanner" style="display:none;" class="alert alert-danger d-flex align-items-center justify-content-between mb-3">
-              <span><i class="fas fa-lock mr-2"></i><strong>Subscrição expirada.</strong> Renova o teu plano para continuar a criar documentos.</span>
-              <a href="/upgrade" class="btn btn-danger btn-sm ml-3">Renovar agora</a>
-            </div>
-
-            <!-- Banner de expiração próxima -->
-            <div id="subWarningBanner" style="display:none;" class="alert alert-warning d-flex align-items-center justify-content-between mb-3">
-              <span><i class="fas fa-exclamation-triangle mr-2"></i>A tua subscrição expira em <strong id="subDaysLeft"></strong> dias.</span>
-              <a href="/upgrade" class="btn btn-warning btn-sm ml-3">Renovar</a>
-            </div>
+            <!-- Aviso de subscrição — renderizado no servidor a partir dos dados reais (uma só decisão) -->
+            <% if (typeof subNotice !== 'undefined' && subNotice) { %>
+              <% if (subNotice.state === 'expired') { %>
+                <div class="alert alert-danger d-flex align-items-center justify-content-between mb-3">
+                  <span><i class="fas fa-lock mr-2"></i><strong>Subscrição expirada.</strong> Renova o teu plano para continuar a criar documentos.</span>
+                  <a href="/upgrade" class="btn btn-danger btn-sm ml-3">Renovar agora</a>
+                </div>
+              <% } else if (subNotice.state === 'expiring') { %>
+                <div class="alert alert-warning d-flex align-items-center justify-content-between mb-3">
+                  <span><i class="fas fa-exclamation-triangle mr-2"></i>A tua subscrição expira em <strong><%= subNotice.days %></strong> dia<%= subNotice.days === 1 ? '' : 's' %>.</span>
+                  <a href="/upgrade" class="btn btn-warning btn-sm ml-3">Renovar</a>
+                </div>
+              <% } %>
+            <% } %>
 
             <!-- Saudação contextual -->
             <div id="greetingCard" class="card shadow-sm mb-4 border-left-primary" style="display:none;">
@@ -390,24 +393,7 @@
         .catch(() => {});
     })();
 
-    // Verificar estado da subscrição ao carregar o dashboard
-    function checkSubscriptionStatus() {
-      fetch('/api/subscriptions/my', { cache: 'no-store' })
-        .then(r => r.ok ? r.json() : null)
-        .then(data => {
-          if (!data || !data.success) return;
-          const s = data.subscription;
-          const days = typeof s.daysLeft === 'number' ? s.daysLeft : 0;
-          const isExpired = s.status === 'expired' || days < 0;
-          const showWarning = !isExpired && days >= 0 && days <= 7;
-          document.getElementById('subExpiredBanner').style.display = isExpired ? 'flex' : 'none';
-          document.getElementById('subWarningBanner').style.display = showWarning ? 'flex' : 'none';
-          if (showWarning) {
-            document.getElementById('subDaysLeft').textContent = days;
-          }
-        }).catch(() => {});
-    }
-    checkSubscriptionStatus();
+    // Aviso de subscrição agora é renderizado no servidor (ver topo da página).
     </script>
 
     <!-- Tour interactivo para novos utilizadores -->
