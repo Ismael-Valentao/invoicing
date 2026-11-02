@@ -24,6 +24,7 @@ exports.createVD = async (req, res) => {
     tax,
     totalAmount,
     dueDate: req.body.dueDate || req.body.date,
+    notes: req.body.notes || '',
     companyId,
     userId,
   });

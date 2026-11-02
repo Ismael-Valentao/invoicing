@@ -92,7 +92,8 @@ exports.createInvoice = async (req, res) => {
     dueDate: req.body.date,
     companyId,
     userId,
-    clientId: req.body.clientId || null
+    clientId: req.body.clientId || null,
+    notes: req.body.notes || ''
   });
 
   await invoice.save();

@@ -153,6 +153,7 @@ function buildA4DocumentHtml({
   bankBlock = "",
   qrCodeDataUrl = "",
   extraTotalsHtml = "",
+  customNotes = "",
 }) {
   const logoSrc = companyInfo.logoUrl
     ? logoPath + companyInfo.logoUrl
@@ -475,6 +476,12 @@ function buildA4DocumentHtml({
 
       ${bankBlock}
 
+      ${customNotes ? `
+      <div style="margin-top:16px; padding:10px 12px; background:#f8f9fc; border-left:3px solid #228CDF; border-radius:4px;">
+        <div style="font-size:10px; text-transform:uppercase; letter-spacing:.5px; color:#858796; margin-bottom:4px; font-weight:700;">Observações</div>
+        <p style="margin:0; font-size:11px; color:#333333; line-height:1.5; white-space:pre-wrap;">${escapeHtml(customNotes)}</p>
+      </div>` : ""}
+
         </div>
       <div class="footer-notes" style="display:flex; align-items:flex-end; justify-content:space-between; gap:12px;">
         <div style="flex:1;">
@@ -553,6 +560,7 @@ async function generateInvoicePDF(companyInfo, invoice, baseUrl) {
       totalAmount: invoice.totalAmount,
     },
     bankBlock: renderBankDetailsBlock(companyInfo, "invoice"),
+    customNotes: invoice.notes || "",
     qrCodeDataUrl,
     footerNotes: [
       "Este documento serve como comprovativo da prestação de serviços e/ou fornecimento de bens.",
@@ -582,6 +590,7 @@ async function generateQuotationPDF(companyInfo, quotation, baseUrl) {
       totalAmount: quotation.totalAmount,
     },
     bankBlock: renderBankDetailsBlock(companyInfo, "quotation"),
+    customNotes: quotation.notes || "",
     qrCodeDataUrl,
     footerNotes: [
       "Esta cotação representa uma proposta comercial de fornecimento de bens e/ou serviços.",
@@ -611,6 +620,7 @@ async function generateVDPDF(companyInfo, vd, baseUrl) {
       totalAmount: vd.totalAmount,
     },
     bankBlock: renderBankDetailsBlock(companyInfo, "vd"),
+    customNotes: vd.notes || "",
     qrCodeDataUrl,
     footerNotes: [
       "Este documento comprova o pagamento imediato dos bens ou serviços descritos acima.",

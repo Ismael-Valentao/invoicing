@@ -22,6 +22,7 @@ const invoiceSchema = new mongoose.Schema({
     tax: { type: Number, required: true },
     totalAmount: { type: Number, required: true },
     showNotes: { type: Boolean, default: true },
+    notes: { type: String, default: '' },
     showBankDetails: { type: Boolean, default: true },
     dueDate: { type: Date, },
     companyId: { type: mongoose.Schema.Types.ObjectId, ref: 'Company' },

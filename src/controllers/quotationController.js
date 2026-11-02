@@ -32,6 +32,7 @@ exports.createQuotation = async (req, res) => {
             tax,
             totalAmount,
             dueDate: req.body.date,
+            notes: req.body.notes || '',
             companyId,
             userId
         });

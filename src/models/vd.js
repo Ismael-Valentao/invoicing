@@ -20,6 +20,7 @@ const vdSchema = new mongoose.Schema({
     totalAmount: { type: Number, required: true },
     dueDate: { type: Date },
     showNotes: { type: Boolean, default: true },
+    notes: { type: String, default: '' },
     showBankDetails: { type: Boolean, default: false },
     companyId: { type: mongoose.Schema.Types.ObjectId, ref: 'Company' },
     userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
