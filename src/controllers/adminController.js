@@ -23,6 +23,7 @@ const SystemSetting = require('../models/systemSetting');
 const ErrorLog = require('../models/errorLog');
 const EmailTemplate = require('../models/emailTemplate');
 const Release = require('../models/release');
+const UpgradeRequest = require('../models/upgradeRequest');
 const { DEFAULTS: PLAN_DEFAULTS, invalidateCache: invalidatePlanCache } = require('../utils/plans');
 const { PLANS, getPlan, getPaidPlanExpiration, getFreePlanExpiration } = require('../utils/plans');
 const { sendUpgradeConfirmationEmail, sendGeneric, sendForcedPasswordResetEmail } = require('../utils/mailSender');
@@ -472,6 +473,83 @@ exports.setupSuperAdmin = async (req, res) => {
         return res.json({ success: true, message: `${user.name} definido como SUPERADMIN da plataforma.` });
     } catch (err) {
         return res.status(500).json({ success: false, message: 'Erro.' });
+    }
+};
+
+// ─── PEDIDOS DE UPGRADE / RENOVAÇÃO ──────────────────────────────────────────
+exports.listUpgradeRequests = async (req, res) => {
+    try {
+        const { status } = req.query;
+        const filter = {};
+        if (status) filter.status = status;
+        // pendentes primeiro, depois mais recentes
+        const requests = await UpgradeRequest.find(filter)
+            .sort({ status: 1, createdAt: -1 })
+            .limit(300)
+            .lean();
+        const pendingCount = await UpgradeRequest.countDocuments({ status: 'pending' });
+        return res.json({ success: true, requests, pendingCount });
+    } catch (err) {
+        return res.status(500).json({ success: false, message: err.message });
+    }
+};
+
+exports.updateUpgradeRequest = async (req, res) => {
+    try {
+        const { status, adminNotes } = req.body;
+        if (!['pending', 'approved', 'rejected'].includes(status)) {
+            return res.status(400).json({ success: false, message: 'Estado inválido.' });
+        }
+        const doc = await UpgradeRequest.findByIdAndUpdate(
+            req.params.id,
+            { $set: { status, adminNotes: adminNotes || '', handledBy: req.user.id || null, handledAt: new Date() } },
+            { new: true }
+        );
+        if (!doc) return res.status(404).json({ success: false, message: 'Pedido não encontrado.' });
+        return res.json({ success: true, message: 'Pedido actualizado.', request: doc });
+    } catch (err) {
+        return res.status(500).json({ success: false, message: err.message });
+    }
+};
+
+// Activa o plano da empresa do pedido e marca o pedido como aprovado (um clique).
+exports.activateUpgradeRequest = async (req, res) => {
+    try {
+        const reqDoc = await UpgradeRequest.findById(req.params.id);
+        if (!reqDoc) return res.status(404).json({ success: false, message: 'Pedido não encontrado.' });
+
+        const sub = await Subscription.findOne({ companyId: reqDoc.companyId });
+        if (!sub) return res.status(404).json({ success: false, message: 'Subscrição da empresa não encontrada.' });
+
+        const cycle = reqDoc.billingCycle === 'annual' ? 'annual' : 'monthly';
+        const expiry = new Date();
+        expiry.setDate(expiry.getDate() + (cycle === 'annual' ? 365 : 30));
+
+        sub.plan = reqDoc.plan;
+        sub.billingCycle = cycle;
+        sub.status = 'active';
+        sub.startDate = new Date();
+        sub.expiresAt = expiry;
+        sub.expiryNotifications = resetExpiryNotifications();
+        await sub.save();
+
+        reqDoc.status = 'approved';
+        reqDoc.handledBy = req.user.id || null;
+        reqDoc.handledAt = new Date();
+        await reqDoc.save();
+
+        // Email de confirmação ao admin da empresa (best-effort)
+        try {
+            const company = await Company.findById(reqDoc.companyId);
+            const adminUser = await User.findOne({ companyId: reqDoc.companyId, role: { $in: ['ADMIN', 'SUPERADMIN'] } });
+            if (adminUser && company) {
+                await sendUpgradeConfirmationEmail(adminUser.email, adminUser.name, company.name, getPlan(reqDoc.plan).label);
+            }
+        } catch (e) { /* não bloqueia a activação */ }
+
+        return res.json({ success: true, message: `Plano ${reqDoc.plan} activado para ${reqDoc.companyName}.`, subscription: sub, request: reqDoc });
+    } catch (err) {
+        return res.status(500).json({ success: false, message: err.message });
     }
 };
 

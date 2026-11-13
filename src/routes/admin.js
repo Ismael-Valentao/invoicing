@@ -33,6 +33,11 @@ router.get('/subscriptions', admin.listSubscriptions);
 router.post('/subscriptions/activate', admin.activatePlan);
 router.post('/subscriptions/cancel', admin.cancelSubscription);
 
+// Pedidos de upgrade / renovação
+router.get('/upgrade-requests', admin.listUpgradeRequests);
+router.patch('/upgrade-requests/:id', admin.updateUpgradeRequest);
+router.post('/upgrade-requests/:id/activate', admin.activateUpgradeRequest);
+
 // Empresas
 router.get('/companies', admin.listCompanies);
 router.get('/companies/:id', admin.getCompanyDetail);

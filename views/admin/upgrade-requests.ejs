@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"/>
+  <title>Invoicing — <%- title %></title>
+  <link rel="icon" type="image/png" href="/images/invoicing-logo-simple.png"/>
+  <link href="/assets/vendor/fontawesome-free/css/all.min.css" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css?family=Nunito:400,600,700,800" rel="stylesheet"/>
+  <link href="/assets/css/sb-admin-2.min.css" rel="stylesheet"/>
+  <link href="/assets/css/custom.css" rel="stylesheet"/>
+</head>
+<body id="page-top">
+<div id="wrapper">
+  <%- include('../partials/admin-sidebar') %>
+  <div id="content-wrapper" class="d-flex flex-column">
+    <div id="content">
+      <%- include('../partials/topbar') %>
+      <div class="container-fluid py-4">
+
+        <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap">
+          <h4 class="font-weight-bold text-gray-800 mb-0">
+            <i class="fas fa-hand-holding-usd text-primary mr-2"></i>Pedidos de upgrade / renovação
+          </h4>
+          <div class="btn-group btn-group-sm" role="group">
+            <button class="btn btn-outline-primary active" data-filter="pending" onclick="setFilter(this,'pending')">Pendentes</button>
+            <button class="btn btn-outline-secondary" data-filter="" onclick="setFilter(this,'')">Todos</button>
+            <button class="btn btn-outline-success" data-filter="approved" onclick="setFilter(this,'approved')">Aprovados</button>
+            <button class="btn btn-outline-danger" data-filter="rejected" onclick="setFilter(this,'rejected')">Rejeitados</button>
+          </div>
+        </div>
+        <p class="text-muted small mb-4" style="max-width:760px;">
+          Pedidos feitos pelas empresas na página de upgrade. O pagamento é confirmado <strong>fora da plataforma</strong>; depois de confirmares, usa <strong>Activar plano</strong> para activar e marcar como aprovado num clique.
+        </p>
+
+        <div class="card shadow">
+          <div class="card-body">
+            <div class="table-responsive">
+              <table class="table table-sm align-middle">
+                <thead class="thead-light">
+                  <tr>
+                    <th>Data</th><th>Empresa</th><th>Utilizador</th><th>Plano</th>
+                    <th class="text-right">Preço</th><th>Pagamento</th><th>Estado</th><th class="text-right">Acções</th>
+                  </tr>
+                </thead>
+                <tbody id="reqTbody">
+                  <tr><td colspan="8" class="text-center text-muted py-4">A carregar...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+    <%- include('../partials/footer') %>
+  </div>
+</div>
+
+<script src="/assets/vendor/jquery/jquery.min.js"></script>
+<script src="/assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+<script src="/assets/js/sb-admin-2.min.js"></script>
+<script>
+let currentFilter = 'pending';
+
+function setFilter(btn, status) {
+  currentFilter = status;
+  document.querySelectorAll('[data-filter]').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  loadRequests();
+}
+
+function fmtMZN(n) { return (Number(n) || 0).toLocaleString('pt-PT') + ' MZN'; }
+function esc(s) { return String(s || '').replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c])); }
+
+function statusBadge(s) {
+  const map = { pending: ['warning','Pendente'], approved: ['success','Aprovado'], rejected: ['secondary','Rejeitado'] };
+  const [cls, label] = map[s] || ['light', s];
+  return `<span class="badge badge-${cls}">${label}</span>`;
+}
+
+async function loadRequests() {
+  const q = currentFilter ? ('?status=' + currentFilter) : '';
+  const r = await fetch('/api/admin/upgrade-requests' + q);
+  const d = await r.json();
+  const tb = document.getElementById('reqTbody');
+  if (!d.success || !d.requests.length) {
+    tb.innerHTML = '<tr><td colspan="8" class="text-center text-muted py-4">Sem pedidos.</td></tr>';
+    return;
+  }
+  tb.innerHTML = d.requests.map(req => {
+    const cycle = req.billingCycle === 'annual' ? 'Anual' : 'Mensal';
+    const pay = (req.paymentMethod || '—') + (req.paymentRef ? ' · <code>' + esc(req.paymentRef) + '</code>' : '');
+    let actions = '';
+    if (req.status === 'pending') {
+      actions = `
+        <button class="btn btn-success btn-sm" onclick="activateReq('${req._id}','${esc(req.companyName)}','${req.plan}')" title="Activar plano e aprovar"><i class="fas fa-bolt"></i> Activar</button>
+        <button class="btn btn-outline-secondary btn-sm" onclick="setStatus('${req._id}','approved')" title="Marcar como aprovado (sem activar)"><i class="fas fa-check"></i></button>
+        <button class="btn btn-outline-danger btn-sm" onclick="setStatus('${req._id}','rejected')" title="Rejeitar"><i class="fas fa-times"></i></button>`;
+    } else {
+      actions = `<button class="btn btn-outline-secondary btn-sm" onclick="setStatus('${req._id}','pending')" title="Reabrir"><i class="fas fa-undo"></i> Reabrir</button>`;
+    }
+    return `<tr>
+      <td><small>${new Date(req.createdAt).toLocaleString('pt-PT')}</small></td>
+      <td><strong>${esc(req.companyName)}</strong><br><small class="text-muted">${esc(req.companyEmail)}</small></td>
+      <td>${esc(req.userName) || '—'}</td>
+      <td>${req.plan} <small class="text-muted">(${cycle})</small></td>
+      <td class="text-right">${fmtMZN(req.priceMZN)}</td>
+      <td><small>${pay}</small></td>
+      <td>${statusBadge(req.status)}</td>
+      <td class="text-right" style="white-space:nowrap;">${actions}</td>
+    </tr>`;
+  }).join('');
+}
+
+async function activateReq(id, name, plan) {
+  if (!confirm(`Confirmas que o pagamento foi recebido e queres ACTIVAR o plano ${plan} para "${name}"?`)) return;
+  const r = await fetch('/api/admin/upgrade-requests/' + id + '/activate', { method: 'POST' });
+  const d = await r.json();
+  alert(d.message || 'OK');
+  if (d.success) loadRequests();
+}
+
+async function setStatus(id, status) {
+  const labels = { approved: 'aprovado', rejected: 'rejeitado', pending: 'pendente' };
+  if (!confirm(`Marcar este pedido como ${labels[status]}?`)) return;
+  const r = await fetch('/api/admin/upgrade-requests/' + id, {
+    method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status })
+  });
+  const d = await r.json();
+  if (d.success) loadRequests(); else alert(d.message || 'Erro');
+}
+
+loadRequests();
+</script>
+</body>
+</html>

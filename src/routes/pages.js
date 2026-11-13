@@ -310,6 +310,10 @@ router.get('/admin/system', authMiddleware2, requireSuperAdmin, (req, res) => {
     res.render('admin/system', buildViewData(req, 'Admin — Sistema'));
 });
 
+router.get('/admin/upgrade-requests', authMiddleware2, requireSuperAdmin, (req, res) => {
+    res.render('admin/upgrade-requests', buildViewData(req, 'Admin — Pedidos'));
+});
+
 // Despesas
 router.get('/expenses', authMiddleware2, requirePermission('dashboard'), (req, res) => {
     res.render('expenses', buildViewData(req, 'Despesas'));

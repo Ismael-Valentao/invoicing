@@ -4,6 +4,7 @@ const User = require('../models/user');
 const Referral = require('../models/referral');
 const { PLANS, getPlan, getPaidPlanExpiration, loadPlans } = require('../utils/plans');
 const { sendUpgradeRequestEmail } = require('../utils/mailSender');
+const UpgradeRequest = require('../models/upgradeRequest');
 
 /**
  * GET /api/subscriptions/my
@@ -96,15 +97,34 @@ exports.requestUpgrade = async (req, res) => {
         const price = cycle === 'annual' ? (selectedPlan.priceAnnualMZN || selectedPlan.priceMZN * 10) : selectedPlan.priceMZN;
         const cycleLabel = cycle === 'annual' ? 'Anual' : 'Mensal';
 
-        await sendUpgradeRequestEmail({
-            companyName: company.name,
-            companyEmail: company.email,
-            userName: req.user.name,
-            plan: `${selectedPlan.label} (${cycleLabel})`,
+        // Persistir o pedido — fonte de verdade, não depende do email.
+        await UpgradeRequest.create({
+            companyId,
+            companyName: company?.name || '',
+            companyEmail: company?.email || '',
+            requestedBy: req.user.id || null,
+            userName: req.user.name || '',
+            plan,
+            billingCycle: cycle,
             priceMZN: price,
-            paymentMethod: paymentMethod || 'Não especificado',
-            paymentRef: paymentRef || 'Não especificado'
+            paymentMethod: paymentMethod || '',
+            paymentRef: paymentRef || '',
         });
+
+        // Email de notificação — best-effort (não bloqueia o pedido se falhar).
+        try {
+            await sendUpgradeRequestEmail({
+                companyName: company.name,
+                companyEmail: company.email,
+                userName: req.user.name,
+                plan: `${selectedPlan.label} (${cycleLabel})`,
+                priceMZN: price,
+                paymentMethod: paymentMethod || 'Não especificado',
+                paymentRef: paymentRef || 'Não especificado'
+            });
+        } catch (mailErr) {
+            console.error('[requestUpgrade] falha ao enviar email (pedido guardado na mesma):', mailErr.message);
+        }
 
         return res.json({
             success: true,

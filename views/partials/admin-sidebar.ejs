@@ -31,6 +31,15 @@
     </a>
   </li>
 
+  <!-- Pedidos de upgrade / renovação -->
+  <li class="nav-item <%= title === 'Admin — Pedidos' ? 'active' : '' %>">
+    <a class="nav-link" href="/admin/upgrade-requests">
+      <i class="fas fa-fw fa-hand-holding-usd"></i>
+      <span>Pedidos</span>
+      <span id="adminUpgradeReqBadge" class="badge badge-danger badge-pill ml-1" style="display:none;"></span>
+    </a>
+  </li>
+
   <!-- Empresas -->
   <li class="nav-item <%= title === 'Admin — Empresas' ? 'active' : '' %>">
     <a class="nav-link" href="/admin/companies">
@@ -114,6 +123,17 @@ fetch('/api/admin/stats')
     if (data.success && data.stats.expiringSoon > 0) {
       const b = document.getElementById('adminExpiringSoonBadge');
       b.textContent = data.stats.expiringSoon;
+      b.style.display = '';
+    }
+  }).catch(() => {});
+
+// Badge de pedidos de upgrade pendentes
+fetch('/api/admin/upgrade-requests?status=pending')
+  .then(r => r.json())
+  .then(d => {
+    if (d.success && d.pendingCount > 0) {
+      const b = document.getElementById('adminUpgradeReqBadge');
+      b.textContent = d.pendingCount;
       b.style.display = '';
     }
   }).catch(() => {});
