@@ -188,6 +188,7 @@ async function viewCompany(id, name) {
         <li class="nav-item"><a class="nav-link" data-toggle="tab" href="#tab-usage">Uso</a></li>
         <li class="nav-item"><a class="nav-link" data-toggle="tab" href="#tab-users">Utilizadores</a></li>
         <li class="nav-item"><a class="nav-link" data-toggle="tab" href="#tab-payments">Pagamentos</a></li>
+        <li class="nav-item"><a class="nav-link" data-toggle="tab" href="#tab-subpay">Subscrição</a></li>
         <li class="nav-item"><a class="nav-link" data-toggle="tab" href="#tab-actions">Acções</a></li>
       </ul>
 
@@ -248,6 +249,11 @@ async function viewCompany(id, name) {
           <div id="paymentsBox" class="text-muted small">A carregar...</div>
         </div>
 
+        <div class="tab-pane fade" id="tab-subpay">
+          <p class="text-muted small mb-2">Pagamentos de subscrição desta empresa ao Invoicing (plano).</p>
+          <div id="subPaymentsBox" class="text-muted small">A carregar...</div>
+        </div>
+
         <div class="tab-pane fade" id="tab-actions">
           <div class="alert alert-warning small">As acções abaixo afectam directamente a empresa. Use com cuidado.</div>
 
@@ -305,6 +311,24 @@ async function viewCompany(id, name) {
           <td>${(p.amount||0).toLocaleString('pt-PT')} MZN</td>
           <td>${p.paymentMethod}</td>
           <td>${p.reference || '—'}</td>
+        </tr>`).join('')}</tbody></table>`;
+    });
+
+    // Pagamentos de subscrição (o que a empresa pagou ao Invoicing) lazy
+    fetch(`/api/admin/companies/${id}/subscription-payments`).then(r => r.json()).then(sd => {
+      const box = document.getElementById('subPaymentsBox');
+      if (!box) return;
+      if (!sd.success || !sd.payments?.length) { box.innerHTML = '<div class="text-muted">Sem pagamentos de subscrição.</div>'; return; }
+      const dt = x => x ? new Date(x).toLocaleDateString('pt-PT') : '—';
+      box.innerHTML = `<p class="font-weight-bold">Total recebido: ${(sd.total || 0).toLocaleString('pt-PT')} MZN</p>
+        <table class="table table-sm"><thead class="thead-light"><tr><th>Data</th><th>Plano</th><th>Período</th><th>Valor</th><th>Método</th><th>Recibo</th></tr></thead>
+        <tbody>${sd.payments.map(p => `<tr>
+          <td>${dt(p.date || p.createdAt)}</td>
+          <td>${p.plan} <small class="text-muted">(${p.billingCycle === 'annual' ? 'Anual' : 'Mensal'})</small></td>
+          <td><small>${dt(p.periodStart)} — ${dt(p.periodEnd)}</small></td>
+          <td>${(p.amountMZN||0).toLocaleString('pt-PT')} MZN</td>
+          <td>${p.paymentMethod || '—'}${p.paymentRef ? ' · ' + p.paymentRef : ''}</td>
+          <td><code>${p.receiptNumber || '—'}</code></td>
         </tr>`).join('')}</tbody></table>`;
     });
   } catch(e) {
