@@ -1082,8 +1082,73 @@ async function generatePartialPaymentReceiptPDF(companyInfo, {
   return await renderA4Pdf(html);
 }
 
+// Recibo de pagamento de subscrição (Invoicing → empresa).
+async function generateSubscriptionReceiptPDF(payment, company) {
+  const fmtDate = (d) => d ? new Date(d).toLocaleDateString('pt-PT') : '-';
+  const fmtMZN = (n) => (Number(n) || 0).toLocaleString('pt-PT') + ' MZN';
+  const planLabel = payment.plan === 'PREMIUM' ? 'Premium' : (payment.plan === 'BASIC' ? 'Básico' : payment.plan);
+  const cycleLabel = payment.billingCycle === 'annual' ? 'Anual' : 'Mensal';
+  const issuer = { brand: 'Invoicing', name: 'Bitiray, Lda', nuit: '402010266', email: 'invoicing@bitiray.com' };
+
+  const html = `<!DOCTYPE html><html lang="pt"><head><meta charset="utf-8"><style>
+    * { font-family: Arial, Helvetica, sans-serif; color:#333; box-sizing:border-box; }
+    body { margin:0; }
+    .wrap { padding:8px 6px; }
+    .head { display:flex; justify-content:space-between; align-items:flex-start; border-bottom:3px solid #228CDF; padding-bottom:16px; }
+    .brand { font-size:26px; font-weight:800; color:#228CDF; }
+    .brand small { display:block; font-size:11px; color:#666; font-weight:normal; margin-top:2px; }
+    .title { text-align:right; }
+    .title h1 { font-size:22px; margin:0; color:#1b2333; letter-spacing:2px; }
+    .title p { margin:3px 0 0; font-size:12px; color:#666; }
+    .meta { display:flex; justify-content:space-between; margin-top:22px; gap:18px; }
+    .box { flex:1; background:#f8f9fc; border-radius:6px; padding:12px 14px; }
+    .box .lbl { font-size:9px; text-transform:uppercase; letter-spacing:.5px; color:#858796; font-weight:700; margin-bottom:5px; }
+    .box p { margin:2px 0; font-size:12px; }
+    table { width:100%; border-collapse:collapse; margin-top:24px; }
+    th { background:#228CDF; color:#fff; text-align:left; padding:9px 12px; font-size:11px; }
+    th.r, td.r { text-align:right; }
+    td { padding:11px 12px; border-bottom:1px solid #eee; font-size:12px; }
+    .total { text-align:right; margin-top:16px; font-size:16px; font-weight:800; color:#1b2333; }
+    .total span { color:#1cc88a; }
+    .stamp { display:inline-block; margin-top:10px; border:2px solid #1cc88a; color:#1cc88a; font-weight:800; padding:4px 16px; border-radius:6px; transform:rotate(-4deg); font-size:14px; letter-spacing:2px; }
+    .foot { margin-top:34px; padding-top:12px; border-top:1px solid #eee; font-size:10px; color:#999; text-align:center; }
+  </style></head><body><div class="wrap">
+    <div class="head">
+      <div class="brand">${issuer.brand}<small>${escapeHtml(issuer.name)} &middot; NUIT ${issuer.nuit}</small></div>
+      <div class="title"><h1>RECIBO</h1><p>Nº ${escapeHtml(payment.receiptNumber || '-')}</p><p>${fmtDate(payment.date || payment.createdAt)}</p></div>
+    </div>
+    <div class="meta">
+      <div class="box"><div class="lbl">Recebido de</div>
+        <p><strong>${escapeHtml(company?.name || payment.companyName || '-')}</strong></p>
+        <p>NUIT: ${escapeHtml(company?.nuit || '-')}</p>
+        ${company?.email ? `<p>${escapeHtml(company.email)}</p>` : ''}
+      </div>
+      <div class="box"><div class="lbl">Pagamento</div>
+        <p>Método: ${escapeHtml(payment.paymentMethod || '—')}</p>
+        <p>Referência: ${escapeHtml(payment.paymentRef || '—')}</p>
+      </div>
+    </div>
+    <table>
+      <thead><tr><th>Descrição</th><th>Período</th><th class="r">Valor</th></tr></thead>
+      <tbody>
+        <tr>
+          <td>Subscrição <strong>${planLabel}</strong> (${cycleLabel}) — Plataforma Invoicing</td>
+          <td>${fmtDate(payment.periodStart)} &mdash; ${fmtDate(payment.periodEnd)}</td>
+          <td class="r">${fmtMZN(payment.amountMZN)}</td>
+        </tr>
+      </tbody>
+    </table>
+    <div class="total">Total pago: <span>${fmtMZN(payment.amountMZN)}</span></div>
+    <div style="text-align:center;"><span class="stamp">PAGO</span></div>
+    <div class="foot">${issuer.brand} &mdash; ${escapeHtml(issuer.name)} &middot; ${issuer.email}<br>Obrigado pela sua confiança.</div>
+  </div></body></html>`;
+
+  return await renderA4Pdf(html);
+}
+
 module.exports = {
   generateQuotationPDF,
+  generateSubscriptionReceiptPDF,
   generateInvoicePDF,
   generateVDPDF,
   generateReciboPDF,

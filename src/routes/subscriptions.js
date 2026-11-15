@@ -7,7 +7,9 @@ const {
     requestUpgrade,
     adminActivatePlan,
     adminListSubscriptions,
-    getPlans
+    getPlans,
+    getMyPayments,
+    downloadReceipt
 } = require('../controllers/subscriptionController');
 const PaymentSettings = require('../models/paymentSettings');
 const RecurringInvoice = require('../models/recurringInvoice');
@@ -28,6 +30,8 @@ router.get('/payment-settings', async (req, res) => {
 
 // Utilizador autenticado
 router.get('/my', authMiddleware, getMySubscription);
+router.get('/payments', authMiddleware, getMyPayments);
+router.get('/payments/:id/receipt', authMiddleware, downloadReceipt);
 router.post('/request-upgrade', authMiddleware, requestUpgrade);
 
 // Facturas recorrentes

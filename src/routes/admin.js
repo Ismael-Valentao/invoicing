@@ -48,6 +48,7 @@ router.post('/companies/:id/wipe-transactional', admin.wipeCompanyData);
 router.get('/companies/:id/export', admin.exportCompanyData);
 router.post('/companies/:id/force-logout', admin.forceLogoutCompany);
 router.get('/companies/:id/payments', admin.getCompanyPayments);
+router.get('/companies/:id/subscription-payments', admin.getCompanySubscriptionPayments);
 router.post('/companies/:id/email', admin.emailCompany);
 router.patch('/companies/:id/extend', admin.extendSubscription);
 router.patch('/companies/:id/change-plan', admin.changePlanKeepExpiry);

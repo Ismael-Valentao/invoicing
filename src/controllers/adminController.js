@@ -24,6 +24,7 @@ const ErrorLog = require('../models/errorLog');
 const EmailTemplate = require('../models/emailTemplate');
 const Release = require('../models/release');
 const UpgradeRequest = require('../models/upgradeRequest');
+const { recordSubscriptionPayment } = require('../utils/subscriptionPayments');
 const { DEFAULTS: PLAN_DEFAULTS, invalidateCache: invalidatePlanCache } = require('../utils/plans');
 const { PLANS, getPlan, getPaidPlanExpiration, getFreePlanExpiration } = require('../utils/plans');
 const { sendUpgradeConfirmationEmail, sendGeneric, sendForcedPasswordResetEmail } = require('../utils/mailSender');
@@ -177,6 +178,17 @@ exports.activatePlan = async (req, res) => {
                 getPlan(plan).label
             );
         }
+
+        // Registar pagamento de subscrição (histórico + recibo)
+        const planCfg = getPlan(plan);
+        const amountMZN = cycle === 'annual'
+            ? (planCfg.priceAnnualMZN || (planCfg.priceMZN || 0) * 10)
+            : (planCfg.priceMZN || 0) * numMonths;
+        await recordSubscriptionPayment({
+            companyId, companyName: company?.name || '', plan, billingCycle: cycle,
+            amountMZN, periodStart: sub.startDate, periodEnd: expiry,
+            source: 'admin-activate', recordedBy: req.user.id || null,
+        });
 
         return res.json({
             success: true,
@@ -547,7 +559,28 @@ exports.activateUpgradeRequest = async (req, res) => {
             }
         } catch (e) { /* não bloqueia a activação */ }
 
+        // Registar pagamento de subscrição (histórico + recibo) com os dados do pedido
+        await recordSubscriptionPayment({
+            companyId: reqDoc.companyId, companyName: reqDoc.companyName, plan: reqDoc.plan,
+            billingCycle: cycle, amountMZN: reqDoc.priceMZN,
+            paymentMethod: reqDoc.paymentMethod, paymentRef: reqDoc.paymentRef,
+            periodStart: sub.startDate, periodEnd: expiry,
+            source: 'upgrade-request', recordedBy: req.user.id || null, upgradeRequestId: reqDoc._id,
+        });
+
         return res.json({ success: true, message: `Plano ${reqDoc.plan} activado para ${reqDoc.companyName}.`, subscription: sub, request: reqDoc });
+    } catch (err) {
+        return res.status(500).json({ success: false, message: err.message });
+    }
+};
+
+// Histórico de pagamentos de subscrição de uma empresa (admin).
+exports.getCompanySubscriptionPayments = async (req, res) => {
+    try {
+        const SubscriptionPayment = require('../models/subscriptionPayment');
+        const payments = await SubscriptionPayment.find({ companyId: req.params.id }).sort({ createdAt: -1 }).lean();
+        const total = payments.reduce((a, p) => a + (p.amountMZN || 0), 0);
+        return res.json({ success: true, payments, total });
     } catch (err) {
         return res.status(500).json({ success: false, message: err.message });
     }

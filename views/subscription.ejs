@@ -72,6 +72,32 @@
           </div>
         </div>
 
+        <!-- Histórico de pagamentos -->
+        <div class="row mb-4">
+          <div class="col-xl-8 col-lg-10">
+            <div class="card sub-card shadow-sm">
+              <div class="card-header bg-white font-weight-bold">
+                <i class="fas fa-receipt text-primary mr-2"></i>Histórico de pagamentos
+              </div>
+              <div class="card-body p-0">
+                <div class="table-responsive">
+                  <table class="table mb-0">
+                    <thead class="thead-light">
+                      <tr>
+                        <th>Data</th><th>Plano</th><th>Período</th>
+                        <th class="text-right">Valor</th><th class="text-center">Recibo</th>
+                      </tr>
+                    </thead>
+                    <tbody id="paymentsBody">
+                      <tr><td colspan="5" class="text-center text-muted py-3">A carregar...</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <!-- Tabela de planos -->
         <div class="row">
           <div class="col-xl-8 col-lg-10">
@@ -233,7 +259,32 @@ async function loadSubscription() {
   }
 }
 
+async function loadPayments() {
+  const tb = document.getElementById('paymentsBody');
+  try {
+    const r = await fetch('/api/subscriptions/payments', { cache: 'no-store' });
+    const d = await r.json();
+    if (!d.success || !d.payments.length) {
+      tb.innerHTML = '<tr><td colspan="5" class="text-center text-muted py-3">Ainda não há pagamentos registados.</td></tr>';
+      return;
+    }
+    const fmt = n => (Number(n) || 0).toLocaleString('pt-PT') + ' MZN';
+    const dt = x => x ? new Date(x).toLocaleDateString('pt-PT') : '-';
+    tb.innerHTML = d.payments.map(p => `
+      <tr>
+        <td>${dt(p.date || p.createdAt)}</td>
+        <td><span class="plan-pill ${planClasses[p.plan] || 'plan-BASIC'}">${p.plan}</span> <small class="text-muted">${p.billingCycle === 'annual' ? 'Anual' : 'Mensal'}</small></td>
+        <td><small>${dt(p.periodStart)} — ${dt(p.periodEnd)}</small></td>
+        <td class="text-right font-weight-bold">${fmt(p.amountMZN)}</td>
+        <td class="text-center"><a href="/api/subscriptions/payments/${p._id}/receipt" class="btn btn-sm btn-outline-primary" title="Descarregar recibo"><i class="fas fa-download"></i></a></td>
+      </tr>`).join('');
+  } catch (e) {
+    tb.innerHTML = '<tr><td colspan="5" class="text-center text-danger py-3">Erro ao carregar.</td></tr>';
+  }
+}
+
 loadSubscription();
+loadPayments();
 </script>
 </body>
 </html>

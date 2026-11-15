@@ -5,6 +5,9 @@ const Referral = require('../models/referral');
 const { PLANS, getPlan, getPaidPlanExpiration, loadPlans } = require('../utils/plans');
 const { sendUpgradeRequestEmail } = require('../utils/mailSender');
 const UpgradeRequest = require('../models/upgradeRequest');
+const SubscriptionPayment = require('../models/subscriptionPayment');
+const { recordSubscriptionPayment } = require('../utils/subscriptionPayments');
+const { generateSubscriptionReceiptPDF } = require('../utils/pdfGenerator');
 
 /**
  * GET /api/subscriptions/my
@@ -204,6 +207,14 @@ exports.adminActivatePlan = async (req, res) => {
 
         const company = await Company.findById(companyId);
 
+        // Registar pagamento de subscrição (histórico + recibo)
+        const planCfg = getPlan(plan);
+        await recordSubscriptionPayment({
+            companyId, companyName: company?.name || '', plan, billingCycle: 'monthly',
+            amountMZN: planCfg.priceMZN || 0, periodStart: sub.startDate, periodEnd: sub.expiresAt,
+            source: 'admin-activate', recordedBy: req.user.id || null,
+        });
+
         return res.json({
             success: true,
             message: `Plano ${plan} activado para ${company?.name || companyId}.`,
@@ -212,6 +223,46 @@ exports.adminActivatePlan = async (req, res) => {
     } catch (err) {
         console.error('Erro ao activar plano:', err);
         return res.status(500).json({ success: false, message: 'Erro ao activar plano.' });
+    }
+};
+
+/**
+ * GET /api/subscriptions/payments
+ * Histórico de pagamentos de subscrição da empresa do utilizador.
+ */
+exports.getMyPayments = async (req, res) => {
+    try {
+        if (req.user.role === 'SUPERADMIN') return res.json({ success: true, payments: [] });
+        const companyId = req.user.company?._id;
+        if (!companyId) return res.status(404).json({ success: false, message: 'Empresa não encontrada.' });
+        const payments = await SubscriptionPayment.find({ companyId }).sort({ createdAt: -1 }).lean();
+        res.set('Cache-Control', 'no-store');
+        return res.json({ success: true, payments });
+    } catch (err) {
+        return res.status(500).json({ success: false, message: 'Erro ao obter histórico de pagamentos.' });
+    }
+};
+
+/**
+ * GET /api/subscriptions/payments/:id/receipt
+ * PDF do recibo de um pagamento (apenas da própria empresa).
+ */
+exports.downloadReceipt = async (req, res) => {
+    try {
+        const companyId = req.user.company?._id;
+        if (!companyId) return res.status(404).json({ success: false, message: 'Empresa não encontrada.' });
+        const payment = await SubscriptionPayment.findOne({ _id: req.params.id, companyId }).lean();
+        if (!payment) return res.status(404).json({ success: false, message: 'Recibo não encontrado.' });
+        const company = await Company.findById(companyId).lean();
+        const pdfBuffer = await generateSubscriptionReceiptPDF(payment, company);
+        res.set({
+            'Content-Type': 'application/pdf',
+            'Content-Disposition': `attachment; filename=recibo-${payment.receiptNumber || payment._id}.pdf`,
+        });
+        return res.send(pdfBuffer);
+    } catch (err) {
+        console.error('[downloadReceipt]', err);
+        return res.status(500).json({ success: false, message: 'Erro ao gerar recibo.' });
     }
 };
 
